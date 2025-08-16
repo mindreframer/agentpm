@@ -1,0 +1,162 @@
+<epic id="8" name="Schools Index Pagination" status="planning" priority="high">
+    <metadata>
+        <created>2025-08-15T09:00:00Z</created>
+        <assignee>agent_claude</assignee>
+        <estimated_effort>2-3 days</estimated_effort>
+    </metadata>
+
+    <description>
+        Implement efficient pagination for the schools index page to handle large datasets and
+        improve performance. Replace in-memory school loading with database pagination while
+        maintaining existing filtering and search functionality.
+    </description>
+
+    <requirements>
+        <core_stories>
+            <story>Replace in-memory school loading with database pagination</story>
+            <story>Add pagination controls with page navigation</story>
+            <story>Maintain URL state for bookmarkable paginated views</story>
+            <story>Preserve existing filtering (status) and search functionality</story>
+            <story>Display pagination metadata (showing X of Y schools)</story>
+        </core_stories>
+        <technical_requirements>
+            <requirement>Database-level pagination to handle hundreds of schools</requirement>
+            <requirement>URL State Management - Page numbers, filters, and search terms in URL</requirement>
+            <requirement>LiveView Integration - Real-time pagination without page reloads</requirement>
+            <requirement>Mobile Responsive - Simplified pagination controls on mobile devices</requirement>
+            <requirement>QuickCrud Integration - Leverage existing paginate() functionality</requirement>
+        </technical_requirements>
+    </requirements>
+
+    <outline>
+        <phase id="1A" name="Enhanced Schools Context with Pagination" status="pending">
+            <description>Extend MyApp.Schools.Main with paginated functions and database-level
+                pagination</description>
+            <deliverables>
+                <deliverable>list_schools_paginated function with combined filtering</deliverable>
+                <deliverable>Enhanced SchoolCrud with QuickCrud.paginate() integration</deliverable>
+                <deliverable>Efficient database queries with proper indexing</deliverable>
+            </deliverables>
+        </phase>
+        <phase id="1B" name="Context Pagination Tests" status="pending">
+            <description>Comprehensive testing of pagination context functions</description>
+            <deliverables>
+                <deliverable>Database-level pagination performance tests</deliverable>
+                <deliverable>Combined filtering + pagination test coverage</deliverable>
+                <deliverable>Edge case validation (empty results, invalid pages)</deliverable>
+            </deliverables>
+        </phase>
+        <phase id="2A" name="URL Parameter and State Management" status="pending">
+            <description>Implement URL parameter schema and state preservation</description>
+            <deliverables>
+                <deliverable>URL parameter handling (page, status, search, page_size)</deliverable>
+                <deliverable>Routes module enhancement with pagination paths</deliverable>
+                <deliverable>Page validation and redirect handling</deliverable>
+            </deliverables>
+        </phase>
+        <phase id="2B" name="Pagination UI Component" status="pending">
+            <description>Create reusable pagination component with accessibility</description>
+            <deliverables>
+                <deliverable>Previous/Next navigation with disabled states</deliverable>
+                <deliverable>Page number display and clickable links</deliverable>
+                <deliverable>Mobile-responsive design with touch-friendly controls</deliverable>
+                <deliverable>Accessibility features (ARIA labels, keyboard navigation)</deliverable>
+            </deliverables>
+        </phase>
+    </outline>
+
+    <tasks>
+        <task id="1A_1" phase_id="1A" status="pending">
+            <description>Implement list_schools_paginated with combined filtering logic</description>
+            <acceptance_criteria>
+                <criterion>Function accepts opts, page, and page_size parameters</criterion>
+                <criterion>Integrates with existing status and search filtering</criterion>
+                <criterion>Returns paginated results with metadata</criterion>
+            </acceptance_criteria>
+        </task>
+        <task id="1A_2" phase_id="1A" status="pending">
+            <description>Enhance SchoolCrud with QuickCrud.paginate() integration</description>
+            <acceptance_criteria>
+                <criterion>Efficient LIMIT/OFFSET queries</criterion>
+                <criterion>Contact preloading for paginated results</criterion>
+                <criterion>Proper indexing for performance</criterion>
+            </acceptance_criteria>
+        </task>
+        <task id="2A_1" phase_id="2A" status="pending">
+            <description>Implement URL parameter schema for pagination</description>
+            <acceptance_criteria>
+                <criterion>page parameter for current page number</criterion>
+                <criterion>Preserves existing status and search parameters</criterion>
+                <criterion>Reset to page 1 when filters change</criterion>
+                <criterion>SEO-friendly URL structure</criterion>
+            </acceptance_criteria>
+        </task>
+        <task id="2B_1" phase_id="2B" status="pending">
+            <description>Create PaginationComponent with navigation controls</description>
+            <acceptance_criteria>
+                <criterion>Previous/Next buttons with proper disabled states</criterion>
+                <criterion>Current page highlighting</criterion>
+                <criterion>Mobile-responsive with 44px+ touch targets</criterion>
+                <criterion>Pagination metadata display</criterion>
+            </acceptance_criteria>
+        </task>
+    </tasks>
+
+    <tests>
+        <test id="1A_1" phase_id="1A" status="pending">
+            <given>I have 100 schools in the database</given>
+            <when>I call list_schools_paginated with page=2, page_size=25</when>
+            <then>I get schools 26-50 with pagination metadata</then>
+        </test>
+        <test id="1A_2" phase_id="1A" status="pending">
+            <given>I have schools with different statuses</given>
+            <when>I call list_schools_by_status_paginated with status=engaged</when>
+            <then>Only engaged schools are returned with pagination</then>
+        </test>
+        <test id="2A_1" phase_id="2A" status="pending">
+            <given>I'm on page 2 of schools</given>
+            <when>I refresh the browser</when>
+            <then>I stay on page 2 with URL showing ?page=2</then>
+        </test>
+        <test id="2A_2" phase_id="2A" status="pending">
+            <given>I visit /crm/schools?page=99 and only 4 pages exist</given>
+            <when>The page loads</when>
+            <then>I'm redirected to page 4</then>
+        </test>
+        <test id="2B_1" phase_id="2B" status="pending">
+            <given>I have 100 schools displayed</given>
+            <when>I click the "Next" button</when>
+            <then>I see page 2 and schools 26-50</then>
+        </test>
+        <test id="2B_2" phase_id="2B" status="pending">
+            <given>I'm on mobile device</given>
+            <when>I tap pagination controls</when>
+            <then>They work and are easy to tap (44px+ targets)</then>
+        </test>
+    </tests>
+
+    <configuration>
+        <setting key="default_page_size" value="25" />
+        <setting key="max_page_size" value="100" />
+        <setting key="mobile_page_display" value="simplified" />
+        <setting key="url_page_param" value="page" />
+    </configuration>
+
+    <dependencies>
+        <dependency epic_id="1" type="required">Database schema (crm_schools table) and QuickCrud
+            system</dependency>
+        <dependency epic_id="3" type="required">School management LiveView pages and existing
+            filtering</dependency>
+        <dependency epic_id="4" type="optional">Contact management for preloading optimization</dependency>
+    </dependencies>
+
+    <events>
+        <!-- Events will be added as work progresses -->
+    </events>
+
+    <current_state>
+        <active_phase>none</active_phase>
+        <active_task>none</active_task>
+        <next_action>Start Phase 1A: Enhanced Schools Context with Pagination</next_action>
+    </current_state>
+</epic>

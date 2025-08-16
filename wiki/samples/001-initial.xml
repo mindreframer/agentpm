@@ -36,15 +36,11 @@
     </tests>
 
     <events>
-        <event timestamp="2025-08-16T14:30:00Z" agent="agent_claude" phase_id="1A">
-            <action>Implemented OAuth2 login flow</action>
-            <files_changed>
-                <file path="src/auth/oauth.js" status="added">Created OAuth handler</file>
-                <file path="src/routes/auth.js" status="added">Added login endpoints</file>
-            </files_changed>
-            <result status="success">
-                all tests are passing, with some minor warnings
-            </result>
+        <event timestamp="2025-08-16T14:30:00Z" agent="agent_claude" phase_id="1A" type="implementation">
+            Implemented OAuth2 login flow
+
+            Files: src/auth/oauth.js (added), src/routes/auth.js (added)
+            Result: All tests passing with minor warnings
         </event>
     </events>
 
