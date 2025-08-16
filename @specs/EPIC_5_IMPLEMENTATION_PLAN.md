@@ -355,10 +355,10 @@ func (s *AutoNextService) SelectNext() (*AutoNextResult, error) {
 - [x] Phase 1B: Write Phase Service Tests  
 - [x] Phase 1C: Phase Management Commands
 - [x] Phase 1D: Write Phase Commands Tests
-- [ ] Phase 2A: Create Task Service Foundation
-- [ ] Phase 2B: Write Task Service Tests
-- [ ] Phase 2C: Task Management Commands
-- [ ] Phase 2D: Write Task Commands Tests
+- [x] Phase 2A: Create Task Service Foundation
+- [x] Phase 2B: Write Task Service Tests
+- [x] Phase 2C: Task Management Commands
+- [x] Phase 2D: Write Task Commands Tests
 - [ ] Phase 3A: Auto-Next Selection Algorithm
 - [ ] Phase 3B: Write Auto-Next Algorithm Tests
 - [ ] Phase 3C: Start-Next Command Implementation
