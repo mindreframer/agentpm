@@ -421,3 +421,193 @@ func TestDoneEpicCommand_ErrorFileNotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to load epic")
 }
+
+func TestDoneEpicCommand_EnhancedValidationErrorJSON(t *testing.T) {
+	tempDir := t.TempDir()
+	epicFile := filepath.Join(tempDir, "test-epic.xml")
+
+	// Create test epic with detailed pending work
+	testEpic := &epic.Epic{
+		ID:     "enhanced-validation-epic",
+		Name:   "Enhanced Validation Test Epic",
+		Status: epic.StatusActive, // wip state
+		Phases: []epic.Phase{
+			{ID: "phase-1", Name: "Implementation Phase", Status: epic.StatusPlanning}, // pending!
+			{ID: "phase-2", Name: "Testing Phase", Status: epic.StatusCompleted},
+		},
+		Tasks: []epic.Task{
+			{ID: "task-1", PhaseID: "phase-1", Name: "Core Logic", Status: epic.StatusPlanning},
+			{ID: "task-2", PhaseID: "phase-2", Name: "Unit Tests", Status: epic.StatusCompleted},
+		},
+		Tests: []epic.Test{
+			{ID: "test-1", TaskID: "task-1", Name: "Logic Test", Status: epic.StatusPlanning, Description: "Test core business logic"}, // failing!
+			{ID: "test-2", TaskID: "task-2", Name: "Coverage Test", Status: epic.StatusCompleted, Description: "Test coverage verification"},
+		},
+	}
+	writeTestEpicXML(t, epicFile, testEpic)
+
+	// Create CLI app
+	app := &cli.Command{
+		Name: "agentpm",
+		Flags: []cli.Flag{
+			&cli.StringFlag{Name: "format", Value: "json"},
+		},
+		Commands: []*cli.Command{
+			DoneEpicCommand(),
+		},
+	}
+
+	var stderr bytes.Buffer
+	app.ErrWriter = &stderr
+
+	// Run command
+	args := []string{"agentpm", "done-epic", "--file", epicFile}
+	err := app.Run(context.Background(), args)
+
+	// Should return validation error
+	assert.Error(t, err)
+
+	// Parse JSON error output
+	var output map[string]interface{}
+	err = json.Unmarshal(stderr.Bytes(), &output)
+	require.NoError(t, err)
+
+	// Verify JSON structure
+	assert.Contains(t, output, "error")
+	errorObj := output["error"].(map[string]interface{})
+	assert.Equal(t, "completion_validation", errorObj["type"])
+	assert.Equal(t, "enhanced-validation-epic", errorObj["epic_id"])
+	assert.Contains(t, errorObj["message"], "cannot be completed: 1 pending phases, 1 failing tests")
+	assert.Contains(t, errorObj["message"], "50% complete")
+	assert.Contains(t, errorObj["message"], "Implementation Phase")
+	assert.Contains(t, errorObj["message"], "Logic Test")
+
+	// Check pending phases structure
+	pendingPhases := errorObj["pending_phases"].([]interface{})
+	assert.Len(t, pendingPhases, 1)
+	phase := pendingPhases[0].(map[string]interface{})
+	assert.Equal(t, "phase-1", phase["id"])
+	assert.Equal(t, "Implementation Phase", phase["name"])
+
+	// Check failing tests structure
+	failingTests := errorObj["failing_tests"].([]interface{})
+	assert.Len(t, failingTests, 1)
+	test := failingTests[0].(map[string]interface{})
+	assert.Equal(t, "test-1", test["id"])
+	assert.Equal(t, "Logic Test", test["name"])
+	assert.Equal(t, "Test core business logic", test["description"])
+}
+
+func TestDoneEpicCommand_EnhancedValidationErrorXML(t *testing.T) {
+	tempDir := t.TempDir()
+	epicFile := filepath.Join(tempDir, "test-epic.xml")
+
+	// Create test epic with detailed pending work
+	testEpic := &epic.Epic{
+		ID:     "xml-validation-epic",
+		Name:   "XML Validation Test Epic",
+		Status: epic.StatusActive, // wip state
+		Phases: []epic.Phase{
+			{ID: "phase-1", Name: "Development Phase", Status: epic.StatusPlanning}, // pending!
+		},
+		Tasks: []epic.Task{
+			{ID: "task-1", PhaseID: "phase-1", Name: "Implementation", Status: epic.StatusPlanning},
+		},
+		Tests: []epic.Test{
+			{ID: "test-1", TaskID: "task-1", Name: "Unit Test", Status: epic.StatusPlanning, Description: "Unit test validation"}, // failing!
+		},
+	}
+	writeTestEpicXML(t, epicFile, testEpic)
+
+	// Create CLI app
+	app := &cli.Command{
+		Name: "agentpm",
+		Flags: []cli.Flag{
+			&cli.StringFlag{Name: "format", Value: "xml"},
+		},
+		Commands: []*cli.Command{
+			DoneEpicCommand(),
+		},
+	}
+
+	var stderr bytes.Buffer
+	app.ErrWriter = &stderr
+
+	// Run command
+	args := []string{"agentpm", "done-epic", "--file", epicFile}
+	err := app.Run(context.Background(), args)
+
+	// Should return validation error
+	assert.Error(t, err)
+
+	// Check XML output contains expected structure
+	xmlOutput := stderr.String()
+	assert.Contains(t, xmlOutput, `<type>completion_validation</type>`)
+	assert.Contains(t, xmlOutput, `<epic_id>xml-validation-epic</epic_id>`)
+	assert.Contains(t, xmlOutput, `<pending_phases>`)
+	assert.Contains(t, xmlOutput, `<phase id="phase-1">Development Phase</phase>`)
+	assert.Contains(t, xmlOutput, `<failing_tests>`)
+	assert.Contains(t, xmlOutput, `<test id="test-1">Unit Test</test>`)
+	assert.Contains(t, xmlOutput, "cannot be completed: 1 pending phases, 1 failing tests")
+	assert.Contains(t, xmlOutput, "Development Phase")
+}
+
+func TestDoneEpicCommand_EnhancedValidationProgress(t *testing.T) {
+	tempDir := t.TempDir()
+	epicFile := filepath.Join(tempDir, "test-epic.xml")
+
+	// Create test epic with mixed completion (75% complete)
+	testEpic := &epic.Epic{
+		ID:     "progress-test-epic",
+		Name:   "Progress Test Epic",
+		Status: epic.StatusActive, // wip state
+		Phases: []epic.Phase{
+			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
+			{ID: "phase-2", Name: "Phase 2", Status: epic.StatusCompleted},
+			{ID: "phase-3", Name: "Phase 3", Status: epic.StatusCompleted},
+			{ID: "phase-4", Name: "Phase 4", Status: epic.StatusPlanning}, // pending!
+		},
+		Tasks: []epic.Task{
+			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
+			{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusCompleted},
+			{ID: "task-3", PhaseID: "phase-3", Name: "Task 3", Status: epic.StatusCompleted},
+			{ID: "task-4", PhaseID: "phase-4", Name: "Task 4", Status: epic.StatusPlanning},
+		},
+		Tests: []epic.Test{
+			{ID: "test-1", TaskID: "task-1", Name: "Test 1", Status: epic.StatusCompleted},
+			{ID: "test-2", TaskID: "task-2", Name: "Test 2", Status: epic.StatusCompleted},
+			{ID: "test-3", TaskID: "task-3", Name: "Test 3", Status: epic.StatusCompleted},
+			{ID: "test-4", TaskID: "task-4", Name: "Test 4", Status: epic.StatusPlanning}, // failing!
+		},
+	}
+	writeTestEpicXML(t, epicFile, testEpic)
+
+	// Create CLI app
+	app := &cli.Command{
+		Name: "agentpm",
+		Flags: []cli.Flag{
+			&cli.StringFlag{Name: "format", Value: "text"},
+		},
+		Commands: []*cli.Command{
+			DoneEpicCommand(),
+		},
+	}
+
+	var stderr bytes.Buffer
+	app.ErrWriter = &stderr
+
+	// Run command
+	args := []string{"agentpm", "done-epic", "--file", epicFile}
+	err := app.Run(context.Background(), args)
+
+	// Should return validation error with progress information
+	assert.Error(t, err)
+	stderrOutput := stderr.String()
+
+	// Verify progress calculation (75% complete: 3/4 phases, 3/4 tasks, 3/4 tests)
+	assert.Contains(t, stderrOutput, "75% complete")
+	assert.Contains(t, stderrOutput, "(3/4 phases, 3/4 tasks, 3/4 tests)")
+	assert.Contains(t, stderrOutput, "Pending phases: Phase 4 (phase-4)")
+	assert.Contains(t, stderrOutput, "Failing tests: Test 4 (test-4)")
+	assert.Contains(t, stderrOutput, "Epic is 75% complete")
+}

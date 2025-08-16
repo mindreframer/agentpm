@@ -199,6 +199,11 @@ func outputDoneEpicError(c *cli.Command, err error, format string) error {
 		return outputDoneTransitionError(c, transitionErr, format)
 	}
 
+	// Check if it's a completion validation error for enhanced formatting
+	if validationErr, ok := err.(*lifecycle.CompletionValidationError); ok {
+		return outputDoneValidationError(c, validationErr, format)
+	}
+
 	// Generic error output
 	fmt.Fprintf(c.Root().ErrWriter, "Error: %v\n", err)
 	return err
@@ -271,4 +276,99 @@ func outputDoneTransitionErrorXML(c *cli.Command, err *lifecycle.TransitionError
 	doc.WriteTo(c.Root().ErrWriter)
 	fmt.Fprintf(c.Root().ErrWriter, "\n") // Add newline
 	return err
+}
+
+func outputDoneValidationError(c *cli.Command, err *lifecycle.CompletionValidationError, format string) error {
+	switch format {
+	case "json":
+		return outputDoneValidationErrorJSON(c, err)
+	case "xml":
+		return outputDoneValidationErrorXML(c, err)
+	default:
+		return outputDoneValidationErrorText(c, err)
+	}
+}
+
+func outputDoneValidationErrorText(c *cli.Command, err *lifecycle.CompletionValidationError) error {
+	fmt.Fprintf(c.Root().ErrWriter, "Error: %s\n", err.Message)
+	return err
+}
+
+func outputDoneValidationErrorJSON(c *cli.Command, err *lifecycle.CompletionValidationError) error {
+	output := map[string]interface{}{
+		"error": map[string]interface{}{
+			"type":           "completion_validation",
+			"epic_id":        err.EpicID,
+			"message":        err.Message,
+			"pending_phases": convertPendingPhasesToJSON(err.PendingPhases),
+			"failing_tests":  convertFailingTestsToJSON(err.FailingTests),
+		},
+	}
+
+	encoder := json.NewEncoder(c.Root().ErrWriter)
+	encoder.SetIndent("", "  ")
+	encoder.Encode(output)
+	return err
+}
+
+func outputDoneValidationErrorXML(c *cli.Command, err *lifecycle.CompletionValidationError) error {
+	doc := etree.NewDocument()
+	root := doc.CreateElement("error")
+
+	errorType := root.CreateElement("type")
+	errorType.SetText("completion_validation")
+
+	epicID := root.CreateElement("epic_id")
+	epicID.SetText(err.EpicID)
+
+	message := root.CreateElement("message")
+	message.SetText(err.Message)
+
+	// Add pending phases
+	if len(err.PendingPhases) > 0 {
+		pendingPhasesElem := root.CreateElement("pending_phases")
+		for _, phase := range err.PendingPhases {
+			phaseElem := pendingPhasesElem.CreateElement("phase")
+			phaseElem.CreateAttr("id", phase.ID)
+			phaseElem.SetText(phase.Name)
+		}
+	}
+
+	// Add failing tests
+	if len(err.FailingTests) > 0 {
+		failingTestsElem := root.CreateElement("failing_tests")
+		for _, test := range err.FailingTests {
+			testElem := failingTestsElem.CreateElement("test")
+			testElem.CreateAttr("id", test.ID)
+			testElem.SetText(test.Name)
+		}
+	}
+
+	doc.Indent(4)
+	doc.WriteTo(c.Root().ErrWriter)
+	fmt.Fprintf(c.Root().ErrWriter, "\n") // Add newline
+	return err
+}
+
+func convertPendingPhasesToJSON(phases []lifecycle.PendingPhase) []map[string]string {
+	result := make([]map[string]string, len(phases))
+	for i, phase := range phases {
+		result[i] = map[string]string{
+			"id":   phase.ID,
+			"name": phase.Name,
+		}
+	}
+	return result
+}
+
+func convertFailingTestsToJSON(tests []lifecycle.FailingTest) []map[string]string {
+	result := make([]map[string]string, len(tests))
+	for i, test := range tests {
+		result[i] = map[string]string{
+			"id":          test.ID,
+			"name":        test.Name,
+			"description": test.Description,
+		}
+	}
+	return result
 }
