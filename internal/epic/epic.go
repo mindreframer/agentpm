@@ -43,12 +43,57 @@ type Task struct {
 	Assignee    string `xml:"assignee,attr,omitempty"`
 }
 
+type TestStatus string
+
+const (
+	TestStatusPending   TestStatus = "pending"
+	TestStatusWIP       TestStatus = "wip"
+	TestStatusPassed    TestStatus = "passed"
+	TestStatusFailed    TestStatus = "failed"
+	TestStatusCancelled TestStatus = "cancelled"
+)
+
+func (s TestStatus) IsValid() bool {
+	switch s {
+	case TestStatusPending, TestStatusWIP, TestStatusPassed, TestStatusFailed, TestStatusCancelled:
+		return true
+	default:
+		return false
+	}
+}
+
+func (s TestStatus) CanTransitionTo(target TestStatus) bool {
+	transitions := map[TestStatus][]TestStatus{
+		TestStatusPending:   {TestStatusWIP},
+		TestStatusWIP:       {TestStatusPassed, TestStatusFailed, TestStatusCancelled},
+		TestStatusPassed:    {TestStatusFailed},
+		TestStatusFailed:    {TestStatusPassed},
+		TestStatusCancelled: {},
+	}
+
+	for _, allowed := range transitions[s] {
+		if allowed == target {
+			return true
+		}
+	}
+	return false
+}
+
 type Test struct {
 	ID          string `xml:"id,attr"`
 	TaskID      string `xml:"task_id,attr"`
+	PhaseID     string `xml:"phase_id,attr"`
 	Name        string `xml:"name,attr"`
 	Description string `xml:"description"`
 	Status      Status `xml:"status,attr"`
+	// Epic 4 enhancements - optional fields for enhanced test management
+	TestStatus         TestStatus `xml:"test_status,attr,omitempty"`
+	StartedAt          *time.Time `xml:"started_at,omitempty"`
+	PassedAt           *time.Time `xml:"passed_at,omitempty"`
+	FailedAt           *time.Time `xml:"failed_at,omitempty"`
+	CancelledAt        *time.Time `xml:"cancelled_at,omitempty"`
+	FailureNote        string     `xml:"failure_note,omitempty"`
+	CancellationReason string     `xml:"cancellation_reason,omitempty"`
 }
 
 type Event struct {

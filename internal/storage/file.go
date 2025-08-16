@@ -86,10 +86,12 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 	if testsElem := root.SelectElement("tests"); testsElem != nil {
 		for _, testElem := range testsElem.SelectElements("test") {
 			test := epic.Test{
-				ID:     testElem.SelectAttrValue("id", ""),
-				TaskID: testElem.SelectAttrValue("task_id", ""),
-				Name:   testElem.SelectAttrValue("name", ""),
-				Status: epic.Status(testElem.SelectAttrValue("status", "")),
+				ID:         testElem.SelectAttrValue("id", ""),
+				TaskID:     testElem.SelectAttrValue("task_id", ""),
+				PhaseID:    testElem.SelectAttrValue("phase_id", ""),
+				Name:       testElem.SelectAttrValue("name", ""),
+				Status:     epic.Status(testElem.SelectAttrValue("status", "")),
+				TestStatus: epic.TestStatus(testElem.SelectAttrValue("test_status", "")),
 			}
 			if descElem := testElem.SelectElement("description"); descElem != nil {
 				test.Description = descElem.Text()
