@@ -47,6 +47,7 @@ func main() {
 			cmd.FailingCommand(),
 			cmd.EventsCommand(),
 			cmd.StartEpicCommand(),
+			cmd.DoneEpicCommand(),
 		},
 	}
 

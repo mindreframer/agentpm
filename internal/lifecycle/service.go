@@ -161,6 +161,71 @@ func (ls *LifecycleService) StartEpic(request StartEpicRequest) (*StartEpicResul
 	}, nil
 }
 
+// DoneEpic transitions an epic from wip to done status (simplified version of CompleteEpic)
+func (ls *LifecycleService) DoneEpic(request DoneEpicRequest) (*DoneEpicResult, error) {
+	// Load the epic
+	loadedEpic, err := ls.storage.LoadEpic(request.EpicFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load epic: %w", err)
+	}
+
+	// Validate current status
+	currentStatus := FromEpicStatus(loadedEpic.Status)
+	if !currentStatus.CanTransitionTo(LifecycleStatusDone) {
+		return nil, &TransitionError{
+			EpicID:        loadedEpic.ID,
+			CurrentStatus: currentStatus,
+			TargetStatus:  LifecycleStatusDone,
+			Message:       fmt.Sprintf("Epic cannot be completed from status: %s", currentStatus),
+			Suggestion:    "Epic must be started first using 'agentpm start-epic'",
+		}
+	}
+
+	// Validate completion requirements using enhanced validation
+	if err := ls.validateCompletionRequirementsEnhanced(loadedEpic); err != nil {
+		return nil, err
+	}
+
+	// Determine timestamp
+	completedTime := ls.timeSource()
+	if request.Timestamp != nil {
+		completedTime = *request.Timestamp
+	}
+
+	// Calculate duration - for now we'll use a simple placeholder since StartedAt isn't in the epic model yet
+	duration := time.Duration(0)
+
+	// Update epic status
+	loadedEpic.Status = LifecycleStatusDone.ToEpicStatus()
+
+	// Create completion summary
+	totalPhases := len(loadedEpic.Phases)
+	totalTasks := len(loadedEpic.Tasks)
+	totalTests := len(loadedEpic.Tests)
+	totalItems := totalPhases + totalTasks + totalTests
+
+	summary := fmt.Sprintf("Epic completed with %d phases, %d tasks, and %d tests (%d total items)",
+		totalPhases, totalTasks, totalTests, totalItems)
+
+	// Event logging will be implemented in a later epic
+
+	// Save the updated epic
+	if err := ls.storage.SaveEpic(loadedEpic, request.EpicFile); err != nil {
+		return nil, fmt.Errorf("failed to save epic: %w", err)
+	}
+
+	return &DoneEpicResult{
+		EpicID:         loadedEpic.ID,
+		PreviousStatus: currentStatus,
+		NewStatus:      LifecycleStatusDone,
+		CompletedAt:    completedTime,
+		Duration:       duration,
+		Summary:        summary,
+		Message:        fmt.Sprintf("Epic %s completed successfully. All phases and tests complete.", loadedEpic.ID),
+		EventCreated:   false, // Event logging will be implemented in a later epic
+	}, nil
+}
+
 // CompletionValidationError represents validation errors preventing epic completion
 type CompletionValidationError struct {
 	EpicID        string
@@ -184,6 +249,24 @@ type FailingTest struct {
 	ID          string
 	Name        string
 	Description string
+}
+
+// DoneEpicRequest represents a request to mark an epic as done
+type DoneEpicRequest struct {
+	EpicFile  string
+	Timestamp *time.Time // optional, for deterministic testing
+}
+
+// DoneEpicResult represents the result of marking an epic as done
+type DoneEpicResult struct {
+	EpicID         string
+	PreviousStatus EpicLifecycleStatus
+	NewStatus      EpicLifecycleStatus
+	CompletedAt    time.Time
+	Duration       time.Duration
+	Summary        string
+	Message        string
+	EventCreated   bool
 }
 
 // CompleteEpicRequest represents a request to complete an epic
