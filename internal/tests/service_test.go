@@ -1,0 +1,868 @@
+package tests
+
+import (
+	"testing"
+	"time"
+
+	"github.com/memomoo/agentpm/internal/epic"
+)
+
+func TestNewTestService(t *testing.T) {
+	cfg := ServiceConfig{
+		UseMemory: true,
+	}
+
+	service := NewTestService(cfg)
+
+	if service == nil {
+		t.Fatal("NewTestService returned nil")
+	}
+
+	if service.storage == nil {
+		t.Fatal("TestService storage is nil")
+	}
+
+	if service.timeSource == nil {
+		t.Fatal("TestService timeSource is nil")
+	}
+}
+
+func TestStartTest_Success(t *testing.T) {
+	// Setup
+	service, epicFile := setupTestService(t)
+	testID := "test_1"
+
+	// Create epic with a pending test using legacy Status
+	e := createTestEpic()
+	e.Tests = []epic.Test{
+		{
+			ID:      testID,
+			TaskID:  "task_1",
+			PhaseID: "phase_1",
+			Status:  epic.StatusPlanning, // Use legacy status
+		},
+	}
+	e.Tasks = []epic.Task{
+		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusActive},
+	}
+	e.Phases = []epic.Phase{
+		{ID: "phase_1", Status: epic.StatusActive},
+	}
+
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Test
+	result, err := service.StartTest(epicFile, testID, nil)
+
+	// Verify
+	if err != nil {
+		t.Fatalf("StartTest failed: %v", err)
+	}
+
+	if result.TestID != testID {
+		t.Errorf("Expected TestID %s, got %s", testID, result.TestID)
+	}
+
+	if result.Operation != "started" {
+		t.Errorf("Expected operation 'started', got %s", result.Operation)
+	}
+
+	if result.Status != string(epic.TestStatusWIP) {
+		t.Errorf("Expected status %s, got %s", epic.TestStatusWIP, result.Status)
+	}
+
+	// Verify epic was updated
+	updatedEpic, err := service.storage.LoadEpic(epicFile)
+	if err != nil {
+		t.Fatalf("Failed to load updated epic: %v", err)
+	}
+
+	var updatedTest *epic.Test
+	for i := range updatedEpic.Tests {
+		if updatedEpic.Tests[i].ID == testID {
+			updatedTest = &updatedEpic.Tests[i]
+			break
+		}
+	}
+
+	if updatedTest == nil {
+		t.Fatal("Test not found in updated epic")
+	}
+
+	// Check that both TestStatus and Status were updated
+	if updatedTest.TestStatus != epic.TestStatusWIP {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusWIP, updatedTest.TestStatus)
+	}
+
+	if updatedTest.Status != epic.StatusActive {
+		t.Errorf("Expected legacy Status %s, got %s", epic.StatusActive, updatedTest.Status)
+	}
+
+	if updatedTest.StartedAt == nil {
+		t.Error("Expected StartedAt to be set")
+	}
+}
+
+func TestPassTest_Success(t *testing.T) {
+	// Setup
+	service, epicFile := setupTestService(t)
+	testID := "test_1"
+
+	// Create epic with a test in WIP status using new TestStatus
+	e := createTestEpic()
+	startTime := time.Date(2025, 8, 16, 14, 30, 0, 0, time.UTC)
+	e.Tests = []epic.Test{
+		{
+			ID:         testID,
+			TaskID:     "task_1",
+			PhaseID:    "phase_1",
+			Status:     epic.StatusActive,  // Legacy status
+			TestStatus: epic.TestStatusWIP, // New test status
+			StartedAt:  &startTime,
+		},
+	}
+
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Test
+	result, err := service.PassTest(epicFile, testID, nil)
+
+	// Verify
+	if err != nil {
+		t.Fatalf("PassTest failed: %v", err)
+	}
+
+	if result.TestID != testID {
+		t.Errorf("Expected TestID %s, got %s", testID, result.TestID)
+	}
+
+	if result.Operation != "passed" {
+		t.Errorf("Expected operation 'passed', got %s", result.Operation)
+	}
+
+	if result.Status != string(epic.TestStatusPassed) {
+		t.Errorf("Expected status %s, got %s", epic.TestStatusPassed, result.Status)
+	}
+
+	// Verify epic was updated
+	updatedEpic, err := service.storage.LoadEpic(epicFile)
+	if err != nil {
+		t.Fatalf("Failed to load updated epic: %v", err)
+	}
+
+	var updatedTest *epic.Test
+	for i := range updatedEpic.Tests {
+		if updatedEpic.Tests[i].ID == testID {
+			updatedTest = &updatedEpic.Tests[i]
+			break
+		}
+	}
+
+	if updatedTest == nil {
+		t.Fatal("Test not found in updated epic")
+	}
+
+	if updatedTest.TestStatus != epic.TestStatusPassed {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusPassed, updatedTest.TestStatus)
+	}
+
+	if updatedTest.Status != epic.StatusCompleted {
+		t.Errorf("Expected legacy Status %s, got %s", epic.StatusCompleted, updatedTest.Status)
+	}
+
+	if updatedTest.PassedAt == nil {
+		t.Error("Expected PassedAt to be set")
+	}
+
+	if updatedTest.FailureNote != "" {
+		t.Error("Expected FailureNote to be cleared")
+	}
+}
+
+func TestGetTestStatus_PreferNewStatus(t *testing.T) {
+	service := &TestService{}
+
+	// Test that TestStatus takes precedence over Status
+	test := &epic.Test{
+		Status:     epic.StatusPlanning,
+		TestStatus: epic.TestStatusWIP,
+	}
+
+	result := service.getTestStatus(test)
+	if result != epic.TestStatusWIP {
+		t.Errorf("Expected %s, got %s", epic.TestStatusWIP, result)
+	}
+}
+
+func TestGetTestStatus_FallbackToLegacy(t *testing.T) {
+	service := &TestService{}
+
+	// Test fallback to Status conversion when TestStatus is empty
+	test := &epic.Test{
+		Status:     epic.StatusActive,
+		TestStatus: "", // Empty
+	}
+
+	result := service.getTestStatus(test)
+	if result != epic.TestStatusWIP {
+		t.Errorf("Expected %s, got %s", epic.TestStatusWIP, result)
+	}
+}
+
+// Helper functions
+func setupTestService(t *testing.T) (*TestService, string) {
+	t.Helper()
+
+	cfg := ServiceConfig{
+		UseMemory: true,
+		TimeSource: func() time.Time {
+			return time.Date(2025, 8, 16, 14, 30, 0, 0, time.UTC)
+		},
+	}
+
+	service := NewTestService(cfg)
+	epicFile := "test-epic.xml"
+
+	return service, epicFile
+}
+
+func createTestEpic() *epic.Epic {
+	return &epic.Epic{
+		ID:     "test-epic",
+		Name:   "Test Epic",
+		Status: epic.StatusActive,
+		Tests:  []epic.Test{},
+		Tasks:  []epic.Task{},
+		Phases: []epic.Phase{},
+		Events: []epic.Event{},
+	}
+}
+
+// TestFailTest_Success covers AC-3: Fail Test with Details
+func TestFailTest_Success(t *testing.T) {
+	service, epicFile := setupTestService(t)
+	testID := "test_1"
+	failureReason := "Mobile responsive design not working"
+
+	// Create epic with a test in WIP status
+	e := createTestEpic()
+	startTime := time.Date(2025, 8, 16, 14, 30, 0, 0, time.UTC)
+	e.Tests = []epic.Test{
+		{
+			ID:         testID,
+			TaskID:     "task_1",
+			PhaseID:    "phase_1",
+			Status:     epic.StatusActive,
+			TestStatus: epic.TestStatusWIP,
+			StartedAt:  &startTime,
+		},
+	}
+
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Test
+	result, err := service.FailTest(epicFile, testID, failureReason, nil)
+
+	// Verify
+	if err != nil {
+		t.Fatalf("FailTest failed: %v", err)
+	}
+
+	if result.TestID != testID {
+		t.Errorf("Expected TestID %s, got %s", testID, result.TestID)
+	}
+
+	if result.Operation != "failed" {
+		t.Errorf("Expected operation 'failed', got %s", result.Operation)
+	}
+
+	if result.Status != string(epic.TestStatusFailed) {
+		t.Errorf("Expected status %s, got %s", epic.TestStatusFailed, result.Status)
+	}
+
+	if result.FailureReason != failureReason {
+		t.Errorf("Expected FailureReason '%s', got '%s'", failureReason, result.FailureReason)
+	}
+
+	// Verify epic was updated
+	updatedEpic, err := service.storage.LoadEpic(epicFile)
+	if err != nil {
+		t.Fatalf("Failed to load updated epic: %v", err)
+	}
+
+	var updatedTest *epic.Test
+	for i := range updatedEpic.Tests {
+		if updatedEpic.Tests[i].ID == testID {
+			updatedTest = &updatedEpic.Tests[i]
+			break
+		}
+	}
+
+	if updatedTest == nil {
+		t.Fatal("Test not found in updated epic")
+	}
+
+	if updatedTest.TestStatus != epic.TestStatusFailed {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusFailed, updatedTest.TestStatus)
+	}
+
+	if updatedTest.Status != epic.StatusCompleted {
+		t.Errorf("Expected legacy Status %s, got %s", epic.StatusCompleted, updatedTest.Status)
+	}
+
+	if updatedTest.FailedAt == nil {
+		t.Error("Expected FailedAt to be set")
+	}
+
+	if updatedTest.FailureNote != failureReason {
+		t.Errorf("Expected FailureNote '%s', got '%s'", failureReason, updatedTest.FailureNote)
+	}
+}
+
+// TestCancelTest_Success covers AC-4: Cancel Test with Reason
+func TestCancelTest_Success(t *testing.T) {
+	service, epicFile := setupTestService(t)
+	testID := "test_1"
+	cancellationReason := "Spec contradicts itself with point xyz"
+
+	// Create epic with a test in WIP status
+	e := createTestEpic()
+	startTime := time.Date(2025, 8, 16, 14, 30, 0, 0, time.UTC)
+	e.Tests = []epic.Test{
+		{
+			ID:         testID,
+			TaskID:     "task_1",
+			PhaseID:    "phase_1",
+			Status:     epic.StatusActive,
+			TestStatus: epic.TestStatusWIP,
+			StartedAt:  &startTime,
+		},
+	}
+
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Test
+	result, err := service.CancelTest(epicFile, testID, cancellationReason, nil)
+
+	// Verify
+	if err != nil {
+		t.Fatalf("CancelTest failed: %v", err)
+	}
+
+	if result.TestID != testID {
+		t.Errorf("Expected TestID %s, got %s", testID, result.TestID)
+	}
+
+	if result.Operation != "cancelled" {
+		t.Errorf("Expected operation 'cancelled', got %s", result.Operation)
+	}
+
+	if result.Status != string(epic.TestStatusCancelled) {
+		t.Errorf("Expected status %s, got %s", epic.TestStatusCancelled, result.Status)
+	}
+
+	if result.CancellationReason != cancellationReason {
+		t.Errorf("Expected CancellationReason '%s', got '%s'", cancellationReason, result.CancellationReason)
+	}
+
+	// Verify epic was updated
+	updatedEpic, err := service.storage.LoadEpic(epicFile)
+	if err != nil {
+		t.Fatalf("Failed to load updated epic: %v", err)
+	}
+
+	var updatedTest *epic.Test
+	for i := range updatedEpic.Tests {
+		if updatedEpic.Tests[i].ID == testID {
+			updatedTest = &updatedEpic.Tests[i]
+			break
+		}
+	}
+
+	if updatedTest == nil {
+		t.Fatal("Test not found in updated epic")
+	}
+
+	if updatedTest.TestStatus != epic.TestStatusCancelled {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusCancelled, updatedTest.TestStatus)
+	}
+
+	if updatedTest.Status != epic.StatusCancelled {
+		t.Errorf("Expected legacy Status %s, got %s", epic.StatusCompleted, updatedTest.Status)
+	}
+
+	if updatedTest.CancelledAt == nil {
+		t.Error("Expected CancelledAt to be set")
+	}
+
+	if updatedTest.CancellationReason != cancellationReason {
+		t.Errorf("Expected CancellationReason '%s', got '%s'", cancellationReason, updatedTest.CancellationReason)
+	}
+}
+
+// TestStartTest_InvalidTransition tests error handling for invalid test transitions
+func TestStartTest_InvalidTransition(t *testing.T) {
+	service, epicFile := setupTestService(t)
+	testID := "test_1"
+
+	// Create epic with a test already in WIP status (can't start again)
+	e := createTestEpic()
+	e.Tests = []epic.Test{
+		{
+			ID:         testID,
+			TaskID:     "task_1",
+			PhaseID:    "phase_1",
+			Status:     epic.StatusActive,
+			TestStatus: epic.TestStatusWIP,
+		},
+	}
+
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Test
+	_, err = service.StartTest(epicFile, testID, nil)
+
+	// Verify error
+	if err == nil {
+		t.Fatal("Expected error for invalid transition, got nil")
+	}
+
+	expectedErr := "Cannot start test test_1: test is not in pending status"
+	if err.Error() != expectedErr {
+		t.Errorf("Expected error '%s', got '%s'", expectedErr, err.Error())
+	}
+}
+
+// TestPassTest_InvalidTransition tests error handling for invalid pass transition
+func TestPassTest_InvalidTransition(t *testing.T) {
+	service, epicFile := setupTestService(t)
+	testID := "test_1"
+
+	// Create epic with a test in pending status (can't pass without starting)
+	e := createTestEpic()
+	e.Tests = []epic.Test{
+		{
+			ID:         testID,
+			TaskID:     "task_1",
+			PhaseID:    "phase_1",
+			Status:     epic.StatusPlanning,
+			TestStatus: epic.TestStatusPending,
+		},
+	}
+
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Test
+	_, err = service.PassTest(epicFile, testID, nil)
+
+	// Verify error
+	if err == nil {
+		t.Fatal("Expected error for invalid transition, got nil")
+	}
+
+	expectedErr := "Cannot pass test test_1: test is not currently in progress"
+	if err.Error() != expectedErr {
+		t.Errorf("Expected error '%s', got '%s'", expectedErr, err.Error())
+	}
+}
+
+// TestTestNotFound tests error handling when test doesn't exist
+func TestTestNotFound(t *testing.T) {
+	service, epicFile := setupTestService(t)
+	nonExistentTestID := "nonexistent"
+
+	// Create epic without the test
+	e := createTestEpic()
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Test StartTest
+	_, err = service.StartTest(epicFile, nonExistentTestID, nil)
+	if err == nil {
+		t.Error("Expected error for nonexistent test in StartTest, got nil")
+	}
+
+	// Test PassTest
+	_, err = service.PassTest(epicFile, nonExistentTestID, nil)
+	if err == nil {
+		t.Error("Expected error for nonexistent test in PassTest, got nil")
+	}
+
+	// Test FailTest
+	_, err = service.FailTest(epicFile, nonExistentTestID, "reason", nil)
+	if err == nil {
+		t.Error("Expected error for nonexistent test in FailTest, got nil")
+	}
+
+	// Test CancelTest
+	_, err = service.CancelTest(epicFile, nonExistentTestID, "reason", nil)
+	if err == nil {
+		t.Error("Expected error for nonexistent test in CancelTest, got nil")
+	}
+}
+
+// TestCustomTimestamp tests that custom timestamps are properly used
+func TestCustomTimestamp(t *testing.T) {
+	service, epicFile := setupTestService(t)
+	testID := "test_1"
+	customTime := time.Date(2025, 12, 25, 10, 30, 0, 0, time.UTC)
+
+	// Create epic with a pending test
+	e := createTestEpic()
+	e.Tests = []epic.Test{
+		{
+			ID:         testID,
+			TaskID:     "task_1",
+			PhaseID:    "phase_1",
+			Status:     epic.StatusPlanning,
+			TestStatus: epic.TestStatusPending,
+		},
+	}
+	e.Tasks = []epic.Task{
+		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusActive},
+	}
+	e.Phases = []epic.Phase{
+		{ID: "phase_1", Status: epic.StatusActive},
+	}
+
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Test with custom timestamp
+	_, err = service.StartTest(epicFile, testID, &customTime)
+	if err != nil {
+		t.Fatalf("StartTest failed: %v", err)
+	}
+
+	// Verify custom timestamp was used
+	updatedEpic, err := service.storage.LoadEpic(epicFile)
+	if err != nil {
+		t.Fatalf("Failed to load updated epic: %v", err)
+	}
+
+	var updatedTest *epic.Test
+	for i := range updatedEpic.Tests {
+		if updatedEpic.Tests[i].ID == testID {
+			updatedTest = &updatedEpic.Tests[i]
+			break
+		}
+	}
+
+	if updatedTest == nil {
+		t.Fatal("Test not found in updated epic")
+	}
+
+	if updatedTest.StartedAt == nil {
+		t.Fatal("Expected StartedAt to be set")
+	}
+
+	if !updatedTest.StartedAt.Equal(customTime) {
+		t.Errorf("Expected custom timestamp %v, got %v", customTime, *updatedTest.StartedAt)
+	}
+}
+
+// TestPassedToFailedTransition tests that passed tests can be failed (Epic 4 spec)
+func TestPassedToFailedTransition(t *testing.T) {
+	service, epicFile := setupTestService(t)
+	testID := "test_1"
+	failureReason := "Found regression issue"
+
+	// Create epic with a test in passed status
+	passedTime := time.Date(2025, 8, 16, 14, 30, 0, 0, time.UTC)
+	e := createTestEpic()
+	e.Tests = []epic.Test{
+		{
+			ID:         testID,
+			TaskID:     "task_1",
+			PhaseID:    "phase_1",
+			Status:     epic.StatusCompleted,
+			TestStatus: epic.TestStatusPassed,
+			PassedAt:   &passedTime,
+		},
+	}
+
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Test failing a passed test
+	result, err := service.FailTest(epicFile, testID, failureReason, nil)
+
+	// Verify
+	if err != nil {
+		t.Fatalf("FailTest failed: %v", err)
+	}
+
+	if result.Status != string(epic.TestStatusFailed) {
+		t.Errorf("Expected status %s, got %s", epic.TestStatusFailed, result.Status)
+	}
+
+	// Verify epic was updated
+	updatedEpic, err := service.storage.LoadEpic(epicFile)
+	if err != nil {
+		t.Fatalf("Failed to load updated epic: %v", err)
+	}
+
+	var updatedTest *epic.Test
+	for i := range updatedEpic.Tests {
+		if updatedEpic.Tests[i].ID == testID {
+			updatedTest = &updatedEpic.Tests[i]
+			break
+		}
+	}
+
+	if updatedTest == nil {
+		t.Fatal("Test not found in updated epic")
+	}
+
+	if updatedTest.TestStatus != epic.TestStatusFailed {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusFailed, updatedTest.TestStatus)
+	}
+
+	if updatedTest.FailureNote != failureReason {
+		t.Errorf("Expected FailureNote '%s', got '%s'", failureReason, updatedTest.FailureNote)
+	}
+
+	// PassedAt is not cleared when test fails (keeping historical data)
+	if updatedTest.PassedAt == nil {
+		t.Error("Expected PassedAt to be preserved as historical data")
+	}
+}
+
+// TestFailedToPassedTransition tests that failed tests can be passed (Epic 4 spec)
+func TestFailedToPassedTransition(t *testing.T) {
+	service, epicFile := setupTestService(t)
+	testID := "test_1"
+
+	// Create epic with a test in failed status
+	failedTime := time.Date(2025, 8, 16, 14, 30, 0, 0, time.UTC)
+	e := createTestEpic()
+	e.Tests = []epic.Test{
+		{
+			ID:          testID,
+			TaskID:      "task_1",
+			PhaseID:     "phase_1",
+			Status:      epic.StatusCancelled,
+			TestStatus:  epic.TestStatusFailed,
+			FailedAt:    &failedTime,
+			FailureNote: "Previous failure reason",
+		},
+	}
+
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Test passing a failed test
+	result, err := service.PassTest(epicFile, testID, nil)
+
+	// Verify
+	if err != nil {
+		t.Fatalf("PassTest failed: %v", err)
+	}
+
+	if result.Status != string(epic.TestStatusPassed) {
+		t.Errorf("Expected status %s, got %s", epic.TestStatusPassed, result.Status)
+	}
+
+	// Verify epic was updated
+	updatedEpic, err := service.storage.LoadEpic(epicFile)
+	if err != nil {
+		t.Fatalf("Failed to load updated epic: %v", err)
+	}
+
+	var updatedTest *epic.Test
+	for i := range updatedEpic.Tests {
+		if updatedEpic.Tests[i].ID == testID {
+			updatedTest = &updatedEpic.Tests[i]
+			break
+		}
+	}
+
+	if updatedTest == nil {
+		t.Fatal("Test not found in updated epic")
+	}
+
+	if updatedTest.TestStatus != epic.TestStatusPassed {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusPassed, updatedTest.TestStatus)
+	}
+
+	// FailureNote should be cleared when test passes
+	if updatedTest.FailureNote != "" {
+		t.Errorf("Expected FailureNote to be cleared, got '%s'", updatedTest.FailureNote)
+	}
+
+	// FailedAt is preserved as historical data when test passes
+	if updatedTest.FailedAt == nil {
+		t.Error("Expected FailedAt to be preserved as historical data")
+	}
+
+	// PassedAt should be set
+	if updatedTest.PassedAt == nil {
+		t.Error("Expected PassedAt to be set")
+	}
+}
+
+// TestPrerequisiteValidation tests test prerequisite validation
+func TestPrerequisiteValidation(t *testing.T) {
+	service, epicFile := setupTestService(t)
+	testID := "test_1"
+
+	// Create epic with test whose task is not active/completed
+	e := createTestEpic()
+	e.Tests = []epic.Test{
+		{
+			ID:         testID,
+			TaskID:     "task_1",
+			PhaseID:    "phase_1",
+			Status:     epic.StatusPlanning,
+			TestStatus: epic.TestStatusPending,
+		},
+	}
+	e.Tasks = []epic.Task{
+		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusPlanning}, // Not active
+	}
+	e.Phases = []epic.Phase{
+		{ID: "phase_1", Status: epic.StatusActive},
+	}
+
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Test - should fail prerequisite validation
+	_, err = service.StartTest(epicFile, testID, nil)
+
+	// Verify error
+	if err == nil {
+		t.Fatal("Expected error for prerequisite validation, got nil")
+	}
+
+	expectedErr := "Cannot start test test_1: associated task task_1 is not active or completed (status: planning)"
+	if err.Error() != expectedErr {
+		t.Errorf("Expected error '%s', got '%s'", expectedErr, err.Error())
+	}
+}
+
+// TestMultipleTestsInProgress tests that multiple tests can be WIP simultaneously
+func TestMultipleTestsInProgress(t *testing.T) {
+	service, epicFile := setupTestService(t)
+
+	// Create epic with multiple tests
+	e := createTestEpic()
+	e.Tests = []epic.Test{
+		{
+			ID:         "test_1",
+			TaskID:     "task_1",
+			PhaseID:    "phase_1",
+			Status:     epic.StatusPlanning,
+			TestStatus: epic.TestStatusPending,
+		},
+		{
+			ID:         "test_2",
+			TaskID:     "task_1",
+			PhaseID:    "phase_1",
+			Status:     epic.StatusPlanning,
+			TestStatus: epic.TestStatusPending,
+		},
+	}
+	e.Tasks = []epic.Task{
+		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusActive},
+	}
+	e.Phases = []epic.Phase{
+		{ID: "phase_1", Status: epic.StatusActive},
+	}
+
+	err := service.storage.SaveEpic(e, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	// Start both tests
+	_, err = service.StartTest(epicFile, "test_1", nil)
+	if err != nil {
+		t.Fatalf("Failed to start test_1: %v", err)
+	}
+
+	_, err = service.StartTest(epicFile, "test_2", nil)
+	if err != nil {
+		t.Fatalf("Failed to start test_2: %v", err)
+	}
+
+	// Verify both tests are in WIP
+	updatedEpic, err := service.storage.LoadEpic(epicFile)
+	if err != nil {
+		t.Fatalf("Failed to load updated epic: %v", err)
+	}
+
+	wipCount := 0
+	for _, test := range updatedEpic.Tests {
+		if service.getTestStatus(&test) == epic.TestStatusWIP {
+			wipCount++
+		}
+	}
+
+	if wipCount != 2 {
+		t.Errorf("Expected 2 tests in WIP status, got %d", wipCount)
+	}
+}
+
+// TestStatusTransitionValidation tests that status transition validation works via CanTransitionTo
+func TestStatusTransitionValidation(t *testing.T) {
+	testCases := []struct {
+		name          string
+		current       epic.TestStatus
+		target        epic.TestStatus
+		shouldSucceed bool
+	}{
+		{"pending to wip", epic.TestStatusPending, epic.TestStatusWIP, true},
+		{"wip to passed", epic.TestStatusWIP, epic.TestStatusPassed, true},
+		{"wip to failed", epic.TestStatusWIP, epic.TestStatusFailed, true},
+		{"wip to cancelled", epic.TestStatusWIP, epic.TestStatusCancelled, true},
+		{"passed to failed", epic.TestStatusPassed, epic.TestStatusFailed, true},
+		{"failed to passed", epic.TestStatusFailed, epic.TestStatusPassed, true},
+		{"pending to passed", epic.TestStatusPending, epic.TestStatusPassed, false},
+		{"pending to failed", epic.TestStatusPending, epic.TestStatusFailed, false},
+		{"cancelled to wip", epic.TestStatusCancelled, epic.TestStatusWIP, false},
+		{"passed to wip", epic.TestStatusPassed, epic.TestStatusWIP, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			canTransition := tc.current.CanTransitionTo(tc.target)
+
+			if tc.shouldSucceed && !canTransition {
+				t.Errorf("Expected transition to be allowed, but CanTransitionTo returned false")
+			}
+
+			if !tc.shouldSucceed && canTransition {
+				t.Errorf("Expected transition to be forbidden, but CanTransitionTo returned true")
+			}
+		})
+	}
+}
