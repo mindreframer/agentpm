@@ -7,10 +7,12 @@ Idea:
 - the CLI is the primary way to interact with this tool
 - it must be non-interactive, so it is simple to use for the agent
 - it must provide a good help system with good examples, so agents can discover what can be done with the tool 
-- I want to use https://github.com/beevik/etree for the XML parsing / writing
-- performance is not an issue, since we have a small local file, and not gigabytes of data, so prefer simplicity over performance
+- I want to use https://github.com/beevik/etree for the XML parsing / writing / querying (xpath-like support!)
+- performance is not an issue, since we have a small local file, and not gigabytes of data, so prefer simplicity over performance (important!)
 
-
-Now: 
-    - suggest other CLI libs for this project? I prefer lightweight libs with many dependencies
-    - suggest a roadmap for smooth implementation process
+### Dependencies & Requirements
+- **Go 1.21+** - Required for language features and performance
+- **CLI Framework:** `github.com/urfave/cli/v3` - Mature, agent-friendly CLI library
+- **XML Processing:** `github.com/beevik/etree` - Fast, reliable XML parsing
+- **Testing Framework:** `github.com/stretchr/testify` - Comprehensive assertions
+- **Snapshot Testing:** `github.com/gkampitakis/go-snaps` - For output validation

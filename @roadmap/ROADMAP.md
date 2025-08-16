@@ -1,5 +1,16 @@
 # AgentPM CLI Tool - Development Roadmap
 
+<IMPORTANT>
+- prefer simplicity!
+- NO DATABASES, NO MULTIUSER, NO concurrency handling!
+- DATA WILL ALWAYS BE XML!
+- PREFER PURE TESTS, with SNAPSHOT testing for complex OUTPUT
+- FOR CLI OUTPUT WE WILL SUPPORT A GENERIC SERIALIZER FOR XML (default) / JSON / human ouput (YAML like, but not really)
+    - internal tests can assert on the generic golang structures via snapshot testing
+- KEEP THING lightweight, no need for complex features
+- as fallback we can provide a XPath query CLI interface, that the user can use. 
+</IMPORTANT>
+
 ## Epic 1: Foundation & Configuration
 **Duration:** 3-4 days  
 **Goal:** Core CLI structure, configuration management, and XML handling
@@ -12,8 +23,10 @@
 
 ### Technical Requirements:
 - Use `github.com/urfave/cli/v3` for CLI framework
-- Use `github.com/beevik/etree` for XML parsing/writing
+- Use `github.com/beevik/etree` for XML parsing/writing / querying (supports XPath like queries!)
+- Use `https://github.com/stretchr/testify` to implement tests
 - Use `https://github.com/gkampitakis/go-snaps` for snapshot based testing
+
 - Implement dependency injection pattern for file operations
 - Support `.agentpm.json` configuration file format
 - Provide comprehensive help with examples for agent discovery
@@ -230,6 +243,3 @@
 - ✅ Fast test suite (< 1 second for unit tests)
 - ✅ Simple codebase prioritizing clarity over performance
 - ✅ Robust error handling with clear messages
-
-**Total Implementation Time: 18-25 days**  
-**Core Commands Delivered: ~15 commands for complete agent workflow**
