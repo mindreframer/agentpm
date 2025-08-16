@@ -12,7 +12,7 @@ One agent, one epic, one XML file. The XML contains the complete execution plan 
 ```json
 {
   "current_epic": "epic-8.xml",
-  "project_name": "MooCRM", 
+  "project_name": "MyApp", 
   "default_assignee": "agent_claude"
 }
 ```
@@ -178,16 +178,6 @@ agentpm status
 # Output: Epic completed. All 4 phases done. 47/47 tests passing.
 ```
 
-### Pausing and Resuming Work
-```bash
-# Need to pause work (context switch, blocker, etc.)
-agentpm pause-epic "Waiting for design system approval"
-# Output: Epic 8 paused. Status changed to paused.
-
-# Resume later
-agentpm resume-epic
-# Output: Epic 8 resumed. Status changed to in_progress.
-```
 
 ### Agent Handoff
 ```bash
@@ -298,7 +288,7 @@ $ agentpm handoff
 The epic file follows this minimal structure:
 
 ```xml
-<epic id="8" name="Schools Index Pagination" status="in_progress" started="2025-08-15T09:00:00Z">
+<epic id="8" name="Schools Index Pagination" status="wip" started="2025-08-15T09:00:00Z">
     <metadata>
         <created>2025-08-15T09:00:00Z</created>
         <assignee>agent_claude</assignee>
@@ -344,17 +334,23 @@ The epic file follows this minimal structure:
         - Epic 4: Contact management for preloading optimization (optional)
     </dependencies>
 
+    <current_state>
+        <active_phase>2A</active_phase>
+        <active_task>2A_1</active_task>
+        <next_action>Fix mobile responsive pagination controls</next_action>
+    </current_state>
+
     <!-- Quick overview for scanning -->
     <outline>
-        <phase id="1A" name="Enhanced Schools Context" status="completed" />
-        <phase id="2A" name="Create PaginationComponent" status="in_progress" />
+        <phase id="1A" name="Enhanced Schools Context" status="done" />
+        <phase id="2A" name="Create PaginationComponent" status="wip" />
         <phase id="3A" name="LiveView Integration" status="pending" />
         <phase id="4A" name="Performance Optimization" status="pending" />
     </outline>
 
     <!-- Rich details for each phase -->
     <phases>
-        <phase id="1A" name="Enhanced Schools Context" status="completed">
+        <phase id="1A" name="Enhanced Schools Context" status="done">
             <description>
                 Extend MooCRM.Schools.Main with paginated functions and database-level pagination
             </description>
@@ -364,7 +360,7 @@ The epic file follows this minimal structure:
                 - Efficient database queries with proper indexing
             </deliverables>
         </phase>
-        <phase id="2A" name="Create PaginationComponent" status="in_progress">
+        <phase id="2A" name="Create PaginationComponent" status="wip">
             <description>
                 Create reusable pagination component with accessibility
             </description>
@@ -400,7 +396,7 @@ The epic file follows this minimal structure:
     </phases>
 
     <tasks>
-        <task id="1A_1" phase_id="1A" status="completed">
+        <task id="1A_1" phase_id="1A" status="done">
             <description>Implement list_schools_paginated with combined filtering logic</description>
             <acceptance_criteria>
                 - Function accepts opts, page, and page_size parameters
@@ -408,7 +404,7 @@ The epic file follows this minimal structure:
                 - Returns paginated results with metadata
             </acceptance_criteria>
         </task>
-        <task id="1A_2" phase_id="1A" status="completed">
+        <task id="1A_2" phase_id="1A" status="done">
             <description>Enhance SchoolCrud with QuickCrud.paginate() integration</description>
             <acceptance_criteria>
                 - Efficient LIMIT/OFFSET queries
@@ -416,7 +412,7 @@ The epic file follows this minimal structure:
                 - Proper indexing for performance
             </acceptance_criteria>
         </task>
-        <task id="2A_1" phase_id="2A" status="in_progress">
+        <task id="2A_1" phase_id="2A" status="wip">
             <description>Create PaginationComponent with Previous/Next controls</description>
             <acceptance_criteria>
                 - Previous/Next buttons with proper disabled states
@@ -452,7 +448,7 @@ The epic file follows this minimal structure:
             **WHEN** I click the "Next" button
             **THEN** I see page 2 and schools 26-50
         </test>
-        <test id="2A_2" phase_id="2A" status="failing">
+        <test id="2A_2" phase_id="2A" status="cancelled">
             **GIVEN** I'm on mobile device
             **WHEN** I tap pagination controls
             **THEN** They work and are easy to tap (44px+ targets)
@@ -492,11 +488,7 @@ The epic file follows this minimal structure:
         </event>
     </events>
 
-    <current_state>
-        <active_phase>2A</active_phase>
-        <active_task>2A_1</active_task>
-        <next_action>Fix mobile responsive pagination controls</next_action>
-    </current_state>
+    
 </epic>
 ```
 
