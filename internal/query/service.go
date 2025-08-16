@@ -387,6 +387,287 @@ func (qs *QueryService) findCurrentTask() string {
 	return ""
 }
 
+// RelatedItem represents relationships between epic elements
+type RelatedItem struct {
+	Type         string // "phase", "task", "test"
+	ID           string
+	Name         string
+	Relationship string // "dependency", "blocker", "sequence", "related"
+}
+
+// GetRelatedItems finds items related to a given phase, task, or test
+func (qs *QueryService) GetRelatedItems(itemType, itemID string) ([]RelatedItem, error) {
+	if qs.epic == nil {
+		return nil, fmt.Errorf("no epic loaded")
+	}
+
+	var related []RelatedItem
+
+	switch itemType {
+	case "phase":
+		// Find tasks in this phase
+		for _, task := range qs.epic.Tasks {
+			if task.PhaseID == itemID {
+				related = append(related, RelatedItem{
+					Type:         "task",
+					ID:           task.ID,
+					Name:         task.Name,
+					Relationship: "contains",
+				})
+			}
+		}
+
+		// Find tests for tasks in this phase
+		for _, test := range qs.epic.Tests {
+			for _, task := range qs.epic.Tasks {
+				if task.ID == test.TaskID && task.PhaseID == itemID {
+					related = append(related, RelatedItem{
+						Type:         "test",
+						ID:           test.ID,
+						Name:         test.Name,
+						Relationship: "validates",
+					})
+				}
+			}
+		}
+
+	case "task":
+		// Find parent phase
+		for _, task := range qs.epic.Tasks {
+			if task.ID == itemID {
+				for _, phase := range qs.epic.Phases {
+					if phase.ID == task.PhaseID {
+						related = append(related, RelatedItem{
+							Type:         "phase",
+							ID:           phase.ID,
+							Name:         phase.Name,
+							Relationship: "parent",
+						})
+					}
+				}
+				break
+			}
+		}
+
+		// Find tests for this task
+		for _, test := range qs.epic.Tests {
+			if test.TaskID == itemID {
+				related = append(related, RelatedItem{
+					Type:         "test",
+					ID:           test.ID,
+					Name:         test.Name,
+					Relationship: "validates",
+				})
+			}
+		}
+
+	case "test":
+		// Find parent task and phase
+		for _, test := range qs.epic.Tests {
+			if test.ID == itemID {
+				for _, task := range qs.epic.Tasks {
+					if task.ID == test.TaskID {
+						related = append(related, RelatedItem{
+							Type:         "task",
+							ID:           task.ID,
+							Name:         task.Name,
+							Relationship: "parent",
+						})
+
+						for _, phase := range qs.epic.Phases {
+							if phase.ID == task.PhaseID {
+								related = append(related, RelatedItem{
+									Type:         "phase",
+									ID:           phase.ID,
+									Name:         phase.Name,
+									Relationship: "ancestor",
+								})
+							}
+						}
+						break
+					}
+				}
+				break
+			}
+		}
+	}
+
+	return related, nil
+}
+
+// ImpactAnalysis represents the potential impact of changes
+type ImpactAnalysis struct {
+	AffectedPhases []string
+	AffectedTasks  []string
+	AffectedTests  []string
+	RiskLevel      string // "low", "medium", "high"
+	Description    string
+}
+
+// AnalyzeImpact analyzes the potential impact of completing or modifying an item
+func (qs *QueryService) AnalyzeImpact(itemType, itemID string) (*ImpactAnalysis, error) {
+	if qs.epic == nil {
+		return nil, fmt.Errorf("no epic loaded")
+	}
+
+	analysis := &ImpactAnalysis{
+		RiskLevel: "low",
+	}
+
+	switch itemType {
+	case "phase":
+		// Completing a phase affects all its tasks and tests
+		for _, task := range qs.epic.Tasks {
+			if task.PhaseID == itemID {
+				analysis.AffectedTasks = append(analysis.AffectedTasks, task.ID)
+
+				for _, test := range qs.epic.Tests {
+					if test.TaskID == task.ID {
+						analysis.AffectedTests = append(analysis.AffectedTests, test.ID)
+					}
+				}
+			}
+		}
+
+		if len(analysis.AffectedTasks) > 5 {
+			analysis.RiskLevel = "medium"
+		}
+		if len(analysis.AffectedTasks) > 10 {
+			analysis.RiskLevel = "high"
+		}
+
+		analysis.Description = fmt.Sprintf("Completing phase affects %d tasks and %d tests",
+			len(analysis.AffectedTasks), len(analysis.AffectedTests))
+
+	case "task":
+		// Completing a task affects its tests and potentially dependent tasks
+		for _, test := range qs.epic.Tests {
+			if test.TaskID == itemID {
+				analysis.AffectedTests = append(analysis.AffectedTests, test.ID)
+			}
+		}
+
+		// Find parent phase
+		for _, task := range qs.epic.Tasks {
+			if task.ID == itemID {
+				analysis.AffectedPhases = append(analysis.AffectedPhases, task.PhaseID)
+				break
+			}
+		}
+
+		if len(analysis.AffectedTests) > 3 {
+			analysis.RiskLevel = "medium"
+		}
+
+		analysis.Description = fmt.Sprintf("Completing task affects %d tests", len(analysis.AffectedTests))
+
+	case "test":
+		// Completing a test primarily affects its parent task
+		for _, test := range qs.epic.Tests {
+			if test.ID == itemID {
+				analysis.AffectedTasks = append(analysis.AffectedTasks, test.TaskID)
+
+				// Find parent phase
+				for _, task := range qs.epic.Tasks {
+					if task.ID == test.TaskID {
+						analysis.AffectedPhases = append(analysis.AffectedPhases, task.PhaseID)
+						break
+					}
+				}
+				break
+			}
+		}
+
+		analysis.Description = "Completing test affects its parent task"
+	}
+
+	return analysis, nil
+}
+
+// ProgressInsight provides analysis of epic progress patterns
+type ProgressInsight struct {
+	Velocity            float64 // tasks/tests completed per unit time
+	EstimatedCompletion string
+	Bottlenecks         []string
+	Recommendations     []string
+}
+
+// GetProgressInsights analyzes epic progress and provides recommendations
+func (qs *QueryService) GetProgressInsights() (*ProgressInsight, error) {
+	if qs.epic == nil {
+		return nil, fmt.Errorf("no epic loaded")
+	}
+
+	insight := &ProgressInsight{}
+
+	// Calculate completion velocity (simplified)
+	totalItems := len(qs.epic.Tasks) + len(qs.epic.Tests)
+	completedItems := 0
+	for _, task := range qs.epic.Tasks {
+		if task.Status == epic.StatusCompleted {
+			completedItems++
+		}
+	}
+	for _, test := range qs.epic.Tests {
+		if test.Status == epic.StatusCompleted {
+			completedItems++
+		}
+	}
+
+	if completedItems > 0 && totalItems > 0 {
+		completionRate := float64(completedItems) / float64(totalItems)
+		insight.Velocity = completionRate
+
+		if completionRate > 0.8 {
+			insight.EstimatedCompletion = "Near completion"
+		} else if completionRate > 0.5 {
+			insight.EstimatedCompletion = "Mid-progress"
+		} else {
+			insight.EstimatedCompletion = "Early stage"
+		}
+	} else {
+		insight.EstimatedCompletion = "Just started"
+	}
+
+	// Identify bottlenecks
+	failingTestCount := 0
+	for _, test := range qs.epic.Tests {
+		if test.Status != epic.StatusCompleted {
+			failingTestCount++
+		}
+	}
+
+	if failingTestCount > 3 {
+		insight.Bottlenecks = append(insight.Bottlenecks, "Multiple failing tests")
+	}
+
+	activeTaskCount := 0
+	for _, task := range qs.epic.Tasks {
+		if task.Status == epic.StatusActive {
+			activeTaskCount++
+		}
+	}
+
+	if activeTaskCount > 2 {
+		insight.Bottlenecks = append(insight.Bottlenecks, "Too many active tasks")
+	}
+
+	// Generate recommendations
+	if len(insight.Bottlenecks) > 0 {
+		insight.Recommendations = append(insight.Recommendations, "Focus on resolving bottlenecks first")
+	}
+
+	if failingTestCount > 0 {
+		insight.Recommendations = append(insight.Recommendations, "Prioritize fixing failing tests")
+	}
+
+	if activeTaskCount == 0 {
+		insight.Recommendations = append(insight.Recommendations, "Start next planned task")
+	}
+
+	return insight, nil
+}
+
 // getNextAction provides next action recommendation based on epic state
 func (qs *QueryService) getNextAction() string {
 	// 1. If failing tests exist → "Fix failing tests" (non-completed tests)

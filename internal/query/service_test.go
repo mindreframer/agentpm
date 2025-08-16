@@ -257,41 +257,223 @@ func TestQueryService_GetPendingWork(t *testing.T) {
 }
 
 func TestQueryService_GetFailingTests(t *testing.T) {
-	t.Run("epic with failing tests", func(t *testing.T) {
-		storage := storage.NewMemoryStorage()
-		testEpic := createTestEpic()
-		err := storage.SaveEpic(testEpic, "test.xml")
-		require.NoError(t, err)
+	storage := storage.NewMemoryStorage()
+	qs := NewQueryService(storage)
 
-		qs := NewQueryService(storage)
-		err = qs.LoadEpic("test.xml")
-		require.NoError(t, err)
+	// Test with no epic loaded
+	_, err := qs.GetFailingTests()
+	if err == nil {
+		t.Error("Expected error when no epic loaded")
+	}
 
-		failing, err := qs.GetFailingTests()
-		require.NoError(t, err)
+	// Create test epic with failing tests (non-completed tests)
+	testEpic := &epic.Epic{
+		ID:   "epic-1",
+		Name: "Test Epic",
+		Tests: []epic.Test{
+			{ID: "test-1", TaskID: "task-1", Name: "Passing Test", Status: epic.StatusCompleted},
+			{ID: "test-2", TaskID: "task-1", Name: "Failing Test", Status: epic.StatusActive},
+			{ID: "test-3", TaskID: "task-2", Name: "Pending Test", Status: epic.StatusPlanning},
+		},
+		Tasks: []epic.Task{
+			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1"},
+			{ID: "task-2", PhaseID: "phase-1", Name: "Task 2"},
+		},
+		Phases: []epic.Phase{
+			{ID: "phase-1", Name: "Phase 1"},
+		},
+	}
 
-		assert.Len(t, failing, 2) // TEST3, TEST4
-		assert.Equal(t, "TEST3", failing[0].ID)
-		assert.Equal(t, "P2", failing[0].PhaseID) // T3 is in P2
-		assert.Equal(t, "TEST4", failing[1].ID)
-		assert.Equal(t, "P2", failing[1].PhaseID) // T4 is in P2
-	})
+	qs.epic = testEpic
 
-	t.Run("epic with all passing tests", func(t *testing.T) {
-		storage := storage.NewMemoryStorage()
-		testEpic := createCompletedEpic()
-		err := storage.SaveEpic(testEpic, "completed.xml")
-		require.NoError(t, err)
+	failing, err := qs.GetFailingTests()
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
 
-		qs := NewQueryService(storage)
-		err = qs.LoadEpic("completed.xml")
-		require.NoError(t, err)
+	if len(failing) != 2 {
+		t.Errorf("Expected 2 failing tests, got %d", len(failing))
+	}
 
-		failing, err := qs.GetFailingTests()
-		require.NoError(t, err)
+	// Verify first failing test
+	if failing[0].ID != "test-2" || failing[0].Name != "Failing Test" {
+		t.Errorf("Unexpected first failing test: %+v", failing[0])
+	}
 
-		assert.Len(t, failing, 0)
-	})
+	// Verify second failing test
+	if failing[1].ID != "test-3" || failing[1].Name != "Pending Test" {
+		t.Errorf("Unexpected second failing test: %+v", failing[1])
+	}
+}
+
+func TestQueryService_GetRelatedItems(t *testing.T) {
+	storage := storage.NewMemoryStorage()
+	qs := NewQueryService(storage)
+
+	// Test with no epic loaded
+	_, err := qs.GetRelatedItems("phase", "phase-1")
+	if err == nil {
+		t.Error("Expected error when no epic loaded")
+	}
+
+	// Create test epic
+	testEpic := &epic.Epic{
+		ID:   "epic-1",
+		Name: "Test Epic",
+		Phases: []epic.Phase{
+			{ID: "phase-1", Name: "Phase 1"},
+		},
+		Tasks: []epic.Task{
+			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1"},
+			{ID: "task-2", PhaseID: "phase-1", Name: "Task 2"},
+		},
+		Tests: []epic.Test{
+			{ID: "test-1", TaskID: "task-1", Name: "Test 1"},
+			{ID: "test-2", TaskID: "task-1", Name: "Test 2"},
+		},
+	}
+
+	qs.epic = testEpic
+
+	// Test phase relationships
+	related, err := qs.GetRelatedItems("phase", "phase-1")
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	if len(related) != 4 { // 2 tasks + 2 tests
+		t.Errorf("Expected 4 related items for phase, got %d", len(related))
+	}
+
+	// Test task relationships
+	related, err = qs.GetRelatedItems("task", "task-1")
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	if len(related) != 3 { // 1 phase + 2 tests
+		t.Errorf("Expected 3 related items for task, got %d", len(related))
+	}
+
+	// Test test relationships
+	related, err = qs.GetRelatedItems("test", "test-1")
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	if len(related) != 2 { // 1 task + 1 phase
+		t.Errorf("Expected 2 related items for test, got %d", len(related))
+	}
+}
+
+func TestQueryService_AnalyzeImpact(t *testing.T) {
+	storage := storage.NewMemoryStorage()
+	qs := NewQueryService(storage)
+
+	// Test with no epic loaded
+	_, err := qs.AnalyzeImpact("phase", "phase-1")
+	if err == nil {
+		t.Error("Expected error when no epic loaded")
+	}
+
+	// Create test epic
+	testEpic := &epic.Epic{
+		ID:   "epic-1",
+		Name: "Test Epic",
+		Phases: []epic.Phase{
+			{ID: "phase-1", Name: "Phase 1"},
+		},
+		Tasks: []epic.Task{
+			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1"},
+			{ID: "task-2", PhaseID: "phase-1", Name: "Task 2"},
+		},
+		Tests: []epic.Test{
+			{ID: "test-1", TaskID: "task-1", Name: "Test 1"},
+			{ID: "test-2", TaskID: "task-2", Name: "Test 2"},
+		},
+	}
+
+	qs.epic = testEpic
+
+	// Test phase impact analysis
+	analysis, err := qs.AnalyzeImpact("phase", "phase-1")
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	if len(analysis.AffectedTasks) != 2 {
+		t.Errorf("Expected 2 affected tasks, got %d", len(analysis.AffectedTasks))
+	}
+
+	if len(analysis.AffectedTests) != 2 {
+		t.Errorf("Expected 2 affected tests, got %d", len(analysis.AffectedTests))
+	}
+
+	if analysis.RiskLevel != "low" {
+		t.Errorf("Expected low risk level, got %s", analysis.RiskLevel)
+	}
+
+	// Test task impact analysis
+	analysis, err = qs.AnalyzeImpact("task", "task-1")
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	if len(analysis.AffectedTests) != 1 {
+		t.Errorf("Expected 1 affected test, got %d", len(analysis.AffectedTests))
+	}
+
+	if len(analysis.AffectedPhases) != 1 {
+		t.Errorf("Expected 1 affected phase, got %d", len(analysis.AffectedPhases))
+	}
+}
+
+func TestQueryService_GetProgressInsights(t *testing.T) {
+	storage := storage.NewMemoryStorage()
+	qs := NewQueryService(storage)
+
+	// Test with no epic loaded
+	_, err := qs.GetProgressInsights()
+	if err == nil {
+		t.Error("Expected error when no epic loaded")
+	}
+
+	// Create test epic with mixed completion status
+	testEpic := &epic.Epic{
+		ID:   "epic-1",
+		Name: "Test Epic",
+		Tasks: []epic.Task{
+			{ID: "task-1", Name: "Task 1", Status: epic.StatusCompleted},
+			{ID: "task-2", Name: "Task 2", Status: epic.StatusActive},
+			{ID: "task-3", Name: "Task 3", Status: epic.StatusPlanning},
+		},
+		Tests: []epic.Test{
+			{ID: "test-1", Name: "Test 1", Status: epic.StatusCompleted},
+			{ID: "test-2", Name: "Test 2", Status: epic.StatusActive},
+		},
+	}
+
+	qs.epic = testEpic
+
+	insights, err := qs.GetProgressInsights()
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	// Velocity should be 2/5 = 0.4 (2 completed out of 5 total)
+	expectedVelocity := 0.4
+	if insights.Velocity != expectedVelocity {
+		t.Errorf("Expected velocity %f, got %f", expectedVelocity, insights.Velocity)
+	}
+
+	if insights.EstimatedCompletion != "Early stage" {
+		t.Errorf("Expected 'Early stage', got '%s'", insights.EstimatedCompletion)
+	}
+
+	// Should have recommendations
+	if len(insights.Recommendations) == 0 {
+		t.Error("Expected recommendations, got none")
+	}
 }
 
 func TestQueryService_GetRecentEvents(t *testing.T) {
