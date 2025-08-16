@@ -1,19 +1,19 @@
-# EPIC-5 SPECIFICATION: Test Management & Event Logging
+# EPIC-4 SPECIFICATION: Test Management & Event Logging
 
 ## Overview
 
-**Epic ID:** 5  
+**Epic ID:** 4
 **Name:** Test Management & Event Logging  
 **Duration:** 3-4 days  
 **Status:** pending  
 **Priority:** high  
-**Depends On:** Epic 1 (Foundation), Epic 2 (Query Commands), Epic 3 (Epic Lifecycle), Epic 4 (Task & Phase Management)
+**Depends On:** Epic 1 (Foundation), Epic 2 (Query Commands), Epic 3 (Epic Lifecycle)
 
 **Goal:** Implement comprehensive test status tracking and detailed event logging capabilities, enabling agents to manage test outcomes and maintain detailed activity timelines for development transparency and handoff purposes.
 
 ## Business Context
 
-Epic 5 is identified in the roadmap as one of the "most important epics" alongside Epic 4. It provides agents with the ability to track test results and log detailed development activities. This epic is crucial for maintaining development quality through test management and ensuring comprehensive documentation of all development activities through rich event logging. The combination of test tracking and event logging provides complete visibility into both the quality and process aspects of development work.
+Epic 4 is identified in the roadmap as one of the "most important epics" alongside Epic 5. It provides agents with the ability to track test results and log detailed development activities. This epic is crucial for maintaining development quality through test management and ensuring comprehensive documentation of all development activities through rich event logging. The combination of test tracking and event logging provides complete visibility into both the quality and process aspects of development work.
 
 ## User Stories
 
@@ -36,7 +36,6 @@ Epic 5 is identified in the roadmap as one of the "most important epics" alongsi
 - **Foundation:** Epic 1 CLI framework, XML processing, storage interface
 - **Querying:** Epic 2 query service for test status queries (already implemented)
 - **Lifecycle:** Epic 3 lifecycle management for epic-level validation
-- **Task Management:** Epic 4 task and phase management for context integration
 - **Event System:** Enhanced event logging with rich metadata and categorization
 
 ### Architecture Principles
@@ -177,12 +176,6 @@ Test 2A_3 cancelled: Spec contradicts itself with point xyz.
 **Test XML Structure:**
 ```xml
 <test id="2A_1" phase_id="2A" task_id="2A_1" status="passed">
-    <started_at>2025-08-16T14:20:00Z</started_at>
-    <passed_at>2025-08-16T14:25:00Z</passed_at>
-    <failed_at>2025-08-16T14:50:00Z</failed_at> <!-- only when status="failed" -->
-    <cancelled_at>2025-08-16T15:00:00Z</cancelled_at> <!-- only when status="cancelled" -->
-    <failure_note>Touch targets too small, need 44px+ minimum</failure_note> <!-- only when failed -->
-    <cancellation_reason>Spec contradicts itself with point xyz</cancellation_reason> <!-- only when cancelled -->
     <description>
         **GIVEN** I'm on mobile device  
         **WHEN** I tap pagination controls  
@@ -398,27 +391,27 @@ Test 2A_3 cancelled: Spec contradicts itself with point xyz.
 
 ## Implementation Phases
 
-### Phase 5A: Test Management Foundation (Day 1-2)
-- Create internal/tests package
-- Implement TestService with Storage injection
-- Test state validation and transition logic
-- Test start/pass/fail/cancel command implementation
-- Basic event logging for test operations
-
-### Phase 5B: Event Logging System (Day 2-3)
+### Phase 4A: Event Logging System (Day 2-3)
 - Enhanced event structure with metadata support
 - Manual event logging command implementation
 - File change tracking and parsing
 - Event type categorization and validation
 - Integration with current phase/task context
 
-### Phase 5C: Blocker Detection & Rich Events (Day 3)
+### Phase 4B: Test Management Foundation (Day 1-2)
+- Create internal/tests package
+- Implement TestService with Storage injection
+- Test state validation and transition logic
+- Test start/pass/fail/cancel command implementation
+- Basic event logging for test operations
+
+### Phase 4C: Blocker Detection & Rich Events (Day 3)
 - Automatic blocker event creation for failed tests
 - Rich event formatting with detailed metadata
 - Event querying enhancement for Epic 2 integration
 - Blocker identification and reporting utilities
 
-### Phase 5D: Integration & Performance (Day 3-4)
+### Phase 4D: Integration & Performance (Day 3-4)
 - Integration with Epic 2 failing command enhancements
 - Cross-command consistency and error handling
 - Performance optimization for event processing
@@ -441,7 +434,6 @@ Test 2A_3 cancelled: Spec contradicts itself with point xyz.
 - **Epic 1:** CLI framework, XML processing, storage interface
 - **Epic 2:** Query service for failing tests display (enhancement needed)
 - **Epic 3:** Epic lifecycle for overall epic state management
-- **Epic 4:** Task/phase management for event context integration
 
 ### Risks
 - **Low Risk:** Event logging performance with large event histories
@@ -462,8 +454,3 @@ Test 2A_3 cancelled: Spec contradicts itself with point xyz.
 - Test execution automation integration
 - Advanced blocker impact analysis
 - Event-based notifications and alerts
-
-### Integration Points
-- **Epic 6:** Handoff reports will heavily utilize event timeline and blocker information
-- **Future Development:** Event logging provides foundation for detailed project analytics
-- **Quality Metrics:** Test management enables comprehensive quality tracking and reporting

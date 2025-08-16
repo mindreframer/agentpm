@@ -1,19 +1,19 @@
-# EPIC-4 SPECIFICATION: Task & Phase Management
+# EPIC-5 SPECIFICATION: Task & Phase Management
 
 ## Overview
 
-**Epic ID:** 4  
+**Epic ID:** 5
 **Name:** Task & Phase Management  
 **Duration:** 4-5 days  
 **Status:** pending  
 **Priority:** high  
-**Depends On:** Epic 1 (Foundation), Epic 2 (Query Commands), Epic 3 (Epic Lifecycle)
+**Depends On:** Epic 1 (Foundation), Epic 2 (Query Commands), Epic 3 (Epic Lifecycle), Epic 4 (Tests + Event logging)
 
 **Goal:** Implement granular work tracking at phase and task levels, enabling agents to manage detailed development workflows within epics through structured phase and task state transitions.
 
 ## Business Context
 
-Epic 4 is identified in the roadmap as one of the "most important epics" alongside Epic 5. It provides agents with fine-grained control over their development workflow by managing phases and tasks within epics. The system enforces sequential work patterns - agents cannot start multiple phases simultaneously and must complete all tasks within a phase before marking it complete. This structured approach helps agents maintain focus and ensures comprehensive completion of work.
+Epic 5 is identified in the roadmap as one of the "most important epics" alongside Epic 4. It provides agents with fine-grained control over their development workflow by managing phases and tasks within epics. The system enforces sequential work patterns - agents cannot start multiple phases simultaneously and must complete all tasks within a phase before marking it complete. This structured approach helps agents maintain focus and ensures comprehensive completion of work.
 
 ## User Stories
 
@@ -388,28 +388,28 @@ Task 2A_1 cancelled.
 
 ## Implementation Phases
 
-### Phase 4A: Phase Management Foundation (Day 1-2)
+### Phase 5A: Phase Management Foundation (Day 1-2)
 - Create internal/tasks package
 - Implement TaskService with Storage and Query injection
 - Phase state validation and transition logic
 - Phase start/complete command implementation
 - Basic event logging for phase operations
 
-### Phase 4B: Task Management Implementation (Day 2-3)
+### Phase 5B: Task Management Implementation (Day 2-3)
 - Task state validation and transition logic
 - Task start/complete/cancel command implementation
 - Task-to-phase relationship validation
 - Active task constraint enforcement
 - Event logging for task operations
 
-### Phase 4C: Auto-Next Intelligence (Day 3-4)
+### Phase 5C: Auto-Next Intelligence (Day 3-4)
 - Auto-next selection algorithm implementation
 - Phase completion detection and auto-transition
 - Smart task selection within phases
 - Complex XML output for auto-next responses
 - Integration with existing query services
 
-### Phase 4D: Integration & Performance Optimization (Day 4-5)
+### Phase 5D: Integration & Performance Optimization (Day 4-5)
 - Cross-command consistency and integration
 - Performance optimization for state validation
 - Error message refinement and user experience
@@ -434,6 +434,7 @@ Task 2A_1 cancelled.
 - **Epic 1:** CLI framework, XML processing, storage interface
 - **Epic 2:** Query service for current state validation
 - **Epic 3:** Epic lifecycle for overall epic state management
+- **Epic 4:** Epic event logging + tests state management
 - **Event System:** Event creation and logging utilities
 
 ### Risks
@@ -457,6 +458,6 @@ Task 2A_1 cancelled.
 - Bulk task operations
 
 ### Integration Points
-- **Epic 5:** Event logging will extend the automatic event creation patterns
-- **Epic 6:** Handoff reports will include detailed phase/task progress information
-- **Future Epics:** Task management provides foundation for test management and advanced workflows
+- **Epic 6:** Handoff reports will heavily utilize event timeline and blocker information
+- **Future Development:** Event logging provides foundation for detailed project analytics
+- **Quality Metrics:** Test management enables comprehensive quality tracking and reporting

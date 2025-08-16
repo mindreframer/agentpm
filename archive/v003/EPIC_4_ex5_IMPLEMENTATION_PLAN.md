@@ -1,9 +1,58 @@
-# EPIC-5: Test Management & Event Logging Implementation Plan
+# EPIC-4: Test Management & Event Logging Implementation Plan
 ## Test-Driven Development Approach
 
-### Phase 1: Test Management Foundation + Tests (High Priority)
+### Phase 1: Event Logging System + Tests (High Priority)
 
-#### Phase 1A: Create Test Service Foundation
+#### Phase 1A: Event Logging Infrastructure
+- [ ] Enhanced event structure with metadata support
+- [ ] Create cmd/log.go command for manual event logging
+- [ ] Event type categorization (implementation, blocker, file_change, milestone)
+- [ ] File change tracking and parsing logic
+- [ ] Event validation and error handling
+- [ ] Integration with current phase/task context from Epic 4
+- [ ] XML output formatting for event logging confirmation
+
+#### Phase 1B: Write Event Logging Tests **IMMEDIATELY AFTER 1A**
+Epic 4 Test Scenarios Covered:
+- [ ] **Test: Log implementation event** (Epic 4 line 350)
+- [ ] **Test: Log event with file changes** (Epic 4 line 355)
+- [ ] **Test: Log blocker event** (Epic 4 line 360)
+- [ ] **Test: File change format validation** (Epic 4 line 375)
+- [ ] **Test: Event type categorization**
+- [ ] **Test: File change parsing with multiple files**
+- [ ] **Test: Event validation and error handling**
+- [ ] **Test: XML output format for event logging**
+
+#### Phase 1C: Rich Event Structure & File Tracking
+- [ ] Implement rich event XML structure with metadata
+- [ ] File change parsing for multiple actions (added, modified, deleted, renamed)
+- [ ] Event content formatting with structured information
+- [ ] File change metadata integration
+- [ ] Event content validation and sanitization
+- [ ] Error handling for malformed file change syntax
+
+#### Phase 1D: Write Rich Event Tests **IMMEDIATELY AFTER 1C**
+Epic 4 Test Scenarios Covered:
+- [ ] **Test: Rich event XML structure**
+- [ ] **Test: File change parsing for all action types**
+- [ ] **Test: Multiple file changes in single event**
+- [ ] **Test: Event content formatting and validation**
+- [ ] **Test: File change metadata accuracy**
+- [ ] **Test: Error handling for malformed file syntax**
+
+
+
+
+
+
+
+
+
+
+
+### Phase 2: Test Management Foundation + Tests (High Priority)
+
+#### Phase 2A: Create Test Service Foundation
 - [ ] Create internal/tests package
 - [ ] Define TestService struct with Storage injection
 - [ ] Implement test state validation logic with updated state machine
@@ -12,18 +61,18 @@
 - [ ] Event creation utilities for test transitions
 - [ ] Timestamp handling utilities (current time vs --time flag)
 
-#### Phase 1B: Write Test Service Foundation Tests **IMMEDIATELY AFTER 1A**
-Epic 5 Test Scenarios Covered:
-- [ ] **Test: Start test** (Epic 5 line 330)
-- [ ] **Test: Pass test** (Epic 5 line 335)
-- [ ] **Test: Fail test with details** (Epic 5 line 340)
-- [ ] **Test: Cancel test with reason** (Epic 5 line 345)
+#### Phase 2B: Write Test Service Foundation Tests **IMMEDIATELY AFTER 2A**
+Epic 4 Test Scenarios Covered:
+- [ ] **Test: Start test** (Epic 4 line 330)
+- [ ] **Test: Pass test** (Epic 4 line 335)
+- [ ] **Test: Fail test with details** (Epic 4 line 340)
+- [ ] **Test: Cancel test with reason** (Epic 4 line 345)
 - [ ] **Test: Test state validation logic with updated transitions**
 - [ ] **Test: Test can transition from passed to failed and vice versa**
 - [ ] **Test: Event creation for test transitions**
 - [ ] **Test: Timestamp handling and injection**
 
-#### Phase 1C: Test Commands Implementation
+#### Phase 2C: Test Commands Implementation
 - [ ] Create cmd/start_test.go command
 - [ ] Create cmd/pass_test.go command
 - [ ] Create cmd/fail_test.go command
@@ -34,8 +83,8 @@ Epic 5 Test Scenarios Covered:
 - [ ] Simple confirmation output format (non-XML)
 - [ ] Failure reason and cancellation reason handling
 
-#### Phase 1D: Write Test Commands Tests **IMMEDIATELY AFTER 1C**
-Epic 5 Test Scenarios Covered:
+#### Phase 2D: Write Test Commands Tests **IMMEDIATELY AFTER 2C**
+Epic 4 Test Scenarios Covered:
 - [ ] **Test: Start test** (detailed workflow)
 - [ ] **Test: Pass test** (with automatic event logging)
 - [ ] **Test: Fail test with details** (failure note recording)
@@ -45,44 +94,6 @@ Epic 5 Test Scenarios Covered:
 - [ ] **Test: Test transitions from failed to passed**
 - [ ] **Test: Timestamp injection via --time flag**
 
-### Phase 2: Event Logging System + Tests (High Priority)
-
-#### Phase 2A: Event Logging Infrastructure
-- [ ] Enhanced event structure with metadata support
-- [ ] Create cmd/log.go command for manual event logging
-- [ ] Event type categorization (implementation, blocker, file_change, milestone)
-- [ ] File change tracking and parsing logic
-- [ ] Event validation and error handling
-- [ ] Integration with current phase/task context from Epic 4
-- [ ] XML output formatting for event logging confirmation
-
-#### Phase 2B: Write Event Logging Tests **IMMEDIATELY AFTER 2A**
-Epic 5 Test Scenarios Covered:
-- [ ] **Test: Log implementation event** (Epic 5 line 350)
-- [ ] **Test: Log event with file changes** (Epic 5 line 355)
-- [ ] **Test: Log blocker event** (Epic 5 line 360)
-- [ ] **Test: File change format validation** (Epic 5 line 375)
-- [ ] **Test: Event type categorization**
-- [ ] **Test: File change parsing with multiple files**
-- [ ] **Test: Event validation and error handling**
-- [ ] **Test: XML output format for event logging**
-
-#### Phase 2C: Rich Event Structure & File Tracking
-- [ ] Implement rich event XML structure with metadata
-- [ ] File change parsing for multiple actions (added, modified, deleted, renamed)
-- [ ] Event content formatting with structured information
-- [ ] File change metadata integration
-- [ ] Event content validation and sanitization
-- [ ] Error handling for malformed file change syntax
-
-#### Phase 2D: Write Rich Event Tests **IMMEDIATELY AFTER 2C**
-Epic 5 Test Scenarios Covered:
-- [ ] **Test: Rich event XML structure**
-- [ ] **Test: File change parsing for all action types**
-- [ ] **Test: Multiple file changes in single event**
-- [ ] **Test: Event content formatting and validation**
-- [ ] **Test: File change metadata accuracy**
-- [ ] **Test: Error handling for malformed file syntax**
 
 ### Phase 3: Blocker Detection & Automatic Events + Tests (Medium Priority)
 
@@ -95,8 +106,8 @@ Epic 5 Test Scenarios Covered:
 - [ ] Blocker event XML structure and metadata
 
 #### Phase 3B: Write Blocker Detection Tests **IMMEDIATELY AFTER 3A**
-Epic 5 Test Scenarios Covered:
-- [ ] **Test: Automatic blocker for failed test** (Epic 5 line 365)
+Epic 4 Test Scenarios Covered:
+- [ ] **Test: Automatic blocker for failed test** (Epic 4 line 365)
 - [ ] **Test: Manual blocker event creation**
 - [ ] **Test: Blocker event formatting with test details**
 - [ ] **Test: Blocker impact assessment**
@@ -112,8 +123,8 @@ Epic 5 Test Scenarios Covered:
 - [ ] Context consistency across all event types
 
 #### Phase 3D: Write Event Context Tests **IMMEDIATELY AFTER 3C**
-Epic 5 Test Scenarios Covered:
-- [ ] **Test: Event integration with active context** (Epic 5 line 370)
+Epic 4 Test Scenarios Covered:
+- [ ] **Test: Event integration with active context** (Epic 4 line 370)
 - [ ] **Test: Phase and task context preservation**
 - [ ] **Test: Automatic context detection**
 - [ ] **Test: Context validation and error handling**
@@ -131,7 +142,7 @@ Epic 5 Test Scenarios Covered:
 - [ ] Performance optimization for test and event queries
 
 #### Phase 4B: Write Integration Tests **IMMEDIATELY AFTER 4A**
-Epic 5 Test Scenarios Covered:
+Epic 4 Test Scenarios Covered:
 - [ ] **Test: Integration with Epic 2 failing command**
 - [ ] **Test: Enhanced failing tests display**
 - [ ] **Test: Test status integration with progress calculation**
@@ -140,7 +151,7 @@ Epic 5 Test Scenarios Covered:
 - [ ] **Test: Performance with large event histories**
 
 #### Phase 4C: Final Integration & Performance
-- [ ] End-to-end integration testing across all Epic 5 commands
+- [ ] End-to-end integration testing across all Epic 4 commands
 - [ ] Performance optimization for large event histories
 - [ ] Cross-command consistency (error formats, XML output)
 - [ ] Global flag consistency (--time, --file)
@@ -148,7 +159,7 @@ Epic 5 Test Scenarios Covered:
 - [ ] Final error message refinement and user experience
 
 #### Phase 4D: Write Final Integration Tests **IMMEDIATELY AFTER 4C**
-Epic 5 Test Scenarios Covered:
+Epic 4 Test Scenarios Covered:
 - [ ] **Test: End-to-end test and event workflow**
 - [ ] **Test: Performance with large event datasets**
 - [ ] **Test: Cross-command consistency**
@@ -167,13 +178,12 @@ For **EACH** phase:
 4. **Run Linting/Type Checking** - Code must be clean
 5. **NEVER move to next phase with failing tests**
 
-## Epic 5 Specific Considerations
+## Epic 4 Specific Considerations
 
 ### Dependencies & Integration
 - **Epic 1:** CLI framework, XML processing, storage interface
 - **Epic 2:** Query service for test status queries (enhancement needed for failure details)
 - **Epic 3:** Epic lifecycle for overall epic state management
-- **Epic 4:** Task/phase management for event context integration
 - **Event System:** Enhanced event logging with rich metadata
 
 ### Technical Requirements
@@ -265,7 +275,7 @@ func ParseFileChanges(filesFlag string) ([]FileChange, error) {
 
 ✅ **Immediate Feedback** - Catch issues as soon as code is written  
 ✅ **Working Code** - Each phase delivers tested, working functionality  
-✅ **Epic 5 Coverage** - All acceptance criteria distributed across phases  
+✅ **Epic 4 Coverage** - All acceptance criteria distributed across phases  
 ✅ **Incremental Progress** - Agents can use test commands after each phase  
 ✅ **Risk Mitigation** - Problems caught early, not at the end  
 ✅ **Quality Assurance** - No untested code makes it to later phases  
@@ -277,13 +287,13 @@ func ParseFileChanges(filesFlag string) ([]FileChange, error) {
 - **Phase 3 Tests:** 12 scenarios (Blocker detection, event context integration)
 - **Phase 4 Tests:** 14 scenarios (Epic 2 integration, final integration testing)
 
-**Total: All Epic 5 acceptance criteria and test scenarios covered across all phases**
+**Total: All Epic 4 acceptance criteria and test scenarios covered across all phases**
 
 ---
 
 ## Implementation Status
 
-### EPIC 5: TEST MANAGEMENT & EVENT LOGGING - PENDING
+### EPIC 4: TEST MANAGEMENT & EVENT LOGGING - PENDING
 ### Current Status: READY TO START (After Epic 1, 2, 3 & 4 Complete)
 
 ### Progress Tracking
