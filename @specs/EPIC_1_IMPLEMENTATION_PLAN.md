@@ -262,10 +262,10 @@ For **EACH** phase:
 - [x] Phase 3B: Write Init Command Tests
 - [x] Phase 3C: Implement Config & Validate Commands
 - [x] Phase 3D: Write Config & Validate Tests
-- [ ] Phase 4A: Service Layer & Dependency Injection
-- [ ] Phase 4B: Write Service Integration Tests
-- [ ] Phase 4C: End-to-End CLI Testing & Polish
-- [ ] Phase 4D: Final Testing & Documentation
+- [x] Phase 4A: Service Layer & Dependency Injection
+- [x] Phase 4B: Write Service Integration Tests
+- [x] Phase 4C: End-to-End CLI Testing & Polish
+- [x] Phase 4D: Final Testing & Documentation
 
 ### Definition of Done
 - [ ] All acceptance criteria verified with automated tests
