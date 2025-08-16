@@ -1,0 +1,132 @@
+Here's a generic `mapToText` implementation that creates readable hierarchical output:
+
+```go
+func (o Output) ToText() string {
+    var buf strings.Builder
+    o.mapToText(&buf, 0)
+    return buf.String()
+}
+
+func (o Output) mapToText(buf *strings.Builder, indent int) {
+    prefix := strings.Repeat("  ", indent)
+    
+    // Handle special _attrs key (skip in text output)
+    for key, value := range o {
+        if key == "_attrs" {
+            continue
+        }
+        
+        switch v := value.(type) {
+        case Output:
+            // Nested object - show as section header
+            buf.WriteString(fmt.Sprintf("%s%s:\n", prefix, titleCase(key)))
+            v.mapToText(buf, indent+1)
+            
+        case []Output:
+            // Array of objects
+            buf.WriteString(fmt.Sprintf("%s%s:\n", prefix, titleCase(key)))
+            for _, item := range v {
+                item.mapToText(buf, indent+1)
+                buf.WriteString("\n")
+            }
+            
+        case []string:
+            // Array of strings
+            buf.WriteString(fmt.Sprintf("%s%s:\n", prefix, titleCase(key)))
+            for _, item := range v {
+                buf.WriteString(fmt.Sprintf("%s  - %s\n", prefix, item))
+            }
+            
+        case []interface{}:
+            // Generic array
+            buf.WriteString(fmt.Sprintf("%s%s:\n", prefix, titleCase(key)))
+            for _, item := range v {
+                buf.WriteString(fmt.Sprintf("%s  - %v\n", prefix, item))
+            }
+            
+        default:
+            // Simple value
+            buf.WriteString(fmt.Sprintf("%s%s: %v\n", prefix, titleCase(key), v))
+        }
+    }
+}
+
+func titleCase(s string) string {
+    // Convert snake_case to Title Case
+    words := strings.Split(s, "_")
+    for i, word := range words {
+        if len(word) > 0 {
+            words[i] = strings.ToUpper(word[:1]) + word[1:]
+        }
+    }
+    return strings.Join(words, " ")
+}
+```
+
+## Example Usage
+
+For this input:
+```go
+output := Output{
+    "epic_info": Output{
+        "name": "Schools Index Pagination",
+        "status": "in_progress",
+        "assignee": "agent_claude",
+    },
+    "current_state": Output{
+        "active_phase": "2A",
+        "next_action": "Fix mobile responsive pagination controls",
+    },
+    "summary": Output{
+        "completed_phases": 2,
+        "total_phases": 4,
+        "completion_percentage": 50,
+    },
+    "recent_events": []Output{
+        {"type": "blocker", "message": "Found design system dependency"},
+        {"type": "test_failed", "message": "Mobile responsive test failing"},
+    },
+    "blockers": []string{
+        "Need design system tokens for mobile responsive design",
+        "Waiting for accessibility review",
+    },
+}
+```
+
+Output would be:
+```
+Epic Info:
+  Name: Schools Index Pagination
+  Status: in_progress
+  Assignee: agent_claude
+
+Current State:
+  Active Phase: 2A
+  Next Action: Fix mobile responsive pagination controls
+
+Summary:
+  Completed Phases: 2
+  Total Phases: 4
+  Completion Percentage: 50
+
+Recent Events:
+  Type: blocker
+  Message: Found design system dependency
+
+  Type: test_failed
+  Message: Mobile responsive test failing
+
+Blockers:
+  - Need design system tokens for mobile responsive design
+  - Waiting for accessibility review
+```
+
+## Benefits
+
+✅ **Generic** - Works with any nested map structure  
+✅ **Readable** - Natural hierarchical text format  
+✅ **Flexible** - Handles arrays, objects, primitives  
+✅ **Consistent** - Same data structure for all formats  
+✅ **Extensible** - Easy to add formatting rules  
+
+The key insight is using reflection/type switching to handle different value types generically while maintaining readability.

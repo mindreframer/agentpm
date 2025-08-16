@@ -1,0 +1,358 @@
+Here are all the output examples for each `agentpm` command:
+
+## Project Setup Commands
+
+### `agentpm init --epic epic-8.xml`
+```xml
+<init_result>
+    <project_created>true</project_created>
+    <config_file>.agentpm.json</config_file>
+    <current_epic>epic-8.xml</current_epic>
+</init_result>
+```
+
+### `agentpm config`
+```xml
+<config>
+    <current_epic>epic-8.xml</current_epic>
+    <project_name>MooCRM</project_name>
+    <default_assignee>agent_claude</default_assignee>
+</config>
+```
+
+### `agentpm switch epic-9.xml`
+```xml
+<switch_result>
+    <previous_epic>epic-8.xml</previous_epic>
+    <current_epic>epic-9.xml</current_epic>
+    <updated>.agentpm.json</updated>
+</switch_result>
+```
+
+## Status and Query Commands
+
+### `agentpm status`
+```xml
+<status epic="8">
+    <name>Schools Index Pagination</name>
+    <status>in_progress</status>
+    <progress>
+        <completed_phases>2</completed_phases>
+        <total_phases>4</total_phases>
+        <passing_tests>12</passing_tests>
+        <failing_tests>1</failing_tests>
+        <completion_percentage>50</completion_percentage>
+    </progress>
+    <current_phase>2A</current_phase>
+    <current_task>2A_1</current_task>
+</status>
+```
+
+### `agentpm current`
+```xml
+<current_state epic="8">
+    <epic_status>in_progress</epic_status>
+    <active_phase>2A</active_phase>
+    <active_task>2A_1</active_task>
+    <next_action>Fix mobile responsive pagination controls</next_action>
+    <failing_tests>1</failing_tests>
+</current_state>
+```
+
+### `agentpm failing`
+```xml
+<failing_tests epic="8">
+    <test id="2A_2" phase_id="2A">
+        <description>
+            **GIVEN** I'm on mobile device  
+            **WHEN** I tap pagination controls  
+            **THEN** They work and are easy to tap (44px+ targets)
+        </description>
+        <failure_note>Touch targets too small, need 44px+ minimum</failure_note>
+    </test>
+</failing_tests>
+```
+
+### `agentpm pending`
+```xml
+<pending_work epic="8">
+    <phases>
+        <phase id="3A" name="LiveView Integration" status="pending"/>
+        <phase id="4A" name="Performance Optimization" status="pending"/>
+    </phases>
+    <tasks>
+        <task id="2A_2" phase_id="2A" status="pending">Add accessibility features to pagination controls</task>
+    </tasks>
+    <tests>
+        <test id="2A_3" phase_id="2A" status="pending">URL state persistence test</test>
+    </tests>
+</pending_work>
+```
+
+### `agentpm events --limit=5`
+```xml
+<events epic="8" limit="5">
+    <event timestamp="2025-08-16T15:00:00Z" agent="agent_claude" phase_id="2A" type="blocker">
+        Found design system dependency
+        
+        Blocker: Need design system tokens for mobile responsive design
+    </event>
+    <event timestamp="2025-08-16T14:45:00Z" agent="agent_claude" phase_id="2A" type="test_failed">
+        Mobile responsive test failing
+        
+        Test: 2A_2 - Mobile pagination controls
+        Issue: Touch targets too small, need 44px+ minimum
+    </event>
+    <event timestamp="2025-08-16T14:30:00Z" agent="agent_claude" phase_id="2A" type="implementation">
+        Implemented basic pagination controls
+        
+        Files: src/components/Pagination.js (added), src/styles/pagination.css (added)
+        Result: Basic controls working, all tests passing
+    </event>
+</events>
+```
+
+## Epic Management Commands
+
+### `agentpm start-epic`
+```xml
+<epic_started epic="8">
+    <previous_status>planning</previous_status>
+    <new_status>in_progress</new_status>
+    <started_at>2025-08-16T15:30:00Z</started_at>
+    <message>Epic 8 started. Status changed to in_progress.</message>
+</epic_started>
+```
+
+### `agentpm complete-epic`
+```xml
+<epic_completed epic="8">
+    <previous_status>in_progress</previous_status>
+    <new_status>completed</new_status>
+    <completed_at>2025-08-20T16:45:00Z</completed_at>
+    <summary>
+        <total_phases>4</total_phases>
+        <total_tasks>12</total_tasks>
+        <total_tests>25</total_tests>
+        <duration>5 days</duration>
+    </summary>
+    <message>Epic 8 completed successfully. All phases and tests complete.</message>
+</epic_completed>
+```
+
+### `agentpm pause-epic "Waiting for design approval"`
+```xml
+<epic_paused epic="8">
+    <previous_status>in_progress</previous_status>
+    <new_status>paused</new_status>
+    <paused_at>2025-08-16T15:30:00Z</paused_at>
+    <reason>Waiting for design approval</reason>
+    <message>Epic 8 paused. Status changed to paused.</message>
+</epic_paused>
+```
+
+### `agentpm resume-epic`
+```xml
+<epic_resumed epic="8">
+    <previous_status>paused</previous_status>
+    <new_status>in_progress</new_status>
+    <resumed_at>2025-08-17T09:00:00Z</resumed_at>
+    <pause_duration>17 hours 30 minutes</pause_duration>
+    <message>Epic 8 resumed. Status changed to in_progress.</message>
+</epic_resumed>
+```
+
+## Phase Management Commands
+
+### `agentpm start-phase 2A`
+```xml
+<phase_started epic="8" phase="2A">
+    <phase_name>Create PaginationComponent</phase_name>
+    <previous_status>pending</previous_status>
+    <new_status>in_progress</new_status>
+    <started_at>2025-08-16T14:00:00Z</started_at>
+    <message>Started Phase 2A: Create PaginationComponent</message>
+</phase_started>
+```
+
+### `agentpm complete-phase 2A`
+```xml
+<phase_completed epic="8" phase="2A">
+    <phase_name>Create PaginationComponent</phase_name>
+    <previous_status>in_progress</previous_status>
+    <new_status>completed</new_status>
+    <completed_at>2025-08-16T16:30:00Z</completed_at>
+    <duration>2 hours 30 minutes</duration>
+    <tasks_completed>2</tasks_completed>
+    <tests_passing>3</tests_passing>
+    <message>Phase 2A completed successfully</message>
+</phase_completed>
+```
+
+## Task Management Commands
+
+### `agentpm start-task 2A_1`
+```xml
+<task_started epic="8" task="2A_1">
+    <task_description>Create PaginationComponent with Previous/Next controls</task_description>
+    <phase_id>2A</phase_id>
+    <previous_status>pending</previous_status>
+    <new_status>in_progress</new_status>
+    <started_at>2025-08-16T14:15:00Z</started_at>
+    <message>Started Task 2A_1: Create PaginationComponent with Previous/Next controls</message>
+</task_started>
+```
+
+### `agentpm start-next`
+```xml
+<task_started epic="8" task="2A_2">
+    <task_description>Add accessibility features to pagination controls</task_description>
+    <phase_id>2A</phase_id>
+    <previous_status>pending</previous_status>
+    <new_status>in_progress</new_status>
+    <started_at>2025-08-16T15:00:00Z</started_at>
+    <auto_selected>true</auto_selected>
+    <message>Started Task 2A_2: Add accessibility features to pagination controls (auto-selected)</message>
+</task_started>
+```
+
+### `agentpm complete-task 2A_1`
+```xml
+<task_completed epic="8" task="2A_1">
+    <task_description>Create PaginationComponent with Previous/Next controls</task_description>
+    <phase_id>2A</phase_id>
+    <previous_status>in_progress</previous_status>
+    <new_status>completed</new_status>
+    <completed_at>2025-08-16T14:45:00Z</completed_at>
+    <duration>30 minutes</duration>
+    <message>Task 2A_1 completed successfully</message>
+</task_completed>
+```
+
+## Test Management Commands
+
+### `agentpm pass-test 2A_1`
+```xml
+<test_updated epic="8" test="2A_1">
+    <test_description>Basic pagination navigation test</test_description>
+    <phase_id>2A</phase_id>
+    <previous_status>pending</previous_status>
+    <new_status>passed</new_status>
+    <updated_at>2025-08-16T14:45:00Z</updated_at>
+    <message>Test 2A_1 marked as passed</message>
+</test_updated>
+```
+
+### `agentpm fail-test 2A_2 "Touch targets too small"`
+```xml
+<test_updated epic="8" test="2A_2">
+    <test_description>Mobile pagination controls test</test_description>
+    <phase_id>2A</phase_id>
+    <previous_status>pending</previous_status>
+    <new_status>failing</new_status>
+    <failure_reason>Touch targets too small</failure_reason>
+    <updated_at>2025-08-16T14:50:00Z</updated_at>
+    <message>Test 2A_2 marked as failing: Touch targets too small</message>
+</test_updated>
+```
+
+## Logging Commands
+
+### `agentpm log "Implemented pagination controls" --files="src/Pagination.js:added"`
+```xml
+<event_logged epic="8">
+    <timestamp>2025-08-16T14:30:00Z</timestamp>
+    <agent>agent_claude</agent>
+    <phase_id>2A</phase_id>
+    <type>implementation</type>
+    <message>Event logged successfully</message>
+</event_logged>
+```
+
+### `agentpm log "Found accessibility issue" --type=issue`
+```xml
+<event_logged epic="8">
+    <timestamp>2025-08-16T14:45:00Z</timestamp>
+    <agent>agent_claude</agent>
+    <phase_id>2A</phase_id>
+    <type>issue</type>
+    <message>Issue logged successfully</message>
+</event_logged>
+```
+
+## Agent Handoff Commands
+
+### `agentpm handoff`
+```xml
+<handoff epic="8" timestamp="2025-08-16T15:30:00Z">
+    <epic_info>
+        <name>Schools Index Pagination</name>
+        <status>in_progress</status>
+        <started>2025-08-15T09:00:00Z</started>
+        <assignee>agent_claude</assignee>
+    </epic_info>
+    <current_state>
+        <active_phase>2A</active_phase>
+        <active_task>2A_1</active_task>
+        <next_action>Fix mobile responsive pagination controls</next_action>
+    </current_state>
+    <summary>
+        <completed_phases>2</completed_phases>
+        <total_phases>4</total_phases>
+        <passing_tests>12</passing_tests>
+        <failing_tests>1</failing_tests>
+        <completion_percentage>50</completion_percentage>
+    </summary>
+    <recent_events limit="3">
+        <event timestamp="2025-08-16T15:00:00Z" type="blocker">
+            Found design system dependency
+        </event>
+        <event timestamp="2025-08-16T14:45:00Z" type="test_failed">
+            Mobile responsive test failing
+        </event>
+        <event timestamp="2025-08-16T14:30:00Z" type="implementation">
+            Implemented basic pagination controls
+        </event>
+    </recent_events>
+    <blockers>
+        <blocker>Need design system tokens for mobile responsive design</blocker>
+    </blockers>
+</handoff>
+```
+
+## Validation Commands
+
+### `agentpm validate`
+```xml
+<validation_result epic="8">
+    <valid>true</valid>
+    <warnings>
+        <warning>Task 2A_2 has no tests defined</warning>
+    </warnings>
+    <checks_performed>
+        <check name="xml_structure">passed</check>
+        <check name="phase_dependencies">passed</check>
+        <check name="task_phase_mapping">passed</check>
+        <check name="test_coverage">warning</check>
+    </checks_performed>
+    <message>Epic structure is valid with 1 warning</message>
+</validation_result>
+```
+
+### `agentpm docs`
+```xml
+<docs_generated epic="8">
+    <output_file>epic-8-status.md</output_file>
+    <generated_at>2025-08-16T15:30:00Z</generated_at>
+    <sections>
+        <section>Epic Overview</section>
+        <section>Phase Progress</section>
+        <section>Task Status</section>
+        <section>Test Results</section>
+        <section>Recent Activity</section>
+    </sections>
+    <message>Documentation generated successfully</message>
+</docs_generated>
+```
+
+All outputs follow the same XML structure pattern and can be easily parsed by LLM agents for further processing or decision making.

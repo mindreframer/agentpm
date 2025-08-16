@@ -1,0 +1,16 @@
+I want to brainstorm the roadmap for a new PM tool for LLM agents. It must be implemented in Golang. 
+The data for a single EPIC will be stored in an XML file. 
+
+Idea: 
+- no concurrency, only a single agent works on a single epic file (at least locally)
+- prefer simlicity over rich features
+- the CLI is the primary way to interact with this tool
+- it must be non-interactive, so it is simple to use for the agent
+- it must provide a good help system with good examples, so agents can discover what can be done with the tool 
+- I want to use https://github.com/beevik/etree for the XML parsing / writing
+- performance is not an issue, since we have a small local file, and not gigabytes of data, so prefer simplicity over performance
+
+
+Now: 
+    - suggest other CLI libs for this project? I prefer lightweight libs with many dependencies
+    - suggest a roadmap for smooth implementation process

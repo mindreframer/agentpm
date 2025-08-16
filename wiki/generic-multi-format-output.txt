@@ -1,0 +1,142 @@
+Absolutely! Option 3 is perfect for multi-format output. Here's how it would work for the handoff payload:
+
+## Go Implementation
+
+```go
+type Output map[string]interface{}
+
+func (o Output) ToXML(rootElement string) string {
+    return mapToXML(rootElement, o)
+}
+
+func (o Output) ToJSON() string {
+    bytes, _ := json.MarshalIndent(o, "", "  ")
+    return string(bytes)
+}
+
+func (o Output) ToText() string {
+    return mapToText(o, 0)
+}
+
+// Usage for handoff command:
+func handoffCommand(epic Epic) Output {
+    return Output{
+        "_attrs": map[string]string{
+            "epic":      epic.ID,
+            "timestamp": time.Now().Format(time.RFC3339),
+        },
+        "epic_info": Output{
+            "name":     epic.Name,
+            "status":   epic.Status, 
+            "started":  epic.Started,
+            "assignee": epic.Assignee,
+        },
+        "current_state": Output{
+            "active_phase": epic.CurrentState.ActivePhase,
+            "active_task":  epic.CurrentState.ActiveTask,
+            "next_action":  epic.CurrentState.NextAction,
+        },
+        "summary": Output{
+            "completed_phases":      epic.CompletedPhases(),
+            "total_phases":         epic.TotalPhases(),
+            "passing_tests":        epic.PassingTests(),
+            "failing_tests":        epic.FailingTests(),
+            "completion_percentage": epic.CompletionPercentage(),
+        },
+        "recent_events": Output{
+            "_attrs": map[string]string{"limit": "3"},
+            "events": epic.RecentEvents(3), // Returns []Output
+        },
+        "blockers": epic.CurrentBlockers(), // Returns []string
+    }
+}
+```
+
+## Multi-Format Output
+
+### XML (default)
+```bash
+agentpm handoff
+```
+```xml
+<handoff epic="8" timestamp="2025-08-16T15:30:00Z">
+    <epic_info>
+        <name>Schools Index Pagination</name>
+        <status>in_progress</status>
+    </epic_info>
+    <!-- ... rest of XML -->
+</handoff>
+```
+
+### JSON
+```bash
+agentpm handoff --format=json
+```
+```json
+{
+  "epic_info": {
+    "name": "Schools Index Pagination",
+    "status": "in_progress",
+    "started": "2025-08-15T09:00:00Z",
+    "assignee": "agent_claude"
+  },
+  "current_state": {
+    "active_phase": "2A",
+    "active_task": "2A_1", 
+    "next_action": "Fix mobile responsive pagination controls"
+  },
+  "summary": {
+    "completed_phases": 2,
+    "total_phases": 4,
+    "completion_percentage": 50
+  }
+}
+```
+
+### Plain Text
+```bash
+agentpm handoff --format=text
+```
+```
+Epic: Schools Index Pagination (8)
+Status: in_progress
+Started: 2025-08-15T09:00:00Z
+Assignee: agent_claude
+
+Current State:
+  Active Phase: 2A
+  Active Task: 2A_1
+  Next Action: Fix mobile responsive pagination controls
+
+Summary:
+  Completed Phases: 2/4 (50%)
+  Tests: 12 passing, 1 failing
+
+Recent Events:
+  - Found design system dependency (blocker)
+  - Mobile responsive test failing (test_failed)
+  - Implemented basic pagination controls (implementation)
+
+Blockers:
+  - Need design system tokens for mobile responsive design
+```
+
+## CLI Implementation
+```go
+func main() {
+    format := flag.String("format", "xml", "Output format: xml, json, text")
+    
+    output := handoffCommand(epic)
+    
+    switch *format {
+    case "json":
+        fmt.Println(output.ToJSON())
+    case "text": 
+        fmt.Println(output.ToText())
+    default:
+        fmt.Println(output.ToXML("handoff"))
+    }
+}
+```
+
+This approach gives you **maximum flexibility** with **minimal code**. One data structure, three output formats, and you can easily add more formats later (YAML, table, etc.).
