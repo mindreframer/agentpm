@@ -15,16 +15,30 @@ const (
 )
 
 type Epic struct {
-	ID          string    `xml:"id,attr"`
-	Name        string    `xml:"name,attr"`
-	Status      Status    `xml:"status,attr"`
-	CreatedAt   time.Time `xml:"created_at,attr"`
-	Assignee    string    `xml:"assignee"`
-	Description string    `xml:"description"`
-	Phases      []Phase   `xml:"phases>phase"`
-	Tasks       []Task    `xml:"tasks>task"`
-	Tests       []Test    `xml:"tests>test"`
-	Events      []Event   `xml:"events>event"`
+	ID           string        `xml:"id,attr"`
+	Name         string        `xml:"name,attr"`
+	Status       Status        `xml:"status,attr"`
+	CreatedAt    time.Time     `xml:"created_at,attr"`
+	Assignee     string        `xml:"assignee"`
+	Description  string        `xml:"description"`
+	Metadata     *EpicMetadata `xml:"metadata,omitempty"`
+	CurrentState *CurrentState `xml:"current_state,omitempty"`
+	Phases       []Phase       `xml:"phases>phase"`
+	Tasks        []Task        `xml:"tasks>task"`
+	Tests        []Test        `xml:"tests>test"`
+	Events       []Event       `xml:"events>event"`
+}
+
+type EpicMetadata struct {
+	Created         time.Time `xml:"created"`
+	Assignee        string    `xml:"assignee"`
+	EstimatedEffort string    `xml:"estimated_effort"`
+}
+
+type CurrentState struct {
+	ActivePhase string `xml:"active_phase"`
+	ActiveTask  string `xml:"active_task"`
+	NextAction  string `xml:"next_action"`
 }
 
 type Phase struct {
@@ -118,10 +132,21 @@ func (s Status) IsValid() bool {
 }
 
 func NewEpic(id, name string) *Epic {
+	now := time.Now()
 	return &Epic{
 		ID:        id,
 		Name:      name,
 		Status:    StatusPlanning,
-		CreatedAt: time.Now(),
+		CreatedAt: now,
+		Metadata: &EpicMetadata{
+			Created:         now,
+			Assignee:        "",
+			EstimatedEffort: "",
+		},
+		CurrentState: &CurrentState{
+			ActivePhase: "",
+			ActiveTask:  "",
+			NextAction:  "Start next phase",
+		},
 	}
 }

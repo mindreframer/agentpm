@@ -53,6 +53,46 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 		epicData.Description = descElem.Text()
 	}
 
+	// Parse metadata section (Epic 7)
+	if metadataElem := root.SelectElement("metadata"); metadataElem != nil {
+		metadata := &epic.EpicMetadata{}
+
+		if createdElem := metadataElem.SelectElement("created"); createdElem != nil {
+			if t, err := time.Parse(time.RFC3339, createdElem.Text()); err == nil {
+				metadata.Created = t
+			}
+		}
+
+		if assigneeElem := metadataElem.SelectElement("assignee"); assigneeElem != nil {
+			metadata.Assignee = assigneeElem.Text()
+		}
+
+		if effortElem := metadataElem.SelectElement("estimated_effort"); effortElem != nil {
+			metadata.EstimatedEffort = effortElem.Text()
+		}
+
+		epicData.Metadata = metadata
+	}
+
+	// Parse current_state section (Epic 7)
+	if currentStateElem := root.SelectElement("current_state"); currentStateElem != nil {
+		currentState := &epic.CurrentState{}
+
+		if activePhaseElem := currentStateElem.SelectElement("active_phase"); activePhaseElem != nil {
+			currentState.ActivePhase = activePhaseElem.Text()
+		}
+
+		if activeTaskElem := currentStateElem.SelectElement("active_task"); activeTaskElem != nil {
+			currentState.ActiveTask = activeTaskElem.Text()
+		}
+
+		if nextActionElem := currentStateElem.SelectElement("next_action"); nextActionElem != nil {
+			currentState.NextAction = nextActionElem.Text()
+		}
+
+		epicData.CurrentState = currentState
+	}
+
 	if phasesElem := root.SelectElement("phases"); phasesElem != nil {
 		for _, phaseElem := range phasesElem.SelectElements("phase") {
 			phase := epic.Phase{
@@ -212,6 +252,46 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 	if epicData.Description != "" {
 		descElem := root.CreateElement("description")
 		descElem.SetText(epicData.Description)
+	}
+
+	// Save metadata section (Epic 7)
+	if epicData.Metadata != nil {
+		metadataElem := root.CreateElement("metadata")
+
+		if !epicData.Metadata.Created.IsZero() {
+			createdElem := metadataElem.CreateElement("created")
+			createdElem.SetText(epicData.Metadata.Created.Format(time.RFC3339))
+		}
+
+		if epicData.Metadata.Assignee != "" {
+			assigneeElem := metadataElem.CreateElement("assignee")
+			assigneeElem.SetText(epicData.Metadata.Assignee)
+		}
+
+		if epicData.Metadata.EstimatedEffort != "" {
+			effortElem := metadataElem.CreateElement("estimated_effort")
+			effortElem.SetText(epicData.Metadata.EstimatedEffort)
+		}
+	}
+
+	// Save current_state section (Epic 7)
+	if epicData.CurrentState != nil {
+		currentStateElem := root.CreateElement("current_state")
+
+		if epicData.CurrentState.ActivePhase != "" {
+			activePhaseElem := currentStateElem.CreateElement("active_phase")
+			activePhaseElem.SetText(epicData.CurrentState.ActivePhase)
+		}
+
+		if epicData.CurrentState.ActiveTask != "" {
+			activeTaskElem := currentStateElem.CreateElement("active_task")
+			activeTaskElem.SetText(epicData.CurrentState.ActiveTask)
+		}
+
+		if epicData.CurrentState.NextAction != "" {
+			nextActionElem := currentStateElem.CreateElement("next_action")
+			nextActionElem.SetText(epicData.CurrentState.NextAction)
+		}
 	}
 
 	if len(epicData.Phases) > 0 {

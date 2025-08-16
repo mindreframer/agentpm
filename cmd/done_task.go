@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/memomoo/agentpm/internal/config"
+	"github.com/memomoo/agentpm/internal/epic"
 	"github.com/memomoo/agentpm/internal/query"
 	"github.com/memomoo/agentpm/internal/storage"
 	"github.com/memomoo/agentpm/internal/tasks"
@@ -88,6 +89,9 @@ func DoneTaskCommand() *cli.Command {
 				return fmt.Errorf("failed to complete task: %w", err)
 			}
 
+			// Update current_state after completing task (Epic 7)
+			updateCurrentStateAfterTaskComplete(epicData, taskID)
+
 			// Save the updated epic
 			err = storageImpl.SaveEpic(epicData, epicFile)
 			if err != nil {
@@ -98,5 +102,34 @@ func DoneTaskCommand() *cli.Command {
 			fmt.Fprintf(cmd.Writer, "Task %s completed.\n", taskID)
 			return nil
 		},
+	}
+}
+
+// updateCurrentStateAfterTaskComplete updates the epic's current_state when a task is completed
+func updateCurrentStateAfterTaskComplete(epicData *epic.Epic, taskID string) {
+	// Ensure current_state exists
+	if epicData.CurrentState == nil {
+		epicData.CurrentState = &epic.CurrentState{}
+	}
+
+	// If this was the active task, clear it
+	if epicData.CurrentState.ActiveTask == taskID {
+		epicData.CurrentState.ActiveTask = ""
+	}
+
+	// Find next action based on remaining work in the current phase
+	phaseID := epicData.CurrentState.ActivePhase
+	if phaseID != "" {
+		// Look for next pending task in the same phase
+		for _, task := range epicData.Tasks {
+			if task.PhaseID == phaseID && task.Status == epic.StatusPlanning {
+				epicData.CurrentState.NextAction = fmt.Sprintf("Start next task: %s", task.Name)
+				return
+			}
+		}
+		// No more tasks in phase, suggest completing the phase
+		epicData.CurrentState.NextAction = "Complete current phase"
+	} else {
+		epicData.CurrentState.NextAction = "Start next phase"
 	}
 }

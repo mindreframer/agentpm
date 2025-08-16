@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/memomoo/agentpm/internal/config"
+	"github.com/memomoo/agentpm/internal/epic"
 	"github.com/memomoo/agentpm/internal/query"
 	"github.com/memomoo/agentpm/internal/storage"
 	"github.com/memomoo/agentpm/internal/tasks"
@@ -110,6 +111,9 @@ func StartTaskCommand() *cli.Command {
 				return fmt.Errorf("failed to start task: %w", err)
 			}
 
+			// Update current_state after starting task (Epic 7)
+			updateCurrentStateAfterTaskStart(epicData, taskID)
+
 			// Save the updated epic
 			err = storageImpl.SaveEpic(epicData, epicFile)
 			if err != nil {
@@ -121,4 +125,28 @@ func StartTaskCommand() *cli.Command {
 			return nil
 		},
 	}
+}
+
+// updateCurrentStateAfterTaskStart updates the epic's current_state when a task is started
+func updateCurrentStateAfterTaskStart(epicData *epic.Epic, taskID string) {
+	// Ensure current_state exists
+	if epicData.CurrentState == nil {
+		epicData.CurrentState = &epic.CurrentState{}
+	}
+
+	// Find the task to get its phase
+	var taskPhaseID string
+	var taskName string
+	for _, task := range epicData.Tasks {
+		if task.ID == taskID {
+			taskPhaseID = task.PhaseID
+			taskName = task.Name
+			break
+		}
+	}
+
+	// Update current state
+	epicData.CurrentState.ActivePhase = taskPhaseID
+	epicData.CurrentState.ActiveTask = taskID
+	epicData.CurrentState.NextAction = fmt.Sprintf("Continue work on: %s", taskName)
 }

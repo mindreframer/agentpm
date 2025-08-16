@@ -46,6 +46,7 @@ func main() {
 			cmd.PendingCommand(),
 			cmd.FailingCommand(),
 			cmd.EventsCommand(),
+			cmd.LogCommand(),
 			cmd.StartEpicCommand(),
 			cmd.DoneEpicCommand(),
 			cmd.SwitchCommand(),
