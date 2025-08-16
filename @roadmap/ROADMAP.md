@@ -5,10 +5,16 @@
 - NO DATABASES, NO MULTIUSER, NO concurrency handling!
 - DATA WILL ALWAYS BE XML!
 - PREFER PURE TESTS, with SNAPSHOT testing for complex OUTPUT
-- FOR CLI OUTPUT WE WILL SUPPORT A GENERIC SERIALIZER FOR XML (default) / JSON / human ouput (YAML like, but not really)
+- DATETIME can be injected for deterministic SNAPSHOTS and assertions!
+- FOR CLI OUTPUT WE WILL SUPPORT A GENERIC SERIALIZER FOR XML (default) / JSON / human ouput
     - internal tests can assert on the generic golang structures via snapshot testing
 - KEEP THING lightweight, no need for complex features
 - as fallback we can provide a XPath query CLI interface, that the user can use. 
+- GLOBAL CLI FLAGS
+    -f : override epic file from config (default is taken from ./.agentpm.json)
+    -config : override config file (default is ./.agentpm.json)
+    -t : timestamp for current time, useful for testing!
+    -format : text (default) / json / xml (output from the CLI)
 </IMPORTANT>
 
 ## Epic 1: Foundation & Configuration
@@ -85,36 +91,37 @@
 **Goal:** Manage epic creation, status transitions, and project switching
 
 ### User Stories:
-- As an agent, I can start working on a new epic
-- As an agent, I can pause work when blocked or interrupted
-- As an agent, I can resume paused work and continue progress
 - As an agent, I can switch between different epic files
+- As an agent, I can start working on a new epic
 - As an agent, I can complete an epic when all work is done
+- As an agent, I can not abandon / pause / cancel anything, since I'm an LLM
 
 ### Technical Requirements:
-- Epic status lifecycle: planning → in_progress → paused/completed/cancelled
+- Epic status lifecycle: pending → wip → done
+- MAKE THIS AS SIMPLE AS POSSIBLE, not need for overengineering
 - Timestamp tracking for all state transitions
 - Validation rules for valid status transitions
 - Automatic event logging for lifecycle changes
 
 ### Acceptance Criteria:
-- `agentpm start-epic` changes status from planning to in_progress
-- `agentpm pause-epic "reason"` pauses with optional reason logging
-- `agentpm resume-epic` resumes from paused state
 - `agentpm switch epic-9.xml` updates current_epic in config
-- `agentpm complete-epic` marks epic as completed with validation
-- Status transitions are validated (can't resume non-paused epic)
+- `agentpm start-epic` changes status from pending to wip
+- `agentpm done-epic` marks epic as done with validation
+- EPICs can not be paused / cancelled / resumed, etc. 
+- Status transitions are validated
 - All lifecycle changes create timestamped events
 
 ### Testing Strategy:
 - State machine tests for all valid/invalid transitions
+- CLI MUST accept an optional timestamp for the current time, so we can test time progression
+    + deterministic snapshots! (-t flag)
 - Timestamp validation in isolated timezone
 - Error cases for invalid state changes
 - Integration tests for config file updates
 
 ---
 
-## Epic 4: Task & Phase Management
+## Epic 4: Task & Phase Management 
 **Duration:** 4-5 days  
 **Goal:** Granular work tracking at phase and task levels
 
@@ -126,23 +133,41 @@
 - As an agent, I can track progress through complex work plans
 
 ### Technical Requirements:
-- Phase and task status tracking (pending → in_progress → completed)
+- This epic and epic 5 are the most important epics of the roadmap!
+- Phase and task status tracking (pending → wip → done)
 - Auto-next logic to select next pending task intelligently
-- Progress calculation based on completed vs total items
 - Dependency validation (can't start phase 2 if phase 1 incomplete)
 - Current state tracking for active phase/task
 
 ### Acceptance Criteria:
-- `agentpm start-phase 2A` begins phase work with validation
-- `agentpm start-task 2A_1` starts specific task within active phase
-- `agentpm start-next` intelligently selects next pending task
-- `agentpm complete-task 2A_1` marks task complete and updates progress
-- `agentpm complete-phase 2A` completes phase when all tasks done
-- Auto-next prefers tasks in current phase, then next phase
-- Progress percentage updates automatically
+- starting new phase/task IS NOT possible, if there is another active phase/task!
+- completing a phase without completing all its tasks is impossible!
+- all EVENTS are logged
+- `agentpm start-phase 2A` begins phase work with validation (pending -> wip)
+- `agentpm start-task 2A_1` starts specific task within active phase (pending -> wip)
+- `agentpm cancel-task 2A_1` starts specific task within active phase (wip -> cancelled)
+- `agentpm done-task 2A_1` marks task complete and updates progress (wip -> done)
+- `agentpm done-phase 2A` completes phase when all tasks done (wip -> done)
+
+- for NON-ERROR responses the output from CLI is minimal, a simple confirmation (NOT XML!), like:
+    - Phase 2A started. 
+    - Phase 2A completed. 
+    - Task 2A_1 started. 
+    - Task 2A_1 completed. 
+
+- `agentpm start-next` intelligently selects next pending task. It responds with XML for the started entity. 
+    - IF phase: 
+        - a list of all tasks with description
+        + STARTED TASK ID
+    - IF TASK
+        - started task ID + description
+    - Auto-next prefers tasks in current phase. Only when a phase is complete (with all tasks), it goes to the next
+
 
 ### Testing Strategy:
 - Complex task dependency scenarios with multiple phases
+- CLI MUST accept an optional timestamp for the current time, so we can test time progression
+    + deterministic snapshots!
 - Auto-next selection algorithm validation
 - Progress calculation edge cases (empty phases, all complete)
 - Concurrent phase/task state validation
@@ -154,6 +179,7 @@
 **Goal:** Test status tracking and comprehensive event logging
 
 ### User Stories:
+- As an agent, I can start working on a test
 - As an agent, I can mark tests as passing or failing with details
 - As an agent, I can log important events during development
 - As an agent, I can track file changes and their impact
@@ -161,21 +187,26 @@
 - As an agent, I can maintain a detailed activity timeline
 
 ### Technical Requirements:
-- Test status management (pending → passed/failed)
+- Test status management (pending → wip -> passed/failed/cancelled)
+- All test transitions are stored as events
 - Rich event logging with types (implementation, test_failed, blocker)
 - File change tracking with optional metadata
 - Event querying and filtering by type/timeframe
 - Blocker identification from failed tests and logged issues
 
 ### Acceptance Criteria:
+- `agentpm start-test 2A_1` marks the test as WIP (the agent has started working on a test)
 - `agentpm pass-test 2A_1` marks test as passed
 - `agentpm fail-test 2A_2 "Mobile responsive issue"` logs failure details
+- `agentpm cancel-test 2A_2 "Spec contradicts itself with point xyz"` marks a test as cancelled with a comment
 - `agentpm log "Implemented pagination" --files="src/Pagination.js:added"`
 - `agentpm log "Need design tokens" --type=blocker` identifies blockers
 - Events include timestamps, types, and optional metadata
 - Failed tests and blocker events are easily queryable
 
 ### Testing Strategy:
+- CLI MUST accept an optional timestamp for the current time, so we can test time progression
+    + deterministic snapshots!
 - Event logging with various metadata combinations
 - Test status transition validation
 - File tracking format parsing and validation
