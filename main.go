@@ -44,6 +44,8 @@ func main() {
 			cmd.StatusCommand(),
 			cmd.CurrentCommand(),
 			cmd.PendingCommand(),
+			cmd.FailingCommand(),
+			cmd.EventsCommand(),
 		},
 	}
 
