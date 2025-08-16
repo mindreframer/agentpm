@@ -11,10 +11,11 @@
 - KEEP THING lightweight, no need for complex features
 - as fallback we can provide a XPath query CLI interface, that the user can use. 
 - GLOBAL CLI FLAGS
-    -f : override epic file from config (default is taken from ./.agentpm.json)
-    -config : override config file (default is ./.agentpm.json)
-    -t : timestamp for current time, useful for testing!
-    -format : text (default) / json / xml (output from the CLI)
+    --file, -f   : override epic file from config (default is taken from ./.agentpm.json)
+    --config, -c : override config file (default is ./.agentpm.json)
+    --time, -t   : timestamp for current time, useful for testing!
+    --format, -F : text (default) / json / xml (output from the CLI)
+    --help
 </IMPORTANT>
 
 ## Epic 1: Foundation & Configuration
