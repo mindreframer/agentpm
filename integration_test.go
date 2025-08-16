@@ -50,6 +50,14 @@ func createRealApp() *cli.Command {
 			cmd.InitCommand(),
 			cmd.ConfigCommand(),
 			cmd.ValidateCommand(),
+			cmd.StatusCommand(),
+			cmd.CurrentCommand(),
+			cmd.PendingCommand(),
+			cmd.FailingCommand(),
+			cmd.EventsCommand(),
+			cmd.StartEpicCommand(),
+			cmd.DoneEpicCommand(),
+			cmd.SwitchCommand(),
 		},
 	}
 }
