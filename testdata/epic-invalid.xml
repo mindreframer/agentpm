@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<epic name="Missing ID Epic" status="invalid_status" created_at="2025-08-16T09:00:00Z">
+    <assignee>agent_claude</assignee>
+    <description>Epic with missing required ID attribute</description>
+    <phases>
+        <phase name="Missing ID Phase" status="planning">
+            <description>Phase missing ID</description>
+        </phase>
+    </phases>
+    <tasks>
+        <task phase_id="1A" name="Missing ID Task" status="planning">
+            <description>Task missing ID</description>
+        </task>
+    </tasks>
+</epic>
