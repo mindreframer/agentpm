@@ -41,6 +41,7 @@ func main() {
 			cmd.InitCommand(),
 			cmd.ConfigCommand(),
 			cmd.ValidateCommand(),
+			cmd.StatusCommand(),
 		},
 	}
 

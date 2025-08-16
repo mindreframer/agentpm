@@ -8,7 +8,7 @@
 - [ ] Define QueryService struct with Storage interface injection
 - [ ] Implement epic loading and caching for single command execution
 - [ ] Create progress calculation algorithms (tasks + tests completion)
-- [ ] Phase status determination logic (pending → in_progress → completed)
+- [ ] Phase status determination logic (pending → wip → done)
 - [ ] Next action recommendation engine
 - [ ] Error handling framework for query operations
 
@@ -216,9 +216,9 @@ For **EACH** phase:
 ### Current Status: READY TO START (After Epic 1 Complete)
 
 ### Progress Tracking
-- [ ] Phase 1A: Create Query Service Foundation
-- [ ] Phase 1B: Write Query Service Tests
-- [ ] Phase 1C: Status Command Implementation
+- [x] Phase 1A: Create Query Service Foundation
+- [x] Phase 1B: Write Query Service Tests  
+- [x] Phase 1C: Status Command Implementation
 - [ ] Phase 1D: Write Status Command Tests
 - [ ] Phase 2A: Current & Pending Commands Implementation
 - [ ] Phase 2B: Write Current & Pending Tests
