@@ -49,6 +49,10 @@ func main() {
 			cmd.StartEpicCommand(),
 			cmd.DoneEpicCommand(),
 			cmd.SwitchCommand(),
+			cmd.StartTestCommand(),
+			cmd.PassTestCommand(),
+			cmd.FailTestCommand(),
+			cmd.CancelTestCommand(),
 		},
 	}
 
