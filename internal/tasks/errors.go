@@ -71,3 +71,18 @@ func NewTaskConstraintError(taskID, activeTaskID, phaseID, message string) *Task
 		Message:      message,
 	}
 }
+
+// TaskAlreadyActiveError represents attempting to start a task that is already active
+type TaskAlreadyActiveError struct {
+	TaskID string
+}
+
+func (e *TaskAlreadyActiveError) Error() string {
+	return fmt.Sprintf("task %s is already active", e.TaskID)
+}
+
+func NewTaskAlreadyActiveError(taskID string) *TaskAlreadyActiveError {
+	return &TaskAlreadyActiveError{
+		TaskID: taskID,
+	}
+}

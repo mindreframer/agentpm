@@ -76,6 +76,12 @@ func StartTaskCommand() *cli.Command {
 			err = taskService.StartTask(epicData, taskID, timestamp)
 			if err != nil {
 				// Handle different error types for better error output
+				if _, ok := err.(*tasks.TaskAlreadyActiveError); ok {
+					// Task is already active - this is not an error, just a friendly message
+					fmt.Fprintf(cmd.Writer, "Task %s is already started.\n", taskID)
+					return nil
+				}
+
 				if phaseErr, ok := err.(*tasks.TaskPhaseError); ok {
 					return outputXMLError(cmd, "task_phase_violation",
 						fmt.Sprintf("Cannot start task %s: phase %s is not active", taskID, phaseErr.PhaseID),

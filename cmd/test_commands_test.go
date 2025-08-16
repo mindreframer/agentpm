@@ -153,13 +153,13 @@ func TestStartTestCommand_XMLOutput(t *testing.T) {
 }
 
 // TestStartTestCommand_InvalidTransition tests error when test is not in pending status
-func TestStartTestCommand_InvalidTransition(t *testing.T) {
+func TestStartTestCommand_AlreadyStarted(t *testing.T) {
 	// Setup
 	tempDir := t.TempDir()
 	epicFile := filepath.Join(tempDir, "test-epic.xml")
 
 	testEpic := createTestEpicForCLI()
-	// Set test to WIP status (can't start again)
+	// Set test to WIP status (already started)
 	testEpic.Tests[0].TestStatus = epic.TestStatusWIP
 	testEpic.Tests[0].Status = epic.StatusActive
 
@@ -175,18 +175,18 @@ func TestStartTestCommand_InvalidTransition(t *testing.T) {
 	app.Writer = &stdout
 	app.ErrWriter = &stderr
 
-	// Test start-test command (should fail)
+	// Test start-test command (should succeed with friendly message)
 	args := []string{"agentpm", "start-test", "--file", epicFile, "test-1"}
 	err = app.Run(context.Background(), args)
 
-	// Should return error
-	if err == nil {
-		t.Fatal("Expected command to fail, but it succeeded")
+	// Should return success
+	if err != nil {
+		t.Fatalf("Expected command to succeed, but it failed: %v", err)
 	}
 
-	errorOutput := stderr.String()
-	if !strings.Contains(errorOutput, "test is not in pending status") {
-		t.Errorf("Expected invalid transition error, got: %s", errorOutput)
+	output := stdout.String()
+	if !strings.Contains(output, "already started") || !strings.Contains(output, "test-1") {
+		t.Errorf("Expected friendly already started message, got: %s", output)
 	}
 }
 
@@ -622,9 +622,7 @@ func TestAllCommands_JSONErrorFormat(t *testing.T) {
 	epicFile := filepath.Join(tempDir, "test-epic.xml")
 
 	testEpic := createTestEpicForCLI()
-	// Set test to WIP status so start-test will fail
-	testEpic.Tests[0].TestStatus = epic.TestStatusWIP
-	testEpic.Tests[0].Status = epic.StatusActive
+	// Keep test in pending status - we'll test with nonexistent test IDs to trigger failures
 
 	storage := storage.NewFileStorage()
 	err := storage.SaveEpic(testEpic, epicFile)
@@ -636,7 +634,7 @@ func TestAllCommands_JSONErrorFormat(t *testing.T) {
 		name string
 		args []string
 	}{
-		{"start-test", []string{"agentpm", "start-test", "--file", epicFile, "--format", "json", "test-1"}},
+		{"start-test", []string{"agentpm", "start-test", "--file", epicFile, "--format", "json", "nonexistent"}},
 		{"pass-test", []string{"agentpm", "pass-test", "--file", epicFile, "--format", "json", "nonexistent"}},
 		{"fail-test", []string{"agentpm", "fail-test", "--file", epicFile, "--format", "json", "nonexistent", "reason"}},
 		{"cancel-test", []string{"agentpm", "cancel-test", "--file", epicFile, "--format", "json", "nonexistent", "reason"}},

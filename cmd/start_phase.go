@@ -75,6 +75,12 @@ func StartPhaseCommand() *cli.Command {
 			err = phaseService.StartPhase(epicData, phaseID, timestamp)
 			if err != nil {
 				// Handle different error types for better error output
+				if _, ok := err.(*phases.PhaseAlreadyActiveError); ok {
+					// Phase is already active - this is not an error, just a friendly message
+					fmt.Fprintf(cmd.Writer, "Phase %s is already started.\n", phaseID)
+					return nil
+				}
+
 				if phaseErr, ok := err.(*phases.PhaseConstraintError); ok {
 					return outputXMLError(cmd, "phase_constraint_violation",
 						fmt.Sprintf("Cannot start phase %s: phase %s is still active", phaseID, phaseErr.ActivePhaseID),

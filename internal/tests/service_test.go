@@ -412,12 +412,12 @@ func TestCancelTest_Success(t *testing.T) {
 	}
 }
 
-// TestStartTest_InvalidTransition tests error handling for invalid test transitions
-func TestStartTest_InvalidTransition(t *testing.T) {
+// TestStartTest_AlreadyStarted tests behavior when starting a test that's already in WIP status
+func TestStartTest_AlreadyStarted(t *testing.T) {
 	service, epicFile := setupTestService(t)
 	testID := "test_1"
 
-	// Create epic with a test already in WIP status (can't start again)
+	// Create epic with a test already in WIP status (should return "already started")
 	e := createTestEpic()
 	e.Tests = []epic.Test{
 		{
@@ -435,16 +435,23 @@ func TestStartTest_InvalidTransition(t *testing.T) {
 	}
 
 	// Test
-	_, err = service.StartTest(epicFile, testID, nil)
+	result, err := service.StartTest(epicFile, testID, nil)
 
-	// Verify error
-	if err == nil {
-		t.Fatal("Expected error for invalid transition, got nil")
+	// Verify no error and "already started" result
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
 	}
 
-	expectedErr := "Cannot start test test_1: test is not in pending status"
-	if err.Error() != expectedErr {
-		t.Errorf("Expected error '%s', got '%s'", expectedErr, err.Error())
+	if result.Operation != "start" {
+		t.Errorf("Expected operation 'start', got '%s'", result.Operation)
+	}
+
+	if result.Status != "already_started" {
+		t.Errorf("Expected status 'already_started', got '%s'", result.Status)
+	}
+
+	if result.TestID != testID {
+		t.Errorf("Expected TestID '%s', got '%s'", testID, result.TestID)
 	}
 }
 

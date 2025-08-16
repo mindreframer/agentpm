@@ -50,6 +50,16 @@ func (s *TestService) StartTest(epicFile, testID string, timestamp *time.Time) (
 	// Get current test status (prefer TestStatus, fallback to Status conversion)
 	currentTestStatus := s.getTestStatus(test)
 
+	// Check if test is already in WIP status - this is not an error, just return a result indicating it's already started
+	if currentTestStatus == epic.TestStatusWIP {
+		return &TestOperation{
+			TestID:    testID,
+			Operation: "start",
+			Status:    "already_started",
+			Timestamp: s.timeSource(),
+		}, nil
+	}
+
 	// Validate state transition
 	if !currentTestStatus.CanTransitionTo(epic.TestStatusWIP) {
 		return nil, &TestError{

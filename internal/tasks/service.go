@@ -30,6 +30,12 @@ func (s *TaskService) StartTask(epicData *epic.Epic, taskID string, timestamp ti
 		return fmt.Errorf("task %s not found", taskID)
 	}
 
+	// Check if task is already active
+	if task.Status == epic.StatusActive {
+		// Return a special error type to indicate "already started"
+		return NewTaskAlreadyActiveError(taskID)
+	}
+
 	// Validate task can be started
 	if err := s.validateTaskStart(epicData, task); err != nil {
 		return err

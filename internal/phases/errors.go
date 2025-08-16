@@ -65,3 +65,18 @@ func NewPhaseIncompleteError(phaseID string, pendingTasks []epic.Task) *PhaseInc
 		PendingTasks: pendingTasks,
 	}
 }
+
+// PhaseAlreadyActiveError represents attempting to start a phase that is already active
+type PhaseAlreadyActiveError struct {
+	PhaseID string
+}
+
+func (e *PhaseAlreadyActiveError) Error() string {
+	return fmt.Sprintf("phase %s is already active", e.PhaseID)
+}
+
+func NewPhaseAlreadyActiveError(phaseID string) *PhaseAlreadyActiveError {
+	return &PhaseAlreadyActiveError{
+		PhaseID: phaseID,
+	}
+}

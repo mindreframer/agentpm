@@ -22,12 +22,24 @@ func NewPhaseService(storage storage.Storage, query *query.QueryService) *PhaseS
 	}
 }
 
-// StartPhase transitions a phase from pending to wip
+// PhaseStartResult represents the result of starting a phase
+type PhaseStartResult struct {
+	AlreadyActive bool
+	Error         error
+}
+
+// StartPhase transitions a phase from pending to active
 func (s *PhaseService) StartPhase(epicData *epic.Epic, phaseID string, timestamp time.Time) error {
 	// Find the phase
 	phase := s.findPhase(epicData, phaseID)
 	if phase == nil {
 		return fmt.Errorf("phase %s not found", phaseID)
+	}
+
+	// Check if phase is already active
+	if phase.Status == epic.StatusActive {
+		// Return a special error type to indicate "already started"
+		return NewPhaseAlreadyActiveError(phaseID)
 	}
 
 	// Validate phase can be started
@@ -90,6 +102,11 @@ func (s *PhaseService) findPhase(epicData *epic.Epic, phaseID string) *epic.Phas
 
 // validatePhaseStart checks if a phase can be started
 func (s *PhaseService) validatePhaseStart(epicData *epic.Epic, phase *epic.Phase) error {
+	// Check if phase is already active - this is not an error, just a no-op
+	if phase.Status == epic.StatusActive {
+		return nil // Let the caller handle this as "already started"
+	}
+
 	// Check phase is in pending status (accept both "planning" and "pending" for backward compatibility)
 	if phase.Status != epic.StatusPlanning && phase.Status != epic.StatusPending {
 		return NewPhaseStateError(phase.ID, phase.Status, epic.StatusActive, "Phase is not in pending state")

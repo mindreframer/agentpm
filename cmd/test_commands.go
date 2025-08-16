@@ -317,6 +317,12 @@ func writeTestResult(c *cli.Command, format string, result *tests.TestOperation)
 
 func writeTestResultText(c *cli.Command, result *tests.TestOperation) error {
 	switch result.Operation {
+	case "start":
+		if result.Status == "already_started" {
+			fmt.Fprintf(c.Root().Writer, "Test %s is already started.\n", result.TestID)
+		} else {
+			fmt.Fprintf(c.Root().Writer, "Test %s started.\n", result.TestID)
+		}
 	case "started":
 		fmt.Fprintf(c.Root().Writer, "Test %s started.\n", result.TestID)
 	case "passed":

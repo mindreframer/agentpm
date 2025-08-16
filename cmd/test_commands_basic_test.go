@@ -99,13 +99,13 @@ func TestCommandsBasic(t *testing.T) {
 		{
 			name:           "start-test JSON format",
 			args:           []string{"agentpm", "start-test", "--file", epicFile, "--format", "json", "test-1"},
-			expectSuccess:  false, // Will fail if already started
+			expectSuccess:  true, // Will succeed with already_started status
 			expectContains: `"test_id"`,
 		},
 		{
 			name:           "start-test XML format",
 			args:           []string{"agentpm", "start-test", "--file", epicFile, "--format", "xml", "test-1"},
-			expectSuccess:  false, // Will fail if already started
+			expectSuccess:  true, // Will succeed with already_started status
 			expectContains: "<test_id>",
 		},
 	}
