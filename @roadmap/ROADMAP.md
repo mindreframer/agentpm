@@ -13,6 +13,7 @@
 ### Technical Requirements:
 - Use `github.com/urfave/cli/v3` for CLI framework
 - Use `github.com/beevik/etree` for XML parsing/writing
+- Use `https://github.com/gkampitakis/go-snaps` for snapshot based testing
 - Implement dependency injection pattern for file operations
 - Support `.agentpm.json` configuration file format
 - Provide comprehensive help with examples for agent discovery

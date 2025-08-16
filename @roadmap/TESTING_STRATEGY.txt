@@ -1,0 +1,935 @@
+# AgentPM CLI Tool - Comprehensive Testing Strategy
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Testing Philosophy](#testing-philosophy)
+- [Test Organization](#test-organization)
+- [Test Isolation Strategy](#test-isolation-strategy)
+- [Dependency Injection Pattern](#dependency-injection-pattern)
+- [Test Data Management](#test-data-management)
+- [Testing Patterns by Component](#testing-patterns-by-component)
+- [Test Execution Strategy](#test-execution-strategy)
+- [Quality Gates](#quality-gates)
+- [Implementation Examples](#implementation-examples)
+
+---
+
+## Overview
+
+The AgentPM testing strategy prioritizes **simplicity**, **isolation**, and **confidence** while maintaining fast execution and easy maintenance. Our approach separates business logic from CLI concerns, uses dependency injection for testability, and leverages Go's built-in testing capabilities with minimal external dependencies.
+
+### Core Principles
+
+- ✅ **Complete Isolation**: Each test operates in its own filesystem using `t.TempDir()`
+- ✅ **Fast Execution**: Business logic tests use in-memory operations
+- ✅ **High Confidence**: Test the real logic, not mocks
+- ✅ **Simple Setup**: Minimal test infrastructure and dependencies
+- ✅ **Maintainable**: Tests mirror implementation structure
+- ✅ **Parallel Safe**: All tests can run concurrently without conflicts
+
+---
+
+## Testing Philosophy
+
+### 1. Pyramid Structure
+
+```
+    ┌─────────────────┐
+    │   Integration   │  <- CLI end-to-end tests (few, high-value)
+    │      Tests      │
+    ├─────────────────┤
+    │  Component      │  <- Business logic with file I/O (moderate)
+    │    Tests        │
+    ├─────────────────┤
+    │   Unit Tests    │  <- Pure business logic (many, fast)
+    └─────────────────┘
+```
+
+### 2. Test Categories
+
+**Unit Tests (80% of tests)**
+- Pure business logic without file I/O
+- Epic validation, state transitions, queries
+- Use in-memory storage implementation
+- Execute in < 1ms each
+
+**Component Tests (15% of tests)**
+- Business logic with real file operations
+- XML parsing/writing, configuration management
+- Use isolated temporary directories
+- Execute in < 10ms each
+
+**Integration Tests (5% of tests)**
+- End-to-end CLI command execution
+- Full workflow validation
+- User acceptance criteria verification
+- Execute in < 100ms each
+
+---
+
+## Test Organization
+
+### Directory Structure
+
+```
+├── internal/
+│   ├── epic/
+│   │   ├── epic.go
+│   │   ├── epic_test.go          # Phase 1: Core foundation
+│   │   ├── queries.go
+│   │   ├── queries_test.go       # Phase 2: Status & queries
+│   │   ├── lifecycle.go
+│   │   ├── lifecycle_test.go     # Phase 3: Epic lifecycle
+│   │   ├── tasks.go
+│   │   ├── tasks_test.go         # Phase 4: Task management
+│   │   ├── events.go
+│   │   ├── events_test.go        # Phase 5: Events & logging
+│   │   ├── handoff.go
+│   │   └── handoff_test.go       # Phase 6: Handoff
+│   ├── config/
+│   │   ├── config.go
+│   │   └── config_test.go
+│   └── storage/
+│       ├── file.go               # Real file operations
+│       ├── file_test.go
+│       ├── memory.go             # In-memory for testing
+│       └── memory_test.go
+├── cmd/
+│   └── integration_test.go       # End-to-end CLI tests
+├── testdata/                     # Sample XML files
+│   ├── epic-simple.xml
+│   ├── epic-in-progress.xml
+│   ├── epic-completed.xml
+│   └── epic-invalid.xml
+└── pkg/
+    └── testutil/                 # Test utilities
+        ├── factory.go            # Test data factories
+        ├── assertions.go         # Custom assertions
+        └── storage.go            # Test storage helpers
+```
+
+### File Naming Conventions
+
+- `*_test.go` - Standard Go test files
+- `integration_test.go` - End-to-end CLI tests
+- `testdata/` - Static test data files
+- `factory.go` - Test data creation helpers
+
+---
+
+## Test Isolation Strategy
+
+### 1. Filesystem Isolation
+
+Every test that touches the filesystem uses `t.TempDir()` for complete isolation:
+
+```go
+func TestEpicSaveLoad(t *testing.T) {
+    // Each test gets its own temporary directory
+    tempDir := t.TempDir()
+    
+    // All file operations happen in isolation
+    epicPath := filepath.Join(tempDir, "epic-8.xml")
+    configPath := filepath.Join(tempDir, ".agentpm.json")
+    
+    // Test operations cannot interfere with other tests
+    epic := testutil.NewTestEpic("8")
+    err := epic.SaveToFile(epicPath)
+    require.NoError(t, err)
+    
+    // Verify operations
+    loaded, err := LoadEpicFromFile(epicPath)
+    require.NoError(t, err)
+    assert.Equal(t, epic.ID, loaded.ID)
+}
+```
+
+### 2. No Shared State
+
+- No global variables or package-level state
+- Each test creates its own data structures
+- No test depends on execution order
+- All tests can run with `go test -parallel 10`
+
+### 3. Clean Environment
+
+```go
+func TestCLIIntegration(t *testing.T) {
+    tempDir := t.TempDir()
+    
+    // Change to isolated directory for CLI execution
+    oldDir, _ := os.Getwd()
+    defer os.Chdir(oldDir)
+    os.Chdir(tempDir)
+    
+    // CLI operations happen in isolation
+    // No interference with other tests or development environment
+}
+```
+
+---
+
+## Dependency Injection Pattern
+
+### 1. Storage Interface
+
+Abstract file operations to enable different implementations for testing:
+
+```go
+// Storage interface for dependency injection
+type Storage interface {
+    LoadEpic(path string) (*Epic, error)
+    SaveEpic(path string, epic *Epic) error
+    LoadConfig(path string) (*Config, error)
+    SaveConfig(path string, config *Config) error
+    EpicExists(path string) bool
+}
+
+// Epic service uses injected storage
+type EpicService struct {
+    storage Storage
+    config  *Config
+}
+
+func NewEpicService(storage Storage, config *Config) *EpicService {
+    return &EpicService{
+        storage: storage,
+        config:  config,
+    }
+}
+```
+
+### 2. Real Implementation
+
+Production code uses real file operations:
+
+```go
+// FileStorage implements Storage for production
+type FileStorage struct{}
+
+func (fs *FileStorage) LoadEpic(path string) (*Epic, error) {
+    doc := etree.NewDocument()
+    if err := doc.ReadFromFile(path); err != nil {
+        return nil, fmt.Errorf("failed to read epic file: %w", err)
+    }
+    
+    epic := &Epic{}
+    if err := epic.FromXML(doc.Root()); err != nil {
+        return nil, fmt.Errorf("failed to parse epic: %w", err)
+    }
+    
+    return epic, nil
+}
+
+func (fs *FileStorage) SaveEpic(path string, epic *Epic) error {
+    doc := etree.NewDocument()
+    doc.SetRoot(epic.ToXML())
+    return doc.WriteToFile(path)
+}
+```
+
+### 3. Test Implementation
+
+Test code uses fast in-memory operations:
+
+```go
+// MemoryStorage implements Storage for testing
+type MemoryStorage struct {
+    epics   map[string]*Epic
+    configs map[string]*Config
+    mu      sync.RWMutex
+}
+
+func NewMemoryStorage() *MemoryStorage {
+    return &MemoryStorage{
+        epics:   make(map[string]*Epic),
+        configs: make(map[string]*Config),
+    }
+}
+
+func (ms *MemoryStorage) LoadEpic(path string) (*Epic, error) {
+    ms.mu.RLock()
+    defer ms.mu.RUnlock()
+    
+    epic, exists := ms.epics[path]
+    if !exists {
+        return nil, errors.New("epic not found")
+    }
+    
+    // Return a copy to prevent mutation
+    return epic.Clone(), nil
+}
+
+func (ms *MemoryStorage) SaveEpic(path string, epic *Epic) error {
+    ms.mu.Lock()
+    defer ms.mu.Unlock()
+    
+    ms.epics[path] = epic.Clone()
+    return nil
+}
+```
+
+---
+
+## Test Data Management
+
+### 1. Test Factories
+
+Create consistent test data with builder pattern:
+
+```go
+// pkg/testutil/factory.go
+type EpicBuilder struct {
+    epic *Epic
+}
+
+func NewTestEpic(id string) *EpicBuilder {
+    return &EpicBuilder{
+        epic: &Epic{
+            ID:        id,
+            Name:      fmt.Sprintf("Test Epic %s", id),
+            Status:    "planning",
+            CreatedAt: time.Now(),
+            Phases:    []Phase{},
+            Tasks:     []Task{},
+            Tests:     []Test{},
+            Events:    []Event{},
+        },
+    }
+}
+
+func (b *EpicBuilder) WithStatus(status string) *EpicBuilder {
+    b.epic.Status = status
+    return b
+}
+
+func (b *EpicBuilder) WithPhases(phases ...Phase) *EpicBuilder {
+    b.epic.Phases = append(b.epic.Phases, phases...)
+    return b
+}
+
+func (b *EpicBuilder) WithTasks(tasks ...Task) *EpicBuilder {
+    b.epic.Tasks = append(b.epic.Tasks, tasks...)
+    return b
+}
+
+func (b *EpicBuilder) InProgress() *EpicBuilder {
+    return b.WithStatus("in_progress").WithStartedAt(time.Now())
+}
+
+func (b *EpicBuilder) Build() *Epic {
+    return b.epic.Clone()
+}
+
+// Usage in tests
+func TestTaskCompletion(t *testing.T) {
+    epic := testutil.NewTestEpic("8").
+        InProgress().
+        WithPhases(testutil.NewPhase("1A", "pending")).
+        WithTasks(testutil.NewTask("1A_1", "1A", "in_progress")).
+        Build()
+    
+    err := epic.CompleteTask("1A_1")
+    assert.NoError(t, err)
+    assert.Equal(t, "completed", epic.GetTask("1A_1").Status)
+}
+```
+
+### 2. Golden Files
+
+Use static test data for complex scenarios:
+
+```go
+// testdata/epic-complex.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<epic id="complex" name="Complex Test Epic" status="in_progress">
+    <phases>
+        <phase id="1A" name="Phase 1A" status="completed" />
+        <phase id="2A" name="Phase 2A" status="in_progress" />
+    </phases>
+    <tasks>
+        <task id="1A_1" phase_id="1A" status="completed" />
+        <task id="2A_1" phase_id="2A" status="in_progress" />
+    </tasks>
+</epic>
+
+// Test using golden file
+func TestComplexEpicScenarios(t *testing.T) {
+    tempDir := t.TempDir()
+    
+    // Copy test data to isolated directory
+    epicPath := filepath.Join(tempDir, "epic.xml")
+    testutil.CopyTestData(t, "epic-complex.xml", epicPath)
+    
+    storage := storage.NewFileStorage()
+    epic, err := storage.LoadEpic(epicPath)
+    require.NoError(t, err)
+    
+    // Test operations on realistic data
+    assert.Equal(t, "in_progress", epic.Status)
+    assert.Len(t, epic.GetCompletedPhases(), 1)
+}
+```
+
+### 3. Test Utilities
+
+Helper functions for common test operations:
+
+```go
+// pkg/testutil/assertions.go
+func AssertEpicStatus(t *testing.T, epic *Epic, expectedStatus string) {
+    t.Helper()
+    assert.Equal(t, expectedStatus, epic.Status, 
+        "Epic %s should have status %s but has %s", 
+        epic.ID, expectedStatus, epic.Status)
+}
+
+func AssertTaskInPhase(t *testing.T, epic *Epic, taskID, phaseID string) {
+    t.Helper()
+    task := epic.GetTask(taskID)
+    require.NotNil(t, task, "Task %s should exist", taskID)
+    assert.Equal(t, phaseID, task.PhaseID, 
+        "Task %s should be in phase %s", taskID, phaseID)
+}
+
+func AssertProgressPercentage(t *testing.T, epic *Epic, expected int) {
+    t.Helper()
+    actual := epic.CalculateProgress()
+    assert.Equal(t, expected, actual, 
+        "Epic progress should be %d%% but is %d%%", expected, actual)
+}
+```
+
+---
+
+## Testing Patterns by Component
+
+### 1. Epic Core Logic Tests
+
+**Focus**: Pure business logic, state validation, calculations
+
+```go
+func TestEpicStateTransitions(t *testing.T) {
+    tests := []struct {
+        name        string
+        initialStatus string
+        action      func(*Epic) error
+        expectedStatus string
+        expectError bool
+    }{
+        {
+            name:        "start planning epic",
+            initialStatus: "planning",
+            action:      (*Epic).StartEpic,
+            expectedStatus: "in_progress",
+            expectError: false,
+        },
+        {
+            name:        "cannot start completed epic",
+            initialStatus: "completed", 
+            action:      (*Epic).StartEpic,
+            expectedStatus: "completed",
+            expectError: true,
+        },
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            epic := testutil.NewTestEpic("test").
+                WithStatus(tt.initialStatus).
+                Build()
+            
+            err := tt.action(epic)
+            
+            if tt.expectError {
+                assert.Error(t, err)
+            } else {
+                assert.NoError(t, err)
+            }
+            
+            assert.Equal(t, tt.expectedStatus, epic.Status)
+        })
+    }
+}
+```
+
+### 2. XML Parsing Tests
+
+**Focus**: File I/O, data serialization, error handling
+
+```go
+func TestXMLRoundTrip(t *testing.T) {
+    tempDir := t.TempDir()
+    epicPath := filepath.Join(tempDir, "test-epic.xml")
+    
+    original := testutil.NewTestEpic("roundtrip").
+        WithPhases(testutil.NewPhase("1A", "completed")).
+        WithTasks(testutil.NewTask("1A_1", "1A", "completed")).
+        Build()
+    
+    // Save to XML
+    storage := storage.NewFileStorage()
+    err := storage.SaveEpic(epicPath, original)
+    require.NoError(t, err)
+    
+    // Load from XML
+    loaded, err := storage.LoadEpic(epicPath)
+    require.NoError(t, err)
+    
+    // Verify data integrity
+    assert.Equal(t, original.ID, loaded.ID)
+    assert.Equal(t, original.Status, loaded.Status)
+    assert.Len(t, loaded.Phases, len(original.Phases))
+    assert.Equal(t, original.Phases[0].ID, loaded.Phases[0].ID)
+}
+```
+
+### 3. CLI Integration Tests
+
+**Focus**: End-to-end workflows, command parsing, output format
+
+```go
+func TestCLIWorkflow(t *testing.T) {
+    tempDir := t.TempDir()
+    
+    // Setup isolated environment
+    oldDir, _ := os.Getwd()
+    defer os.Chdir(oldDir)
+    os.Chdir(tempDir)
+    
+    // Create test epic file
+    testutil.CreateTestEpic(t, tempDir, "epic-8.xml")
+    
+    tests := []struct {
+        name     string
+        args     []string
+        wantCode int
+        wantOut  string
+        setup    func()
+    }{
+        {
+            name:     "init creates config",
+            args:     []string{"init", "--epic", "epic-8.xml"},
+            wantCode: 0,
+            wantOut:  "Project initialized",
+        },
+        {
+            name:     "status shows epic info",
+            args:     []string{"status"},
+            wantCode: 0,
+            wantOut:  `<status epic="8">`,
+        },
+        {
+            name:     "start-epic changes status",
+            args:     []string{"start-epic"},
+            wantCode: 0,
+            wantOut:  "Epic 8 started",
+        },
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            if tt.setup != nil {
+                tt.setup()
+            }
+            
+            var stdout, stderr bytes.Buffer
+            app := createTestApp(&stdout, &stderr)
+            
+            code := app.Run(append([]string{"agentpm"}, tt.args...))
+            
+            assert.Equal(t, tt.wantCode, code)
+            if tt.wantOut != "" {
+                assert.Contains(t, stdout.String(), tt.wantOut)
+            }
+        })
+    }
+}
+```
+
+---
+
+## Test Execution Strategy
+
+### 1. Parallel Execution
+
+All tests designed for parallel execution:
+
+```go
+func TestParallelSafe(t *testing.T) {
+    t.Parallel() // Safe because each test uses t.TempDir()
+    
+    // Test implementation
+}
+
+// Run tests with high parallelism
+// go test -parallel 10 ./...
+```
+
+### 2. Test Categorization
+
+Use build tags for different test categories:
+
+```go
+//go:build integration
+// +build integration
+
+func TestCLIIntegration(t *testing.T) {
+    // Integration test implementation
+}
+
+// Run only unit tests (fast)
+// go test ./...
+
+// Run all tests including integration
+// go test -tags integration ./...
+```
+
+### 3. Benchmark Tests
+
+Performance regression prevention:
+
+```go
+func BenchmarkEpicQueries(b *testing.B) {
+    epic := testutil.NewTestEpic("bench").
+        WithManyTasks(1000). // Large dataset
+        Build()
+    
+    b.ResetTimer()
+    
+    for i := 0; i < b.N; i++ {
+        _ = epic.GetPendingTasks()
+    }
+}
+```
+
+---
+
+## Quality Gates
+
+### 1. Coverage Requirements
+
+- **Unit Tests**: 90%+ coverage for business logic
+- **Component Tests**: 80%+ coverage for file operations
+- **Integration Tests**: 100% coverage of CLI commands
+
+```bash
+# Generate coverage report
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out -o coverage.html
+
+# Enforce minimum coverage
+go test -cover ./... | grep -E "coverage: [0-9]+\.[0-9]+%" | \
+  awk '{if($2 < 80.0) exit 1}'
+```
+
+### 2. Test Performance
+
+- **Unit Tests**: < 1ms average
+- **Component Tests**: < 10ms average  
+- **Integration Tests**: < 100ms average
+- **Full Suite**: < 5 seconds total
+
+```bash
+# Monitor test performance
+go test -v ./... | grep -E "PASS|FAIL" | awk '{print $1, $2, $3}'
+```
+
+### 3. CI/CD Integration
+
+```yaml
+# .github/workflows/test.yml
+name: Test
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.21'
+      
+      # Fast unit tests first
+      - name: Unit Tests
+        run: go test -short ./...
+      
+      # Integration tests if unit tests pass
+      - name: Integration Tests  
+        run: go test -tags integration ./...
+      
+      # Coverage report
+      - name: Coverage
+        run: |
+          go test -coverprofile=coverage.out ./...
+          go tool cover -func=coverage.out
+```
+
+---
+
+## Implementation Examples
+
+### 1. Complete Epic Test Suite
+
+```go
+// internal/epic/epic_test.go
+package epic
+
+import (
+    "testing"
+    "time"
+    
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    
+    "agentpm/pkg/testutil"
+)
+
+func TestEpicValidation(t *testing.T) {
+    t.Parallel()
+    
+    tests := []struct {
+        name    string
+        epic    func() *Epic
+        wantErr string
+    }{
+        {
+            name: "valid epic passes validation",
+            epic: func() *Epic {
+                return testutil.NewTestEpic("valid").Build()
+            },
+            wantErr: "",
+        },
+        {
+            name: "epic without ID fails validation",
+            epic: func() *Epic {
+                epic := testutil.NewTestEpic("").Build()
+                epic.ID = ""
+                return epic
+            },
+            wantErr: "epic ID is required",
+        },
+        {
+            name: "epic with invalid status fails validation", 
+            epic: func() *Epic {
+                return testutil.NewTestEpic("invalid").
+                    WithStatus("invalid_status").
+                    Build()
+            },
+            wantErr: "invalid status",
+        },
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            t.Parallel()
+            
+            epic := tt.epic()
+            err := epic.Validate()
+            
+            if tt.wantErr == "" {
+                assert.NoError(t, err)
+            } else {
+                assert.Error(t, err)
+                assert.Contains(t, err.Error(), tt.wantErr)
+            }
+        })
+    }
+}
+
+func TestEpicLifecycle(t *testing.T) {
+    t.Parallel()
+    
+    epic := testutil.NewTestEpic("lifecycle").Build()
+    
+    // Start epic
+    err := epic.StartEpic()
+    require.NoError(t, err)
+    assert.Equal(t, "in_progress", epic.Status)
+    assert.False(t, epic.StartedAt.IsZero())
+    
+    // Pause epic
+    err = epic.PauseEpic("Testing pause functionality")
+    require.NoError(t, err)
+    assert.Equal(t, "paused", epic.Status)
+    
+    // Resume epic
+    err = epic.ResumeEpic()
+    require.NoError(t, err)
+    assert.Equal(t, "in_progress", epic.Status)
+    
+    // Complete epic (should fail without completed tasks)
+    err = epic.CompleteEpic()
+    assert.Error(t, err)
+    assert.Contains(t, err.Error(), "pending work")
+}
+```
+
+### 2. CLI Integration Test
+
+```go
+// cmd/integration_test.go
+//go:build integration
+// +build integration
+
+package main
+
+import (
+    "bytes"
+    "os"
+    "path/filepath"
+    "testing"
+    
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "github.com/urfave/cli/v3"
+    
+    "agentpm/pkg/testutil"
+)
+
+func TestFullWorkflow(t *testing.T) {
+    tempDir := t.TempDir()
+    
+    // Change to isolated directory
+    oldDir, _ := os.Getwd()
+    defer os.Chdir(oldDir)
+    os.Chdir(tempDir)
+    
+    // Create test epic
+    testutil.CreateTestEpic(t, tempDir, "epic-8.xml")
+    
+    t.Run("initialize project", func(t *testing.T) {
+        var stdout bytes.Buffer
+        app := createTestApp(&stdout)
+        
+        code := app.Run([]string{"agentpm", "init", "--epic", "epic-8.xml"})
+        
+        assert.Equal(t, 0, code)
+        assert.Contains(t, stdout.String(), "Project initialized")
+        
+        // Verify config file created
+        configPath := filepath.Join(tempDir, ".agentpm.json")
+        assert.FileExists(t, configPath)
+    })
+    
+    t.Run("start epic workflow", func(t *testing.T) {
+        var stdout bytes.Buffer
+        app := createTestApp(&stdout)
+        
+        // Start epic
+        code := app.Run([]string{"agentpm", "start-epic"})
+        assert.Equal(t, 0, code)
+        
+        // Start first phase
+        code = app.Run([]string{"agentpm", "start-phase", "1A"})
+        assert.Equal(t, 0, code)
+        
+        // Start first task
+        code = app.Run([]string{"agentpm", "start-task", "1A_1"})
+        assert.Equal(t, 0, code)
+        
+        // Check current status
+        stdout.Reset()
+        code = app.Run([]string{"agentpm", "current"})
+        assert.Equal(t, 0, code)
+        assert.Contains(t, stdout.String(), `active_phase>1A</active_phase>`)
+        assert.Contains(t, stdout.String(), `active_task>1A_1</active_task>`)
+    })
+}
+
+func createTestApp(stdout *bytes.Buffer) *cli.Command {
+    app := &cli.Command{
+        Name:   "agentpm",
+        Writer: stdout,
+        Commands: []*cli.Command{
+            // Register all commands
+            initCommand(),
+            statusCommand(),
+            startEpicCommand(),
+            // ... other commands
+        },
+    }
+    return app
+}
+```
+
+### 3. Memory Storage Implementation
+
+```go
+// internal/storage/memory.go
+package storage
+
+import (
+    "errors"
+    "sync"
+    
+    "agentpm/internal/epic"
+    "agentpm/internal/config"
+)
+
+type MemoryStorage struct {
+    epics   map[string]*epic.Epic
+    configs map[string]*config.Config
+    mu      sync.RWMutex
+}
+
+func NewMemoryStorage() *MemoryStorage {
+    return &MemoryStorage{
+        epics:   make(map[string]*epic.Epic),
+        configs: make(map[string]*config.Config),
+    }
+}
+
+func (ms *MemoryStorage) LoadEpic(path string) (*epic.Epic, error) {
+    ms.mu.RLock()
+    defer ms.mu.RUnlock()
+    
+    e, exists := ms.epics[path]
+    if !exists {
+        return nil, errors.New("epic not found")
+    }
+    
+    return e.Clone(), nil
+}
+
+func (ms *MemoryStorage) SaveEpic(path string, e *epic.Epic) error {
+    ms.mu.Lock()
+    defer ms.mu.Unlock()
+    
+    ms.epics[path] = e.Clone()
+    return nil
+}
+
+func (ms *MemoryStorage) EpicExists(path string) bool {
+    ms.mu.RLock()
+    defer ms.mu.RUnlock()
+    
+    _, exists := ms.epics[path]
+    return exists
+}
+
+// Test helper to pre-populate storage
+func (ms *MemoryStorage) AddEpic(path string, e *epic.Epic) {
+    ms.mu.Lock()
+    defer ms.mu.Unlock()
+    
+    ms.epics[path] = e.Clone()
+}
+```
+
+---
+
+## Conclusion
+
+This testing strategy provides:
+
+- **100% test isolation** through temporary directories and dependency injection
+- **Fast execution** with in-memory operations for unit tests
+- **High confidence** by testing real logic, not mocks
+- **Simple maintenance** with clear patterns and minimal infrastructure
+- **Parallel safety** allowing concurrent test execution
+- **Comprehensive coverage** across all system components
+
+The strategy scales from simple unit tests to complex integration scenarios while maintaining simplicity and reliability throughout the development process.

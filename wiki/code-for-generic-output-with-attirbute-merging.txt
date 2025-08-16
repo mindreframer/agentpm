@@ -1,0 +1,147 @@
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "strings"
+)
+
+type Output map[string]interface{}
+
+func (o Output) ToXML(rootElement string) string {
+    return mapToXML(rootElement, o)
+}
+
+func (o Output) ToJSON() string {
+    // Merge _attrs into main object for JSON
+    merged := make(map[string]interface{})
+    
+    // Add attributes as regular fields first
+    if attrs, ok := o["_attrs"].(map[string]string); ok {
+        for k, v := range attrs {
+            merged[k] = v
+        }
+    }
+    
+    // Add other fields (recursively handle nested _attrs)
+    for k, v := range o {
+        if k != "_attrs" {
+            merged[k] = o.processValueForJSON(v)
+        }
+    }
+    
+    bytes, _ := json.MarshalIndent(merged, "", "  ")
+    return string(bytes)
+}
+
+// Recursively process nested Output objects to merge their _attrs
+func (o Output) processValueForJSON(value interface{}) interface{} {
+    switch v := value.(type) {
+    case Output:
+        // Handle nested Output - merge its _attrs too
+        merged := make(map[string]interface{})
+        
+        // Add attributes as regular fields
+        if attrs, ok := v["_attrs"].(map[string]string); ok {
+            for k, val := range attrs {
+                merged[k] = val
+            }
+        }
+        
+        // Add other fields recursively
+        for k, val := range v {
+            if k != "_attrs" {
+                merged[k] = o.processValueForJSON(val)
+            }
+        }
+        
+        return merged
+        
+    case []Output:
+        // Handle array of Output objects
+        var result []interface{}
+        for _, item := range v {
+            result = append(result, o.processValueForJSON(item))
+        }
+        return result
+        
+    case []interface{}:
+        // Handle generic array
+        var result []interface{}
+        for _, item := range v {
+            result = append(result, o.processValueForJSON(item))
+        }
+        return result
+        
+    default:
+        // Return as-is for primitives and other types
+        return value
+    }
+}
+
+func (o Output) ToText() string {
+    var buf strings.Builder
+    o.mapToText(&buf, 0)
+    return buf.String()
+}
+
+func (o Output) mapToText(buf *strings.Builder, indent int) {
+    prefix := strings.Repeat("  ", indent)
+    
+    // Handle special _attrs key (skip in text output)
+    for key, value := range o {
+        if key == "_attrs" {
+            continue
+        }
+        
+        switch v := value.(type) {
+        case Output:
+            // Nested object - show as section header
+            buf.WriteString(fmt.Sprintf("%s%s:\n", prefix, titleCase(key)))
+            v.mapToText(buf, indent+1)
+            
+        case []Output:
+            // Array of objects
+            buf.WriteString(fmt.Sprintf("%s%s:\n", prefix, titleCase(key)))
+            for _, item := range v {
+                item.mapToText(buf, indent+1)
+                buf.WriteString("\n")
+            }
+            
+        case []string:
+            // Array of strings
+            buf.WriteString(fmt.Sprintf("%s%s:\n", prefix, titleCase(key)))
+            for _, item := range v {
+                buf.WriteString(fmt.Sprintf("%s  - %s\n", prefix, item))
+            }
+            
+        case []interface{}:
+            // Generic array
+            buf.WriteString(fmt.Sprintf("%s%s:\n", prefix, titleCase(key)))
+            for _, item := range v {
+                buf.WriteString(fmt.Sprintf("%s  - %v\n", prefix, item))
+            }
+            
+        default:
+            // Simple value
+            buf.WriteString(fmt.Sprintf("%s%s: %v\n", prefix, titleCase(key), v))
+        }
+    }
+}
+
+func titleCase(s string) string {
+    // Convert snake_case to Title Case
+    words := strings.Split(s, "_")
+    for i, word := range words {
+        if len(word) > 0 {
+            words[i] = strings.ToUpper(word[:1]) + word[1:]
+        }
+    }
+    return strings.Join(words, " ")
+}
+
+// Placeholder for XML generation - you'll need to implement this
+func mapToXML(rootElement string, data Output) string {
+    // TODO: Implement XML generation that handles _attrs properly
+    return fmt.Sprintf("<%s>...XML content...</%s>", rootElement, rootElement)
+}
