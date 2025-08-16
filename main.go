@@ -48,6 +48,7 @@ func main() {
 			cmd.EventsCommand(),
 			cmd.StartEpicCommand(),
 			cmd.DoneEpicCommand(),
+			cmd.SwitchCommand(),
 		},
 	}
 

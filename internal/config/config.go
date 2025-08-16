@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	CurrentEpic     string `json:"current_epic"`
+	PreviousEpic    string `json:"previous_epic,omitempty"`
 	ProjectName     string `json:"project_name,omitempty"`
 	DefaultAssignee string `json:"default_assignee,omitempty"`
 }
