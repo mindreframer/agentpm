@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/memomoo/agentpm/cmd"
 	"github.com/urfave/cli/v3"
 )
 
@@ -37,44 +38,9 @@ func main() {
 			},
 		},
 		Commands: []*cli.Command{
-			{
-				Name:  "init",
-				Usage: "Initialize a new project with an epic file",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:     "epic",
-						Usage:    "Epic file to set as current",
-						Required: true,
-					},
-				},
-				Action: func(ctx context.Context, c *cli.Command) error {
-					fmt.Printf("Init command called with epic: %s\n", c.String("epic"))
-					return nil
-				},
-			},
-			{
-				Name:  "config",
-				Usage: "Display current project configuration",
-				Action: func(ctx context.Context, c *cli.Command) error {
-					fmt.Println("Config command called")
-					return nil
-				},
-			},
-			{
-				Name:  "validate",
-				Usage: "Validate epic XML structure",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:    "file",
-						Aliases: []string{"f"},
-						Usage:   "Epic file to validate (overrides config)",
-					},
-				},
-				Action: func(ctx context.Context, c *cli.Command) error {
-					fmt.Println("Validate command called")
-					return nil
-				},
-			},
+			cmd.InitCommand(),
+			cmd.ConfigCommand(),
+			cmd.ValidateCommand(),
 		},
 	}
 

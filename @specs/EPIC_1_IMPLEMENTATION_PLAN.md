@@ -256,12 +256,12 @@ For **EACH** phase:
 - [x] Phase 1D: Write Configuration Tests
 - [x] Phase 2A: Create Storage Interface & XML Foundation
 - [x] Phase 2B: Write Storage & XML Tests
-- [ ] Phase 2C: Epic Validation System
-- [ ] Phase 2D: Write Validation Tests
-- [ ] Phase 3A: Implement Init Command
-- [ ] Phase 3B: Write Init Command Tests
-- [ ] Phase 3C: Implement Config & Validate Commands
-- [ ] Phase 3D: Write Config & Validate Tests
+- [x] Phase 2C: Epic Validation System
+- [x] Phase 2D: Write Validation Tests
+- [x] Phase 3A: Implement Init Command
+- [x] Phase 3B: Write Init Command Tests
+- [x] Phase 3C: Implement Config & Validate Commands
+- [x] Phase 3D: Write Config & Validate Tests
 - [ ] Phase 4A: Service Layer & Dependency Injection
 - [ ] Phase 4B: Write Service Integration Tests
 - [ ] Phase 4C: End-to-End CLI Testing & Polish
