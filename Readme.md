@@ -12,6 +12,7 @@ One agent, one epic, one XML file. The XML contains the complete execution plan 
 ```json
 {
   "current_epic": "epic-8.xml",
+  "previous_epic": "epic-7.xml",
   "project_name": "MyApp", 
   "default_assignee": "agent_claude"
 }
@@ -43,7 +44,7 @@ agentpm current
 
 # Epic-level operations
 agentpm start-epic
-agentpm complete-epic
+agentpm done-epic
 agentpm pause-epic
 agentpm resume-epic
 
@@ -53,8 +54,8 @@ agentpm start-task 2A_1
 agentpm start-next                  # Auto-pick next pending task
 
 # Update progress
-agentpm complete-task 2A_1
-agentpm complete-phase 2A
+agentpm done-task 2A_1
+agentpm done-phase 2A
 agentpm fail-test 2A_1 "Button not rendering properly"
 agentpm pass-test 2A_1
 
@@ -139,7 +140,7 @@ agentpm start-next
 # Output: Started Task 2A_1: Implement pagination controls (auto-selected)
 
 # Complete some work
-agentpm complete-task 2A_1
+agentpm done-task 2A_1
 agentpm log "Implemented basic pagination structure"
 agentpm pass-test 2A_1
 
@@ -170,8 +171,8 @@ agentpm status -f epic-8.xml
 ### Completing an Epic
 ```bash
 # All phases and tests complete
-agentpm complete-phase 4B
-agentpm complete-epic
+agentpm done-phase 4B
+agentpm done-epic
 # Output: Epic 8 completed successfully. Status changed to completed.
 
 agentpm status
@@ -266,15 +267,14 @@ $ agentpm handoff
         <completion_percentage>50</completion_percentage>
     </summary>
     <recent_events limit="3">
-        <event timestamp="2025-08-16T14:30:00Z" type="task_completed">
-            <action>Implemented basic pagination structure</action>
+        <event timestamp="2025-08-16T15:00:00Z" type="blocker">
+            Need design system tokens for mobile
         </event>
         <event timestamp="2025-08-16T14:45:00Z" type="test_failed">
-            <test_id>2A_2</test_id>
-            <note>Mobile responsive design not working</note>
+            Mobile responsive test failing
         </event>
-        <event timestamp="2025-08-16T15:00:00Z" type="blocker">
-            <action>Need design system tokens for mobile</action>
+        <event timestamp="2025-08-16T14:30:00Z" type="implementation">
+            Implemented basic pagination structure
         </event>
     </recent_events>
     <blockers>
@@ -506,11 +506,11 @@ The epic file follows this minimal structure:
 ✅ **Epic Lifecycle Tracking** - Clear status progression from planning to completion  
 ✅ **Simple Progress Tracking** - Clear start/complete commands at epic, phase, and task levels  
 ✅ **Agent Handoff** - Comprehensive context for next agent  
-✅ **Minimal Overhead** - ~15 core commands, no orchestration complexity  
+✅ **Minimal Overhead** - 23 core commands, no orchestration complexity  
 ✅ **Self-Management** - Agent tracks its own progress and blockers  
 ✅ **Human Transparency** - Generate readable docs anytime  
 ✅ **Pause/Resume** - Handle interruptions and context switches gracefully  
 
-**Total commands: 15 core commands for complete agent workflow management**
+**Total commands: 23 core commands for complete agent workflow management**
 
 Perfect for LLM agent self-management and clean handoffs between agents or sessions.
