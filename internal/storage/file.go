@@ -53,6 +53,18 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 		epicData.Description = descElem.Text()
 	}
 
+	if workflowElem := root.SelectElement("workflow"); workflowElem != nil {
+		epicData.Workflow = workflowElem.Text()
+	}
+
+	if requirementsElem := root.SelectElement("requirements"); requirementsElem != nil {
+		epicData.Requirements = requirementsElem.Text()
+	}
+
+	if dependenciesElem := root.SelectElement("dependencies"); dependenciesElem != nil {
+		epicData.Dependencies = dependenciesElem.Text()
+	}
+
 	// Parse metadata section (Epic 7)
 	if metadataElem := root.SelectElement("metadata"); metadataElem != nil {
 		metadata := &epic.EpicMetadata{}
@@ -252,6 +264,21 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 	if epicData.Description != "" {
 		descElem := root.CreateElement("description")
 		descElem.SetText(epicData.Description)
+	}
+
+	if epicData.Workflow != "" {
+		workflowElem := root.CreateElement("workflow")
+		workflowElem.SetText(epicData.Workflow)
+	}
+
+	if epicData.Requirements != "" {
+		requirementsElem := root.CreateElement("requirements")
+		requirementsElem.SetText(epicData.Requirements)
+	}
+
+	if epicData.Dependencies != "" {
+		dependenciesElem := root.CreateElement("dependencies")
+		dependenciesElem.SetText(epicData.Dependencies)
 	}
 
 	// Save metadata section (Epic 7)

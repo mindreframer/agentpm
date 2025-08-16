@@ -18,10 +18,11 @@ var (
 )
 
 type VersionInfo struct {
-	Version   string `json:"version" xml:"version"`
-	GitCommit string `json:"git_commit" xml:"git_commit"`
-	BuildDate string `json:"build_date" xml:"build_date"`
-	GoVersion string `json:"go_version" xml:"go_version"`
+	XMLName   xml.Name `json:"-" xml:"version_info"`
+	Version   string   `json:"version" xml:"version"`
+	GitCommit string   `json:"git_commit" xml:"git_commit"`
+	BuildDate string   `json:"build_date" xml:"build_date"`
+	GoVersion string   `json:"go_version" xml:"go_version"`
 }
 
 func VersionCommand() *cli.Command {

@@ -21,6 +21,9 @@ type Epic struct {
 	CreatedAt    time.Time     `xml:"created_at,attr"`
 	Assignee     string        `xml:"assignee"`
 	Description  string        `xml:"description"`
+	Workflow     string        `xml:"workflow,omitempty"`
+	Requirements string        `xml:"requirements,omitempty"`
+	Dependencies string        `xml:"dependencies,omitempty"`
 	Metadata     *EpicMetadata `xml:"metadata,omitempty"`
 	CurrentState *CurrentState `xml:"current_state,omitempty"`
 	Phases       []Phase       `xml:"phases>phase"`
