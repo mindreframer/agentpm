@@ -301,6 +301,9 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 		return fmt.Errorf("failed to create epic directory: %w", err)
 	}
 
+	// Format XML with proper indentation for better readability and git diffs
+	doc.Indent(4)
+
 	tempFile := absPath + ".tmp"
 	if err := doc.WriteToFile(tempFile); err != nil {
 		return fmt.Errorf("failed to write epic file: %w", err)
