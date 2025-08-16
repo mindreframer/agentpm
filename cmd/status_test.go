@@ -103,7 +103,7 @@ func TestStatusCommand(t *testing.T) {
 		assert.Contains(t, output, "Epic Status: Status Test Epic")
 		assert.Contains(t, output, "ID: status-test-epic")
 		assert.Contains(t, output, "Status: active")
-		assert.Contains(t, output, "Progress: 28% complete") // 1 completed task + 1 completed test / 4 tasks + 3 tests = 2/7 = 28%
+		assert.Contains(t, output, "Progress: 30% complete") // Enhanced weighted calculation: 40%*phases + 40%*tasks + 20%*tests
 		assert.Contains(t, output, "Phases: 1/3 completed")
 		assert.Contains(t, output, "Tests: 1 passing, 2 failing")
 		assert.Contains(t, output, "Current Phase: P2")
@@ -230,7 +230,7 @@ func TestStatusCommand(t *testing.T) {
 		assert.Contains(t, output, `"epic": "status-test-epic"`)
 		assert.Contains(t, output, `"name": "Status Test Epic"`)
 		assert.Contains(t, output, `"status": "active"`)
-		assert.Contains(t, output, `"completion_percentage": 28`)
+		assert.Contains(t, output, `"completion_percentage": 30`)
 		assert.Contains(t, output, `"completed_phases": 1`)
 		assert.Contains(t, output, `"total_phases": 3`)
 		assert.Contains(t, output, `"passing_tests": 1`)
@@ -273,7 +273,7 @@ func TestStatusCommand(t *testing.T) {
 		assert.Contains(t, output, `<status epic="status-test-epic">`)
 		assert.Contains(t, output, `<name>Status Test Epic</name>`)
 		assert.Contains(t, output, `<status>active</status>`)
-		assert.Contains(t, output, `<completion_percentage>28</completion_percentage>`)
+		assert.Contains(t, output, `<completion_percentage>30</completion_percentage>`)
 		assert.Contains(t, output, `<completed_phases>1</completed_phases>`)
 		assert.Contains(t, output, `<total_phases>3</total_phases>`)
 		assert.Contains(t, output, `<passing_tests>1</passing_tests>`)
@@ -568,7 +568,7 @@ func TestStatusCommandOutputConsistency(t *testing.T) {
 		xmlOutput := xmlOut.String()
 
 		// Verify each format contains the core information
-		coreInfo := []string{"Status Test Epic", "status-test-epic", "active", "28"}
+		coreInfo := []string{"Status Test Epic", "status-test-epic", "active", "30"}
 
 		for _, info := range coreInfo {
 			assert.Contains(t, textOutput, info, "Text format missing: %s", info)

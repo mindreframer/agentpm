@@ -479,6 +479,141 @@ func TestTaskService_GetPendingTasksInPhase(t *testing.T) {
 	})
 }
 
+func TestTaskService_AutomaticEventCreation(t *testing.T) {
+	storage := storage.NewMemoryStorage()
+	queryService := query.NewQueryService(storage)
+	taskService := NewTaskService(storage, queryService)
+	testTime := time.Date(2025, 8, 16, 15, 30, 0, 0, time.UTC)
+
+	t.Run("automatic task_started event creation", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-1",
+			Name:   "Test Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+			},
+			Events: []epic.Event{}, // Start with no events
+		}
+
+		// Start task
+		err := taskService.StartTask(epicData, "task-1", testTime)
+		require.NoError(t, err)
+
+		// Verify event was automatically created
+		require.Len(t, epicData.Events, 1)
+		event := epicData.Events[0]
+
+		assert.Equal(t, "task_started", event.Type)
+		assert.Equal(t, "Task 'Task 1' started", event.Data)
+		assert.Equal(t, testTime, event.Timestamp)
+		assert.NotEmpty(t, event.ID)
+	})
+
+	t.Run("automatic task_completed event creation", func(t *testing.T) {
+		completedTime := time.Date(2025, 8, 16, 16, 30, 0, 0, time.UTC)
+		epicData := &epic.Epic{
+			ID:     "epic-1",
+			Name:   "Test Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive, StartedAt: &testTime},
+			},
+			Events: []epic.Event{}, // Start with no events
+		}
+
+		// Complete task
+		err := taskService.CompleteTask(epicData, "task-1", completedTime)
+		require.NoError(t, err)
+
+		// Verify event was automatically created
+		require.Len(t, epicData.Events, 1)
+		event := epicData.Events[0]
+
+		assert.Equal(t, "task_completed", event.Type)
+		assert.Equal(t, "Task 'Task 1' completed", event.Data)
+		assert.Equal(t, completedTime, event.Timestamp)
+		assert.NotEmpty(t, event.ID)
+	})
+
+	t.Run("automatic task_cancelled event creation", func(t *testing.T) {
+		cancelledTime := time.Date(2025, 8, 16, 16, 30, 0, 0, time.UTC)
+		epicData := &epic.Epic{
+			ID:     "epic-1",
+			Name:   "Test Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive, StartedAt: &testTime},
+			},
+			Events: []epic.Event{}, // Start with no events
+		}
+
+		// Cancel task
+		err := taskService.CancelTask(epicData, "task-1", cancelledTime)
+		require.NoError(t, err)
+
+		// Verify event was automatically created
+		require.Len(t, epicData.Events, 1)
+		event := epicData.Events[0]
+
+		assert.Equal(t, "task_cancelled", event.Type)
+		assert.Equal(t, "Task 'Task 1' cancelled", event.Data)
+		assert.Equal(t, cancelledTime, event.Timestamp)
+		assert.NotEmpty(t, event.ID)
+	})
+
+	t.Run("events created for multiple task operations", func(t *testing.T) {
+		completedTime := time.Date(2025, 8, 16, 16, 30, 0, 0, time.UTC)
+		epicData := &epic.Epic{
+			ID:     "epic-1",
+			Name:   "Test Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+			},
+			Events: []epic.Event{}, // Start with no events
+		}
+
+		// Start task
+		err := taskService.StartTask(epicData, "task-1", testTime)
+		require.NoError(t, err)
+
+		// Complete task
+		err = taskService.CompleteTask(epicData, "task-1", completedTime)
+		require.NoError(t, err)
+
+		// Verify both events were created
+		require.Len(t, epicData.Events, 2)
+
+		// Verify start event
+		startEvent := epicData.Events[0]
+		assert.Equal(t, "task_started", startEvent.Type)
+		assert.Equal(t, "Task 'Task 1' started", startEvent.Data)
+		assert.Equal(t, testTime, startEvent.Timestamp)
+
+		// Verify completion event
+		completeEvent := epicData.Events[1]
+		assert.Equal(t, "task_completed", completeEvent.Type)
+		assert.Equal(t, "Task 'Task 1' completed", completeEvent.Data)
+		assert.Equal(t, completedTime, completeEvent.Timestamp)
+
+		// Verify events have different IDs
+		assert.NotEqual(t, startEvent.ID, completeEvent.ID)
+	})
+}
+
 // Helper function to find task by ID
 func findTaskByID(epicData *epic.Epic, taskID string) *epic.Task {
 	for i := range epicData.Tasks {

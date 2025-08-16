@@ -319,6 +319,109 @@ func TestPhaseService_SingleActivePhaseConstraint(t *testing.T) {
 	})
 }
 
+func TestPhaseService_AutomaticEventCreation(t *testing.T) {
+	storage := storage.NewMemoryStorage()
+	queryService := query.NewQueryService(storage)
+	phaseService := NewPhaseService(storage, queryService)
+	testTime := time.Date(2025, 8, 16, 15, 30, 0, 0, time.UTC)
+
+	t.Run("automatic phase_started event creation", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-1",
+			Name:   "Test Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
+			},
+			Events: []epic.Event{}, // Start with no events
+		}
+
+		// Start phase
+		err := phaseService.StartPhase(epicData, "phase-1", testTime)
+		require.NoError(t, err)
+
+		// Verify event was automatically created
+		require.Len(t, epicData.Events, 1)
+		event := epicData.Events[0]
+
+		assert.Equal(t, "phase_started", event.Type)
+		assert.Equal(t, "Phase 'Phase 1' started", event.Data)
+		assert.Equal(t, testTime, event.Timestamp)
+		assert.NotEmpty(t, event.ID)
+	})
+
+	t.Run("automatic phase_completed event creation", func(t *testing.T) {
+		completedTime := time.Date(2025, 8, 16, 16, 30, 0, 0, time.UTC)
+		epicData := &epic.Epic{
+			ID:     "epic-1",
+			Name:   "Test Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive, StartedAt: &testTime},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
+			},
+			Events: []epic.Event{}, // Start with no events
+		}
+
+		// Complete phase
+		err := phaseService.CompletePhase(epicData, "phase-1", completedTime)
+		require.NoError(t, err)
+
+		// Verify event was automatically created
+		require.Len(t, epicData.Events, 1)
+		event := epicData.Events[0]
+
+		assert.Equal(t, "phase_completed", event.Type)
+		assert.Equal(t, "Phase 'Phase 1' completed", event.Data)
+		assert.Equal(t, completedTime, event.Timestamp)
+		assert.NotEmpty(t, event.ID)
+	})
+
+	t.Run("events created for multiple phase operations", func(t *testing.T) {
+		completedTime := time.Date(2025, 8, 16, 16, 30, 0, 0, time.UTC)
+		epicData := &epic.Epic{
+			ID:     "epic-1",
+			Name:   "Test Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
+			},
+			Events: []epic.Event{}, // Start with no events
+		}
+
+		// Start phase
+		err := phaseService.StartPhase(epicData, "phase-1", testTime)
+		require.NoError(t, err)
+
+		// Complete phase
+		err = phaseService.CompletePhase(epicData, "phase-1", completedTime)
+		require.NoError(t, err)
+
+		// Verify both events were created
+		require.Len(t, epicData.Events, 2)
+
+		// Verify start event
+		startEvent := epicData.Events[0]
+		assert.Equal(t, "phase_started", startEvent.Type)
+		assert.Equal(t, "Phase 'Phase 1' started", startEvent.Data)
+		assert.Equal(t, testTime, startEvent.Timestamp)
+
+		// Verify completion event
+		completeEvent := epicData.Events[1]
+		assert.Equal(t, "phase_completed", completeEvent.Type)
+		assert.Equal(t, "Phase 'Phase 1' completed", completeEvent.Data)
+		assert.Equal(t, completedTime, completeEvent.Timestamp)
+
+		// Verify events have different IDs
+		assert.NotEqual(t, startEvent.ID, completeEvent.ID)
+	})
+}
+
 // Helper function to find phase by ID
 func findPhaseByID(epicData *epic.Epic, phaseID string) *epic.Phase {
 	for i := range epicData.Phases {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/memomoo/agentpm/internal/epic"
 	"github.com/memomoo/agentpm/internal/query"
+	"github.com/memomoo/agentpm/internal/service"
 	"github.com/memomoo/agentpm/internal/storage"
 )
 
@@ -38,6 +39,9 @@ func (s *TaskService) StartTask(epicData *epic.Epic, taskID string, timestamp ti
 	task.Status = epic.StatusActive
 	task.StartedAt = &timestamp
 
+	// Create automatic event for task start
+	service.CreateEvent(epicData, service.EventTaskStarted, task.PhaseID, taskID, timestamp)
+
 	return nil
 }
 
@@ -58,6 +62,9 @@ func (s *TaskService) CompleteTask(epicData *epic.Epic, taskID string, timestamp
 	task.Status = epic.StatusCompleted
 	task.CompletedAt = &timestamp
 
+	// Create automatic event for task completion
+	service.CreateEvent(epicData, service.EventTaskCompleted, task.PhaseID, taskID, timestamp)
+
 	return nil
 }
 
@@ -77,6 +84,9 @@ func (s *TaskService) CancelTask(epicData *epic.Epic, taskID string, timestamp t
 	// Transition task status and set timestamp
 	task.Status = epic.StatusCancelled
 	task.CancelledAt = &timestamp
+
+	// Create automatic event for task cancellation
+	service.CreateEvent(epicData, service.EventTaskCancelled, task.PhaseID, taskID, timestamp)
 
 	return nil
 }

@@ -77,27 +77,8 @@ func (qs *QueryService) GetEpicStatus() (*EpicStatus, error) {
 		}
 	}
 
-	// Calculate completion percentage
-	totalTasks := len(qs.epic.Tasks)
-	totalTests := len(qs.epic.Tests)
-	if totalTasks+totalTests > 0 {
-		completedTasks := 0
-		completedTests := 0
-
-		for _, task := range qs.epic.Tasks {
-			if task.Status == epic.StatusCompleted {
-				completedTasks++
-			}
-		}
-
-		for _, test := range qs.epic.Tests {
-			if test.Status == epic.StatusCompleted {
-				completedTests++
-			}
-		}
-
-		status.CompletionPercentage = (completedTasks + completedTests) * 100 / (totalTasks + totalTests)
-	}
+	// Calculate completion percentage with enhanced phase/task weighting
+	status.CompletionPercentage = qs.calculateEnhancedCompletionPercentage()
 
 	// Find current phase and task
 	status.CurrentPhase = qs.findCurrentPhase()
@@ -717,4 +698,252 @@ func (qs *QueryService) getNextAction() string {
 
 	// 5. If all complete → "Epic ready for completion"
 	return "Epic ready for completion"
+}
+
+// calculateEnhancedCompletionPercentage provides more accurate completion calculation
+// that considers both task completion and phase progression
+func (qs *QueryService) calculateEnhancedCompletionPercentage() int {
+	totalPhases := len(qs.epic.Phases)
+	totalTasks := len(qs.epic.Tasks)
+	totalTests := len(qs.epic.Tests)
+
+	// If no work items, return 0
+	if totalPhases == 0 && totalTasks == 0 && totalTests == 0 {
+		return 0
+	}
+
+	// Calculate weighted completion
+	// Phases: 40% of total weight
+	// Tasks: 40% of total weight
+	// Tests: 20% of total weight
+
+	phaseWeight := 40.0
+	taskWeight := 40.0
+	testWeight := 20.0
+
+	var phaseCompletion, taskCompletion, testCompletion float64
+
+	// Calculate phase completion
+	if totalPhases > 0 {
+		completedPhases := 0
+		for _, phase := range qs.epic.Phases {
+			if phase.Status == epic.StatusCompleted {
+				completedPhases++
+			}
+		}
+		phaseCompletion = float64(completedPhases) / float64(totalPhases)
+	}
+
+	// Calculate task completion
+	if totalTasks > 0 {
+		completedTasks := 0
+		for _, task := range qs.epic.Tasks {
+			if task.Status == epic.StatusCompleted {
+				completedTasks++
+			}
+		}
+		taskCompletion = float64(completedTasks) / float64(totalTasks)
+	}
+
+	// Calculate test completion
+	if totalTests > 0 {
+		completedTests := 0
+		for _, test := range qs.epic.Tests {
+			if test.Status == epic.StatusCompleted {
+				completedTests++
+			}
+		}
+		testCompletion = float64(completedTests) / float64(totalTests)
+	}
+
+	// Weight completion percentages
+	weightedCompletion := (phaseCompletion*phaseWeight +
+		taskCompletion*taskWeight +
+		testCompletion*testWeight) / 100.0
+
+	return int(weightedCompletion * 100)
+}
+
+// GetDetailedProgress provides comprehensive progress information for Epic 5 integration
+type DetailedProgress struct {
+	EpicID              string
+	EpicName            string
+	EpicStatus          epic.Status
+	TotalPhases         int
+	CompletedPhases     int
+	ActivePhase         string
+	ActivePhaseProgress int // Percentage of tasks completed in active phase
+	TotalTasks          int
+	CompletedTasks      int
+	ActiveTask          string
+	TotalTests          int
+	CompletedTests      int
+	OverallCompletion   int
+	NextAction          string
+	StateValidation     string // "valid", "warning", "error"
+	StateIssues         []string
+}
+
+func (qs *QueryService) GetDetailedProgress() (*DetailedProgress, error) {
+	if qs.epic == nil {
+		return nil, fmt.Errorf("no epic loaded")
+	}
+
+	progress := &DetailedProgress{
+		EpicID:     qs.epic.ID,
+		EpicName:   qs.epic.Name,
+		EpicStatus: qs.epic.Status,
+	}
+
+	// Calculate phase metrics
+	progress.TotalPhases = len(qs.epic.Phases)
+	for _, phase := range qs.epic.Phases {
+		if phase.Status == epic.StatusCompleted {
+			progress.CompletedPhases++
+		}
+	}
+
+	// Calculate task metrics
+	progress.TotalTasks = len(qs.epic.Tasks)
+	for _, task := range qs.epic.Tasks {
+		if task.Status == epic.StatusCompleted {
+			progress.CompletedTasks++
+		}
+	}
+
+	// Calculate test metrics
+	progress.TotalTests = len(qs.epic.Tests)
+	for _, test := range qs.epic.Tests {
+		if test.Status == epic.StatusCompleted {
+			progress.CompletedTests++
+		}
+	}
+
+	// Find current active work
+	progress.ActivePhase = qs.findCurrentPhase()
+	progress.ActiveTask = qs.findCurrentTask()
+
+	// Calculate active phase progress
+	if progress.ActivePhase != "" {
+		progress.ActivePhaseProgress = qs.calculatePhaseProgress(progress.ActivePhase)
+	}
+
+	// Calculate overall completion
+	progress.OverallCompletion = qs.calculateEnhancedCompletionPercentage()
+
+	// Determine next action
+	progress.NextAction = qs.getNextAction()
+
+	// Perform state validation
+	progress.StateValidation, progress.StateIssues = qs.validateEpicState()
+
+	return progress, nil
+}
+
+// calculatePhaseProgress calculates completion percentage for a specific phase
+func (qs *QueryService) calculatePhaseProgress(phaseID string) int {
+	phaseTasks := qs.getTasksForPhase(phaseID)
+	if len(phaseTasks) == 0 {
+		return 100 // Phase with no tasks is considered complete
+	}
+
+	completedTasks := 0
+	for _, task := range phaseTasks {
+		if task.Status == epic.StatusCompleted {
+			completedTasks++
+		}
+	}
+
+	return (completedTasks * 100) / len(phaseTasks)
+}
+
+// validateEpicState performs comprehensive state validation
+func (qs *QueryService) validateEpicState() (string, []string) {
+	var issues []string
+	severity := "valid"
+
+	// Check for multiple active phases
+	activePhases := 0
+	for _, phase := range qs.epic.Phases {
+		if phase.Status == epic.StatusActive {
+			activePhases++
+		}
+	}
+	if activePhases > 1 {
+		issues = append(issues, fmt.Sprintf("Multiple active phases detected (%d)", activePhases))
+		severity = "error"
+	}
+
+	// Check for multiple active tasks
+	activeTasks := 0
+	var activeTaskPhases []string
+	for _, task := range qs.epic.Tasks {
+		if task.Status == epic.StatusActive {
+			activeTasks++
+			activeTaskPhases = append(activeTaskPhases, task.PhaseID)
+		}
+	}
+	if activeTasks > 1 {
+		issues = append(issues, fmt.Sprintf("Multiple active tasks detected (%d)", activeTasks))
+		severity = "error"
+	}
+
+	// Check for tasks in inactive phases
+	for _, task := range qs.epic.Tasks {
+		if task.Status == epic.StatusActive {
+			phase := qs.findPhaseByID(task.PhaseID)
+			if phase != nil && phase.Status != epic.StatusActive {
+				issues = append(issues, fmt.Sprintf("Active task %s in inactive phase %s", task.ID, task.PhaseID))
+				severity = "error"
+			}
+		}
+	}
+
+	// Check for incomplete phases without pending tasks
+	for _, phase := range qs.epic.Phases {
+		if phase.Status == epic.StatusActive {
+			pendingTasks := qs.getPendingTasksInPhase(phase.ID)
+			if len(pendingTasks) == 0 {
+				completedTasks := 0
+				totalTasks := 0
+				for _, task := range qs.epic.Tasks {
+					if task.PhaseID == phase.ID {
+						totalTasks++
+						if task.Status == epic.StatusCompleted {
+							completedTasks++
+						}
+					}
+				}
+				if totalTasks > 0 && completedTasks == totalTasks {
+					issues = append(issues, fmt.Sprintf("Phase %s should be completed (all tasks done)", phase.ID))
+					if severity == "valid" {
+						severity = "warning"
+					}
+				}
+			}
+		}
+	}
+
+	return severity, issues
+}
+
+// Helper method to find phase by ID
+func (qs *QueryService) findPhaseByID(phaseID string) *epic.Phase {
+	for i := range qs.epic.Phases {
+		if qs.epic.Phases[i].ID == phaseID {
+			return &qs.epic.Phases[i]
+		}
+	}
+	return nil
+}
+
+// getPendingTasksInPhase returns tasks that are not completed or cancelled
+func (qs *QueryService) getPendingTasksInPhase(phaseID string) []epic.Task {
+	var pendingTasks []epic.Task
+	for _, task := range qs.epic.Tasks {
+		if task.PhaseID == phaseID && task.Status != epic.StatusCompleted && task.Status != epic.StatusCancelled {
+			pendingTasks = append(pendingTasks, task)
+		}
+	}
+	return pendingTasks
 }

@@ -429,6 +429,105 @@ func findPhaseByID(epicData *epic.Epic, phaseID string) *epic.Phase {
 	return nil
 }
 
+func TestAutoNextService_AutomaticEventCreation(t *testing.T) {
+	storage := storage.NewMemoryStorage()
+	queryService := query.NewQueryService(storage)
+	phaseService := phases.NewPhaseService(storage, queryService)
+	taskService := tasks.NewTaskService(storage, queryService)
+	autoNextService := NewAutoNextService(storage, queryService, phaseService, taskService)
+	testTime := time.Date(2025, 8, 16, 15, 30, 0, 0, time.UTC)
+
+	t.Run("auto-next creates events when starting phase and task", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-1",
+			Name:   "Test Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+			},
+			Events: []epic.Event{}, // Start with no events
+		}
+
+		// Call SelectNext which should start phase and task
+		result, err := autoNextService.SelectNext(epicData, testTime)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Verify the operation was a phase start (which also starts a task)
+		assert.Equal(t, ActionStartPhase, result.Action)
+		assert.Equal(t, "task-1", result.TaskID)
+		assert.Equal(t, "phase-1", result.PhaseID)
+
+		// Verify events were automatically created
+		// Should have: phase_started and task_started events
+		require.Len(t, epicData.Events, 2)
+
+		// Verify phase started event
+		phaseStartEvent := epicData.Events[0]
+		assert.Equal(t, "phase_started", phaseStartEvent.Type)
+		assert.Equal(t, "Phase 'Phase 1' started", phaseStartEvent.Data)
+		assert.Equal(t, testTime, phaseStartEvent.Timestamp)
+
+		// Verify task started event
+		taskStartEvent := epicData.Events[1]
+		assert.Equal(t, "task_started", taskStartEvent.Type)
+		assert.Equal(t, "Task 'Task 1' started", taskStartEvent.Data)
+		assert.Equal(t, testTime, taskStartEvent.Timestamp)
+
+		// Verify events have different IDs
+		assert.NotEqual(t, phaseStartEvent.ID, taskStartEvent.ID)
+	})
+
+	t.Run("auto-next creates events when completing phase", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-1",
+			Name:   "Test Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive, StartedAt: &testTime},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
+				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPlanning},
+			},
+			Events: []epic.Event{}, // Start with no events
+		}
+
+		// Call SelectNext which should complete phase-1 and start phase-2 + task-2
+		result, err := autoNextService.SelectNext(epicData, testTime)
+		require.NoError(t, err)
+		require.NotNil(t, result)
+
+		// Verify the operation was a phase start (which also starts a task)
+		assert.Equal(t, ActionStartPhase, result.Action)
+		assert.Equal(t, "task-2", result.TaskID)
+		assert.Equal(t, "phase-2", result.PhaseID)
+
+		// Verify events were automatically created
+		// Should have: phase_completed (phase-1), phase_started (phase-2), task_started (task-2)
+		require.Len(t, epicData.Events, 3)
+
+		// Verify phase completed event
+		phaseCompleteEvent := epicData.Events[0]
+		assert.Equal(t, "phase_completed", phaseCompleteEvent.Type)
+		assert.Equal(t, "Phase 'Phase 1' completed", phaseCompleteEvent.Data)
+
+		// Verify new phase started event
+		phaseStartEvent := epicData.Events[1]
+		assert.Equal(t, "phase_started", phaseStartEvent.Type)
+		assert.Equal(t, "Phase 'Phase 2' started", phaseStartEvent.Data)
+
+		// Verify task started event
+		taskStartEvent := epicData.Events[2]
+		assert.Equal(t, "task_started", taskStartEvent.Type)
+		assert.Equal(t, "Task 'Task 2' started", taskStartEvent.Data)
+	})
+}
+
 func findTaskByID(epicData *epic.Epic, taskID string) *epic.Task {
 	for i := range epicData.Tasks {
 		if epicData.Tasks[i].ID == taskID {

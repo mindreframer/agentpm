@@ -6,6 +6,7 @@ import (
 
 	"github.com/memomoo/agentpm/internal/epic"
 	"github.com/memomoo/agentpm/internal/query"
+	"github.com/memomoo/agentpm/internal/service"
 	"github.com/memomoo/agentpm/internal/storage"
 )
 
@@ -38,6 +39,9 @@ func (s *PhaseService) StartPhase(epicData *epic.Epic, phaseID string, timestamp
 	phase.Status = epic.StatusActive
 	phase.StartedAt = &timestamp
 
+	// Create automatic event for phase start
+	service.CreateEvent(epicData, service.EventPhaseStarted, phaseID, "", timestamp)
+
 	return nil
 }
 
@@ -57,6 +61,9 @@ func (s *PhaseService) CompletePhase(epicData *epic.Epic, phaseID string, timest
 	// Transition phase status and set timestamp
 	phase.Status = epic.StatusCompleted
 	phase.CompletedAt = &timestamp
+
+	// Create automatic event for phase completion
+	service.CreateEvent(epicData, service.EventPhaseCompleted, phaseID, "", timestamp)
 
 	return nil
 }

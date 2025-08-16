@@ -8,6 +8,7 @@ import (
 	"github.com/memomoo/agentpm/internal/epic"
 	"github.com/memomoo/agentpm/internal/query"
 	"github.com/memomoo/agentpm/internal/storage"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewLifecycleService(t *testing.T) {
@@ -817,4 +818,147 @@ func TestLifecycleService_FormatValidationError(t *testing.T) {
 	if !strings.Contains(message, "Suggestions: Fix failing tests; Complete pending phases") {
 		t.Error("Expected message to contain suggestions")
 	}
+}
+
+func TestLifecycleService_ValidateEpicState(t *testing.T) {
+	storage := storage.NewMemoryStorage()
+	queryService := query.NewQueryService(storage)
+	lifecycleService := NewLifecycleService(storage, queryService)
+
+	t.Run("valid epic state", func(t *testing.T) {
+		epic := &epic.Epic{
+			ID:     "epic-1",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+			},
+		}
+
+		result := lifecycleService.ValidateEpicState(epic)
+
+		assert.Equal(t, ValidationLevelValid, result.Level)
+		assert.Empty(t, result.Issues)
+		assert.Equal(t, "Epic state is valid - no issues found", result.Summary)
+	})
+
+	t.Run("multiple active phases error", func(t *testing.T) {
+		epic := &epic.Epic{
+			ID:     "epic-1",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusActive},
+			},
+		}
+
+		result := lifecycleService.ValidateEpicState(epic)
+
+		assert.Equal(t, ValidationLevelError, result.Level)
+		assert.GreaterOrEqual(t, len(result.Issues), 1) // May have additional warnings
+
+		// Find the multiple active phases issue
+		var foundMultiplePhases bool
+		for _, issue := range result.Issues {
+			if issue.Type == "multiple_active_phases" {
+				foundMultiplePhases = true
+				assert.Contains(t, issue.Message, "Multiple active phases found")
+				break
+			}
+		}
+		assert.True(t, foundMultiplePhases, "Should find multiple active phases issue")
+	})
+
+	t.Run("multiple active tasks in phase error", func(t *testing.T) {
+		epic := &epic.Epic{
+			ID:     "epic-1",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusActive},
+			},
+		}
+
+		result := lifecycleService.ValidateEpicState(epic)
+
+		assert.Equal(t, ValidationLevelError, result.Level)
+		assert.Len(t, result.Issues, 1)
+		assert.Equal(t, "multiple_active_tasks_in_phase", result.Issues[0].Type)
+		assert.Contains(t, result.Issues[0].Message, "Multiple active tasks in phase")
+	})
+
+	t.Run("active task in inactive phase error", func(t *testing.T) {
+		epic := &epic.Epic{
+			ID:     "epic-1",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+			},
+		}
+
+		result := lifecycleService.ValidateEpicState(epic)
+
+		assert.Equal(t, ValidationLevelError, result.Level)
+		assert.Len(t, result.Issues, 1)
+		assert.Equal(t, "active_task_in_inactive_phase", result.Issues[0].Type)
+		assert.Contains(t, result.Issues[0].Message, "Active task task-1 is in inactive phase")
+	})
+
+	t.Run("phase ready for completion warning", func(t *testing.T) {
+		epic := &epic.Epic{
+			ID:     "epic-1",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
+			},
+		}
+
+		result := lifecycleService.ValidateEpicState(epic)
+
+		assert.Equal(t, ValidationLevelWarning, result.Level)
+		assert.Len(t, result.Issues, 1)
+		assert.Equal(t, "phase_ready_for_completion", result.Issues[0].Type)
+		assert.Contains(t, result.Issues[0].Message, "should be marked as done")
+		assert.Contains(t, result.Summary, "1 warning(s)")
+	})
+
+	t.Run("completed epic with pending work error", func(t *testing.T) {
+		epic := &epic.Epic{
+			ID:     "epic-1",
+			Status: epic.StatusCompleted,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive}, // Still active
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+			},
+		}
+
+		result := lifecycleService.ValidateEpicState(epic)
+
+		assert.Equal(t, ValidationLevelError, result.Level)
+		assert.GreaterOrEqual(t, len(result.Issues), 1) // At least one error
+
+		// Find the completed epic issue
+		var foundCompletedEpicIssue bool
+		for _, issue := range result.Issues {
+			if issue.Type == "completed_epic_with_pending_work" {
+				foundCompletedEpicIssue = true
+				assert.Contains(t, issue.Message, "Epic is marked as completed but has pending")
+				break
+			}
+		}
+		assert.True(t, foundCompletedEpicIssue, "Should find completed epic with pending work issue")
+	})
 }
