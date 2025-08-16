@@ -1,0 +1,6 @@
+### EPIC start working
+
+read @@specs/EPIC_1_SPECIFICATION.md and @@@specs/EPIC_1_IMPLEMENTATION_PLAN.md . 
+Think hard, plan your tasks and start working on them. 
+Update your progress in the "Progress Tracking" section of the plan after each step. make
+sure code compiles and tests are working.
