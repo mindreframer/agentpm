@@ -133,8 +133,8 @@ func (s *TaskService) findPhase(epicData *epic.Epic, phaseID string) *epic.Phase
 
 // validateTaskStart checks if a task can be started
 func (s *TaskService) validateTaskStart(epicData *epic.Epic, task *epic.Task) error {
-	// Check task is in pending status
-	if task.Status != epic.StatusPlanning {
+	// Check task is in pending status (accept both "planning" and "pending" for backward compatibility)
+	if task.Status != epic.StatusPlanning && task.Status != epic.StatusPending {
 		return NewTaskStateError(task.ID, task.Status, epic.StatusActive, "Task is not in pending state")
 	}
 

@@ -8,6 +8,7 @@ type Status string
 
 const (
 	StatusPlanning  Status = "planning"
+	StatusPending   Status = "pending"
 	StatusActive    Status = "active"
 	StatusCompleted Status = "completed"
 	StatusOnHold    Status = "on_hold"
@@ -127,7 +128,7 @@ type Event struct {
 
 func (s Status) IsValid() bool {
 	switch s {
-	case StatusPlanning, StatusActive, StatusCompleted, StatusOnHold, StatusCancelled:
+	case StatusPlanning, StatusPending, StatusActive, StatusCompleted, StatusOnHold, StatusCancelled:
 		return true
 	default:
 		return false
