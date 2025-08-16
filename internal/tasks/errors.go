@@ -3,7 +3,7 @@ package tasks
 import (
 	"fmt"
 
-	"github.com/memomoo/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/epic"
 )
 
 // TaskStateError represents an invalid task state transition

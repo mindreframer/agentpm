@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/beevik/etree"
-	"github.com/memomoo/agentpm/internal/config"
-	"github.com/memomoo/agentpm/internal/lifecycle"
-	"github.com/memomoo/agentpm/internal/query"
-	"github.com/memomoo/agentpm/internal/storage"
+	"github.com/mindreframer/agentpm/internal/config"
+	"github.com/mindreframer/agentpm/internal/lifecycle"
+	"github.com/mindreframer/agentpm/internal/query"
+	"github.com/mindreframer/agentpm/internal/storage"
 	"github.com/urfave/cli/v3"
 )
 

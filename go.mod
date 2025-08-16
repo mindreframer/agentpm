@@ -1,4 +1,4 @@
-module github.com/memomoo/agentpm
+module github.com/mindreframer/agentpm
 
 go 1.24.1
 

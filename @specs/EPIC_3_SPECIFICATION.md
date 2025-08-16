@@ -226,7 +226,7 @@ pending ──start-epic──→ wip ──done-epic──→ done
 ```json
 {
     "current_epic": "epic-9.xml",
-    "project_name": "MooCRM",
+    "project_name": "MyApp",
     "default_assignee": "agent_claude",
     "previous_epic": "epic-8.xml"
 }

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/memomoo/agentpm/internal/config"
-	"github.com/memomoo/agentpm/internal/epic"
-	"github.com/memomoo/agentpm/internal/storage"
+	"github.com/mindreframer/agentpm/internal/config"
+	"github.com/mindreframer/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/storage"
 )
 
 // EpicService provides high-level operations for epic management

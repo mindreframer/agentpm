@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/memomoo/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/epic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

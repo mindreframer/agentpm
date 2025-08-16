@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/memomoo/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/epic"
 )
 
 func TestEpic4FieldsPersistence(t *testing.T) {

@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 
-	"github.com/memomoo/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/epic"
 )
 
 type MemoryStorage struct {

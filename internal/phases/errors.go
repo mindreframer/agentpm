@@ -3,7 +3,7 @@ package phases
 import (
 	"fmt"
 
-	"github.com/memomoo/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/epic"
 )
 
 // PhaseStateError represents an invalid phase state transition

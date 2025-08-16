@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/memomoo/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/epic"
 )
 
 func TestNewTestService(t *testing.T) {

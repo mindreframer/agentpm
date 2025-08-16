@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/beevik/etree"
-	"github.com/memomoo/agentpm/internal/config"
-	"github.com/memomoo/agentpm/internal/storage"
+	"github.com/mindreframer/agentpm/internal/config"
+	"github.com/mindreframer/agentpm/internal/storage"
 	"github.com/urfave/cli/v3"
 )
 

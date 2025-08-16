@@ -352,7 +352,7 @@ The epic file follows this minimal structure:
     <phases>
         <phase id="1A" name="Enhanced Schools Context" status="done">
             <description>
-                Extend MooCRM.Schools.Main with paginated functions and database-level pagination
+                Extend MyApp.Schools.Main with paginated functions and database-level pagination
             </description>
             <deliverables>
                 - list_schools_paginated function with combined filtering

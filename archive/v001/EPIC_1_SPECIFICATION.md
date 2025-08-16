@@ -66,7 +66,7 @@ agentpm init --epic <epic-file>
 ```xml
 <config>
     <current_epic>epic-8.xml</current_epic>
-    <project_name>MooCRM</project_name>
+    <project_name>MyApp</project_name>
     <default_assignee>agent_claude</default_assignee>
 </config>
 ```

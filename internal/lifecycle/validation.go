@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/memomoo/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/epic"
 )
 
 // ValidationResult contains detailed validation information

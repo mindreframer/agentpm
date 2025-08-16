@@ -47,7 +47,7 @@ This epic establishes the foundational architecture for AgentPM, a CLI tool desi
   ```json
   {
     "current_epic": "epic-8.xml",
-    "project_name": "MooCRM", 
+    "project_name": "MyApp", 
     "default_assignee": "agent_claude"
   }
   ```
@@ -92,7 +92,7 @@ This epic establishes the foundational architecture for AgentPM, a CLI tool desi
 ```xml
 <config>
     <current_epic>epic-8.xml</current_epic>
-    <project_name>MooCRM</project_name>
+    <project_name>MyApp</project_name>
     <default_assignee>agent_claude</default_assignee>
 </config>
 ```

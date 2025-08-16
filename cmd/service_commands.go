@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/memomoo/agentpm/internal/epic"
-	"github.com/memomoo/agentpm/internal/service"
+	"github.com/mindreframer/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/service"
 	"github.com/urfave/cli/v3"
 )
 

@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/memomoo/agentpm/cmd"
-	"github.com/memomoo/agentpm/internal/epic"
-	"github.com/memomoo/agentpm/internal/storage"
+	"github.com/mindreframer/agentpm/cmd"
+	"github.com/mindreframer/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v3"

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/memomoo/agentpm/internal/config"
-	"github.com/memomoo/agentpm/internal/tests"
+	"github.com/mindreframer/agentpm/internal/config"
+	"github.com/mindreframer/agentpm/internal/tests"
 	"github.com/urfave/cli/v3"
 )
 

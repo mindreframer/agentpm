@@ -1,6 +1,6 @@
 package storage
 
-import "github.com/memomoo/agentpm/internal/epic"
+import "github.com/mindreframer/agentpm/internal/epic"
 
 type Storage interface {
 	LoadEpic(filePath string) (*epic.Epic, error)

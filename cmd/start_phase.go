@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/memomoo/agentpm/internal/config"
-	"github.com/memomoo/agentpm/internal/phases"
-	"github.com/memomoo/agentpm/internal/query"
-	"github.com/memomoo/agentpm/internal/storage"
+	"github.com/mindreframer/agentpm/internal/config"
+	"github.com/mindreframer/agentpm/internal/phases"
+	"github.com/mindreframer/agentpm/internal/query"
+	"github.com/mindreframer/agentpm/internal/storage"
 	"github.com/urfave/cli/v3"
 )
 

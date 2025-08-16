@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/memomoo/agentpm/internal/epic"
-	"github.com/memomoo/agentpm/internal/phases"
-	"github.com/memomoo/agentpm/internal/query"
-	"github.com/memomoo/agentpm/internal/storage"
-	"github.com/memomoo/agentpm/internal/tasks"
+	"github.com/mindreframer/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/phases"
+	"github.com/mindreframer/agentpm/internal/query"
+	"github.com/mindreframer/agentpm/internal/storage"
+	"github.com/mindreframer/agentpm/internal/tasks"
 )
 
 // AutoNextAction represents the type of action to take

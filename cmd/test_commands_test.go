@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/memomoo/agentpm/internal/epic"
-	"github.com/memomoo/agentpm/internal/storage"
+	"github.com/mindreframer/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/storage"
 	"github.com/urfave/cli/v3"
 )
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/memomoo/agentpm/cmd"
+	"github.com/mindreframer/agentpm/cmd"
 	"github.com/urfave/cli/v3"
 )
 

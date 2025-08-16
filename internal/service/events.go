@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/memomoo/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/epic"
 )
 
 // EventType represents the different types of events that can be created
