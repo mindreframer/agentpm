@@ -49,6 +49,8 @@ func main() {
 			cmd.StartEpicCommand(),
 			cmd.DoneEpicCommand(),
 			cmd.SwitchCommand(),
+			cmd.StartPhaseCommand(),
+			cmd.DonePhaseCommand(),
 			cmd.StartTestCommand(),
 			cmd.PassTestCommand(),
 			cmd.FailTestCommand(),

@@ -63,6 +63,17 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 			if descElem := phaseElem.SelectElement("description"); descElem != nil {
 				phase.Description = descElem.Text()
 			}
+			// Load timestamps
+			if startedElem := phaseElem.SelectElement("started_at"); startedElem != nil {
+				if t, err := time.Parse(time.RFC3339, startedElem.Text()); err == nil {
+					phase.StartedAt = &t
+				}
+			}
+			if completedElem := phaseElem.SelectElement("completed_at"); completedElem != nil {
+				if t, err := time.Parse(time.RFC3339, completedElem.Text()); err == nil {
+					phase.CompletedAt = &t
+				}
+			}
 			epicData.Phases = append(epicData.Phases, phase)
 		}
 	}
@@ -78,6 +89,22 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 			}
 			if descElem := taskElem.SelectElement("description"); descElem != nil {
 				task.Description = descElem.Text()
+			}
+			// Load timestamps
+			if startedElem := taskElem.SelectElement("started_at"); startedElem != nil {
+				if t, err := time.Parse(time.RFC3339, startedElem.Text()); err == nil {
+					task.StartedAt = &t
+				}
+			}
+			if completedElem := taskElem.SelectElement("completed_at"); completedElem != nil {
+				if t, err := time.Parse(time.RFC3339, completedElem.Text()); err == nil {
+					task.CompletedAt = &t
+				}
+			}
+			if cancelledElem := taskElem.SelectElement("cancelled_at"); cancelledElem != nil {
+				if t, err := time.Parse(time.RFC3339, cancelledElem.Text()); err == nil {
+					task.CancelledAt = &t
+				}
 			}
 			epicData.Tasks = append(epicData.Tasks, task)
 		}
@@ -198,6 +225,15 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 				descElem := phaseElem.CreateElement("description")
 				descElem.SetText(phase.Description)
 			}
+			// Add timestamp elements
+			if phase.StartedAt != nil {
+				startedElem := phaseElem.CreateElement("started_at")
+				startedElem.SetText(phase.StartedAt.Format(time.RFC3339))
+			}
+			if phase.CompletedAt != nil {
+				completedElem := phaseElem.CreateElement("completed_at")
+				completedElem.SetText(phase.CompletedAt.Format(time.RFC3339))
+			}
 		}
 	}
 
@@ -215,6 +251,19 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 			if task.Description != "" {
 				descElem := taskElem.CreateElement("description")
 				descElem.SetText(task.Description)
+			}
+			// Add timestamp elements
+			if task.StartedAt != nil {
+				startedElem := taskElem.CreateElement("started_at")
+				startedElem.SetText(task.StartedAt.Format(time.RFC3339))
+			}
+			if task.CompletedAt != nil {
+				completedElem := taskElem.CreateElement("completed_at")
+				completedElem.SetText(task.CompletedAt.Format(time.RFC3339))
+			}
+			if task.CancelledAt != nil {
+				cancelledElem := taskElem.CreateElement("cancelled_at")
+				cancelledElem.SetText(task.CancelledAt.Format(time.RFC3339))
 			}
 		}
 	}
