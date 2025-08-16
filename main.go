@@ -59,6 +59,8 @@ func main() {
 			cmd.PassTestCommand(),
 			cmd.FailTestCommand(),
 			cmd.CancelTestCommand(),
+			cmd.HandoffCommand(),
+			cmd.DocsCommand(),
 		},
 	}
 
