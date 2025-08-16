@@ -98,6 +98,33 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 		}
 	}
 
+	// Parse events
+	if eventsElem := root.SelectElement("events"); eventsElem != nil {
+		for _, eventElem := range eventsElem.SelectElements("event") {
+			event := epic.Event{
+				ID:   eventElem.SelectAttrValue("id", ""),
+				Type: eventElem.SelectAttrValue("type", ""),
+			}
+
+			// Parse timestamp
+			if timestampStr := eventElem.SelectAttrValue("timestamp", ""); timestampStr != "" {
+				if t, err := time.Parse(time.RFC3339, timestampStr); err == nil {
+					event.Timestamp = t
+				}
+			}
+
+			// Parse data/content
+			if dataElem := eventElem.SelectElement("data"); dataElem != nil {
+				event.Data = dataElem.Text()
+			} else {
+				// For backward compatibility, use the element text
+				event.Data = eventElem.Text()
+			}
+
+			epicData.Events = append(epicData.Events, event)
+		}
+	}
+
 	return epicData, nil
 }
 
@@ -171,6 +198,31 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 				descElem.SetText(test.Description)
 			}
 		}
+	}
+
+	// Save events
+	if len(epicData.Events) > 0 {
+		eventsElem := root.CreateElement("events")
+		for _, event := range epicData.Events {
+			eventElem := eventsElem.CreateElement("event")
+			if event.ID != "" {
+				eventElem.CreateAttr("id", event.ID)
+			}
+			if event.Type != "" {
+				eventElem.CreateAttr("type", event.Type)
+			}
+			if !event.Timestamp.IsZero() {
+				eventElem.CreateAttr("timestamp", event.Timestamp.Format(time.RFC3339))
+			}
+
+			// Store event data as text content
+			if event.Data != "" {
+				eventElem.SetText(event.Data)
+			}
+		}
+	} else {
+		// Create empty events element for consistency
+		root.CreateElement("events")
 	}
 
 	dir := filepath.Dir(absPath)

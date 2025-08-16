@@ -116,9 +116,6 @@ func outputStartEpicText(c *cli.Command, result *lifecycle.StartEpicResult) erro
 	fmt.Fprintf(c.Root().Writer, "Epic %s started successfully\n", result.EpicID)
 	fmt.Fprintf(c.Root().Writer, "Status: %s → %s\n", result.PreviousStatus, result.NewStatus)
 	fmt.Fprintf(c.Root().Writer, "Started at: %s\n", result.StartedAt.Format(time.RFC3339))
-	if result.EventCreated {
-		fmt.Fprintf(c.Root().Writer, "Event logged: epic_started\n")
-	}
 	fmt.Fprintf(c.Root().Writer, "\n%s\n", result.Message)
 	return nil
 }
@@ -158,9 +155,11 @@ func outputStartEpicXML(c *cli.Command, result *lifecycle.StartEpicResult) error
 	startedAt := root.CreateElement("started_at")
 	startedAt.SetText(result.StartedAt.Format(time.RFC3339))
 
+	eventCreated := root.CreateElement("event_created")
 	if result.EventCreated {
-		eventCreated := root.CreateElement("event_created")
 		eventCreated.SetText("true")
+	} else {
+		eventCreated.SetText("false")
 	}
 
 	message := root.CreateElement("message")
@@ -180,7 +179,7 @@ func outputStartEpicError(c *cli.Command, err error, format string) error {
 
 	// Generic error output
 	fmt.Fprintf(c.Root().ErrWriter, "Error: %v\n", err)
-	return cli.Exit("", 1)
+	return err
 }
 
 func outputTransitionError(c *cli.Command, err *lifecycle.TransitionError, format string) error {
@@ -201,7 +200,7 @@ func outputTransitionErrorText(c *cli.Command, err *lifecycle.TransitionError) e
 	if err.Suggestion != "" {
 		fmt.Fprintf(c.Root().ErrWriter, "Suggestion: %s\n", err.Suggestion)
 	}
-	return cli.Exit("", 1)
+	return err
 }
 
 func outputTransitionErrorJSON(c *cli.Command, err *lifecycle.TransitionError) error {
@@ -219,7 +218,7 @@ func outputTransitionErrorJSON(c *cli.Command, err *lifecycle.TransitionError) e
 	encoder := json.NewEncoder(c.Root().ErrWriter)
 	encoder.SetIndent("", "  ")
 	encoder.Encode(output)
-	return cli.Exit("", 1)
+	return err
 }
 
 func outputTransitionErrorXML(c *cli.Command, err *lifecycle.TransitionError) error {
@@ -249,5 +248,5 @@ func outputTransitionErrorXML(c *cli.Command, err *lifecycle.TransitionError) er
 	doc.Indent(4)
 	doc.WriteTo(c.Root().ErrWriter)
 	fmt.Fprintf(c.Root().ErrWriter, "\n") // Add newline
-	return cli.Exit("", 1)
+	return err
 }

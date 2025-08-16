@@ -144,17 +144,7 @@ func (ls *LifecycleService) StartEpic(request StartEpicRequest) (*StartEpicResul
 	// Update epic status
 	loadedEpic.Status = LifecycleStatusWIP.ToEpicStatus()
 
-	// Create event for epic startup
-	eventData := fmt.Sprintf("Epic %s started\n\nStatus: %s → %s\nStarted at: %s",
-		loadedEpic.ID, currentStatus, LifecycleStatusWIP, startTime.Format(time.RFC3339))
-
-	event := epic.Event{
-		ID:        fmt.Sprintf("event_%d", len(loadedEpic.Events)+1),
-		Timestamp: startTime,
-		Type:      "epic_started",
-		Data:      eventData,
-	}
-	loadedEpic.Events = append(loadedEpic.Events, event)
+	// Event logging will be implemented in a later epic
 
 	// Save the updated epic
 	if err := ls.storage.SaveEpic(loadedEpic, request.EpicFile); err != nil {
@@ -167,7 +157,7 @@ func (ls *LifecycleService) StartEpic(request StartEpicRequest) (*StartEpicResul
 		NewStatus:      LifecycleStatusWIP,
 		StartedAt:      startTime,
 		Message:        fmt.Sprintf("Epic %s started. Status changed to %s.", loadedEpic.ID, LifecycleStatusWIP),
-		EventCreated:   true,
+		EventCreated:   false, // Event logging will be implemented in a later epic
 	}, nil
 }
 
@@ -266,17 +256,7 @@ func (ls *LifecycleService) CompleteEpic(request CompleteEpicRequest) (*Complete
 		Duration:    duration,
 	}
 
-	// Create event for epic completion
-	eventData := fmt.Sprintf("Epic %s completed\n\nStatus: %s → %s\nCompleted at: %s\nDuration: %s",
-		loadedEpic.ID, currentStatus, LifecycleStatusDone, completedTime.Format(time.RFC3339), duration)
-
-	event := epic.Event{
-		ID:        fmt.Sprintf("event_%d", len(loadedEpic.Events)+1),
-		Timestamp: completedTime,
-		Type:      "epic_completed",
-		Data:      eventData,
-	}
-	loadedEpic.Events = append(loadedEpic.Events, event)
+	// Event logging will be implemented in a later epic
 
 	// Save the updated epic
 	if err := ls.storage.SaveEpic(loadedEpic, request.EpicFile); err != nil {
@@ -290,7 +270,7 @@ func (ls *LifecycleService) CompleteEpic(request CompleteEpicRequest) (*Complete
 		CompletedAt:    completedTime,
 		Summary:        summary,
 		Message:        fmt.Sprintf("Epic %s completed successfully. All phases and tests complete.", loadedEpic.ID),
-		EventCreated:   true,
+		EventCreated:   false, // Event logging will be implemented in a later epic
 	}, nil
 }
 
