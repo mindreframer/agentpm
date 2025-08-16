@@ -93,9 +93,41 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 				Status:     epic.Status(testElem.SelectAttrValue("status", "")),
 				TestStatus: epic.TestStatus(testElem.SelectAttrValue("test_status", "")),
 			}
+
 			if descElem := testElem.SelectElement("description"); descElem != nil {
 				test.Description = descElem.Text()
 			}
+
+			// Epic 4 enhancements - load timestamp fields
+			if startedElem := testElem.SelectElement("started_at"); startedElem != nil {
+				if t, err := time.Parse(time.RFC3339, startedElem.Text()); err == nil {
+					test.StartedAt = &t
+				}
+			}
+			if passedElem := testElem.SelectElement("passed_at"); passedElem != nil {
+				if t, err := time.Parse(time.RFC3339, passedElem.Text()); err == nil {
+					test.PassedAt = &t
+				}
+			}
+			if failedElem := testElem.SelectElement("failed_at"); failedElem != nil {
+				if t, err := time.Parse(time.RFC3339, failedElem.Text()); err == nil {
+					test.FailedAt = &t
+				}
+			}
+			if cancelledElem := testElem.SelectElement("cancelled_at"); cancelledElem != nil {
+				if t, err := time.Parse(time.RFC3339, cancelledElem.Text()); err == nil {
+					test.CancelledAt = &t
+				}
+			}
+
+			// Epic 4 note fields
+			if failureElem := testElem.SelectElement("failure_note"); failureElem != nil {
+				test.FailureNote = failureElem.Text()
+			}
+			if cancellationElem := testElem.SelectElement("cancellation_reason"); cancellationElem != nil {
+				test.CancellationReason = cancellationElem.Text()
+			}
+
 			epicData.Tests = append(epicData.Tests, test)
 		}
 	}
@@ -193,11 +225,48 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 			testElem := testsElem.CreateElement("test")
 			testElem.CreateAttr("id", test.ID)
 			testElem.CreateAttr("task_id", test.TaskID)
+			if test.PhaseID != "" {
+				testElem.CreateAttr("phase_id", test.PhaseID)
+			}
 			testElem.CreateAttr("name", test.Name)
 			testElem.CreateAttr("status", string(test.Status))
+
+			// Epic 4 enhancements - save TestStatus and related fields
+			if test.TestStatus != "" {
+				testElem.CreateAttr("test_status", string(test.TestStatus))
+			}
+
 			if test.Description != "" {
 				descElem := testElem.CreateElement("description")
 				descElem.SetText(test.Description)
+			}
+
+			// Epic 4 timestamp fields
+			if test.StartedAt != nil {
+				startedElem := testElem.CreateElement("started_at")
+				startedElem.SetText(test.StartedAt.Format(time.RFC3339))
+			}
+			if test.PassedAt != nil {
+				passedElem := testElem.CreateElement("passed_at")
+				passedElem.SetText(test.PassedAt.Format(time.RFC3339))
+			}
+			if test.FailedAt != nil {
+				failedElem := testElem.CreateElement("failed_at")
+				failedElem.SetText(test.FailedAt.Format(time.RFC3339))
+			}
+			if test.CancelledAt != nil {
+				cancelledElem := testElem.CreateElement("cancelled_at")
+				cancelledElem.SetText(test.CancelledAt.Format(time.RFC3339))
+			}
+
+			// Epic 4 note fields
+			if test.FailureNote != "" {
+				failureElem := testElem.CreateElement("failure_note")
+				failureElem.SetText(test.FailureNote)
+			}
+			if test.CancellationReason != "" {
+				cancellationElem := testElem.CreateElement("cancellation_reason")
+				cancellationElem.SetText(test.CancellationReason)
 			}
 		}
 	}

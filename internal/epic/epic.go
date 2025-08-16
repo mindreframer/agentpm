@@ -87,7 +87,7 @@ type Test struct {
 	Description string `xml:"description"`
 	Status      Status `xml:"status,attr"`
 	// Epic 4 enhancements - optional fields for enhanced test management
-	TestStatus         TestStatus `xml:"test_status,attr,omitempty"`
+	TestStatus         TestStatus `xml:"test_status,attr"`
 	StartedAt          *time.Time `xml:"started_at,omitempty"`
 	PassedAt           *time.Time `xml:"passed_at,omitempty"`
 	FailedAt           *time.Time `xml:"failed_at,omitempty"`
