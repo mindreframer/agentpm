@@ -54,6 +54,7 @@ func main() {
 			cmd.StartTaskCommand(),
 			cmd.DoneTaskCommand(),
 			cmd.CancelTaskCommand(),
+			cmd.StartNextCommand(),
 			cmd.StartTestCommand(),
 			cmd.PassTestCommand(),
 			cmd.FailTestCommand(),
