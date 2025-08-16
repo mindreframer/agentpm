@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/beevik/etree"
@@ -50,19 +51,19 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 	}
 
 	if descElem := root.SelectElement("description"); descElem != nil {
-		epicData.Description = descElem.Text()
+		epicData.Description = getInnerXML(descElem)
 	}
 
 	if workflowElem := root.SelectElement("workflow"); workflowElem != nil {
-		epicData.Workflow = workflowElem.Text()
+		epicData.Workflow = getInnerXML(workflowElem)
 	}
 
 	if requirementsElem := root.SelectElement("requirements"); requirementsElem != nil {
-		epicData.Requirements = requirementsElem.Text()
+		epicData.Requirements = getInnerXML(requirementsElem)
 	}
 
 	if dependenciesElem := root.SelectElement("dependencies"); dependenciesElem != nil {
-		epicData.Dependencies = dependenciesElem.Text()
+		epicData.Dependencies = getInnerXML(dependenciesElem)
 	}
 
 	// Parse metadata section (Epic 7)
@@ -113,7 +114,7 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 				Status: epic.Status(phaseElem.SelectAttrValue("status", "")),
 			}
 			if descElem := phaseElem.SelectElement("description"); descElem != nil {
-				phase.Description = descElem.Text()
+				phase.Description = getInnerXML(descElem)
 			}
 			// Load timestamps
 			if startedElem := phaseElem.SelectElement("started_at"); startedElem != nil {
@@ -140,7 +141,7 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 				Assignee: taskElem.SelectAttrValue("assignee", ""),
 			}
 			if descElem := taskElem.SelectElement("description"); descElem != nil {
-				task.Description = descElem.Text()
+				task.Description = getInnerXML(descElem)
 			}
 			// Load timestamps
 			if startedElem := taskElem.SelectElement("started_at"); startedElem != nil {
@@ -173,8 +174,18 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 				TestStatus: epic.TestStatus(testElem.SelectAttrValue("test_status", "")),
 			}
 
+			// First try to get content from inner text (direct content within <test>)
+			// This handles the format: <test>content here</test>
+			// Only use inner text if there are no child elements like <description>
 			if descElem := testElem.SelectElement("description"); descElem != nil {
-				test.Description = descElem.Text()
+				// Use description element format: <test><description>content</description></test>
+				test.Description = getInnerXML(descElem)
+			} else {
+				// Fall back to inner text format: <test>content here</test>
+				innerText := getInnerXML(testElem)
+				if innerText != "" {
+					test.Description = innerText
+				}
 			}
 
 			// Epic 4 enhancements - load timestamp fields
@@ -201,10 +212,10 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 
 			// Epic 4 note fields
 			if failureElem := testElem.SelectElement("failure_note"); failureElem != nil {
-				test.FailureNote = failureElem.Text()
+				test.FailureNote = getInnerXML(failureElem)
 			}
 			if cancellationElem := testElem.SelectElement("cancellation_reason"); cancellationElem != nil {
-				test.CancellationReason = cancellationElem.Text()
+				test.CancellationReason = getInnerXML(cancellationElem)
 			}
 
 			epicData.Tests = append(epicData.Tests, test)
@@ -263,22 +274,22 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 
 	if epicData.Description != "" {
 		descElem := root.CreateElement("description")
-		descElem.SetText(epicData.Description)
+		setInnerXML(descElem, epicData.Description)
 	}
 
 	if epicData.Workflow != "" {
 		workflowElem := root.CreateElement("workflow")
-		workflowElem.SetText(epicData.Workflow)
+		setInnerXML(workflowElem, epicData.Workflow)
 	}
 
 	if epicData.Requirements != "" {
 		requirementsElem := root.CreateElement("requirements")
-		requirementsElem.SetText(epicData.Requirements)
+		setInnerXML(requirementsElem, epicData.Requirements)
 	}
 
 	if epicData.Dependencies != "" {
 		dependenciesElem := root.CreateElement("dependencies")
-		dependenciesElem.SetText(epicData.Dependencies)
+		setInnerXML(dependenciesElem, epicData.Dependencies)
 	}
 
 	// Save metadata section (Epic 7)
@@ -330,7 +341,7 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 			phaseElem.CreateAttr("status", string(phase.Status))
 			if phase.Description != "" {
 				descElem := phaseElem.CreateElement("description")
-				descElem.SetText(phase.Description)
+				setInnerXML(descElem, phase.Description)
 			}
 			// Add timestamp elements
 			if phase.StartedAt != nil {
@@ -357,7 +368,7 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 			}
 			if task.Description != "" {
 				descElem := taskElem.CreateElement("description")
-				descElem.SetText(task.Description)
+				setInnerXML(descElem, task.Description)
 			}
 			// Add timestamp elements
 			if task.StartedAt != nil {
@@ -392,9 +403,17 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 				testElem.CreateAttr("test_status", string(test.TestStatus))
 			}
 
-			if test.Description != "" {
+			// Check if test has any additional fields beyond description
+			hasAdditionalFields := test.StartedAt != nil || test.PassedAt != nil || test.FailedAt != nil ||
+				test.CancelledAt != nil || test.FailureNote != "" || test.CancellationReason != ""
+
+			// If test only has description, save as inner text for simpler XML format
+			// Otherwise, use child elements to avoid conflicts
+			if test.Description != "" && !hasAdditionalFields {
+				setInnerXML(testElem, test.Description)
+			} else if test.Description != "" {
 				descElem := testElem.CreateElement("description")
-				descElem.SetText(test.Description)
+				setInnerXML(descElem, test.Description)
 			}
 
 			// Epic 4 timestamp fields
@@ -418,11 +437,11 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 			// Epic 4 note fields
 			if test.FailureNote != "" {
 				failureElem := testElem.CreateElement("failure_note")
-				failureElem.SetText(test.FailureNote)
+				setInnerXML(failureElem, test.FailureNote)
 			}
 			if test.CancellationReason != "" {
 				cancellationElem := testElem.CreateElement("cancellation_reason")
-				cancellationElem.SetText(test.CancellationReason)
+				setInnerXML(cancellationElem, test.CancellationReason)
 			}
 		}
 	}
@@ -481,4 +500,121 @@ func (fs *FileStorage) EpicExists(filePath string) bool {
 
 	_, err = os.Stat(absPath)
 	return err == nil
+}
+
+// getInnerXML returns the inner XML content of an element, preserving any inner XML markup
+func getInnerXML(elem *etree.Element) string {
+	if elem == nil {
+		return ""
+	}
+
+	// Check if the element contains any child elements (XML markup)
+	hasChildElements := false
+	for _, child := range elem.Child {
+		if _, isElement := child.(*etree.Element); isElement {
+			hasChildElements = true
+			break
+		}
+	}
+
+	// If no child elements, use the regular Text() method to preserve plain text formatting
+	if !hasChildElements {
+		return elem.Text()
+	}
+
+	// Create a temporary document to serialize the inner content
+	tempDoc := etree.NewDocument()
+	tempRoot := tempDoc.CreateElement("temp")
+
+	// Copy all child tokens by recreating them
+	for _, child := range elem.Child {
+		switch token := child.(type) {
+		case *etree.Element:
+			// For elements, use Copy() method
+			tempRoot.AddChild(token.Copy())
+		case *etree.CharData:
+			// For character data, create new CharData
+			if token.IsCData() {
+				tempRoot.AddChild(etree.NewCData(token.Data))
+			} else {
+				tempRoot.AddChild(etree.NewText(token.Data))
+			}
+		case *etree.Comment:
+			// For comments, create new Comment
+			tempRoot.CreateComment(token.Data)
+		default:
+			// For other token types, try to write and parse
+			var buf strings.Builder
+			token.WriteTo(&buf, &etree.WriteSettings{})
+			tempRoot.AddChild(etree.NewText(buf.String()))
+		}
+	}
+
+	// Get the XML string without formatting
+	xmlStr, _ := tempDoc.WriteToString()
+
+	// Extract content between <temp> and </temp>
+	start := strings.Index(xmlStr, "<temp>")
+	end := strings.LastIndex(xmlStr, "</temp>")
+	if start != -1 && end != -1 {
+		start += 6 // len("<temp>")
+		content := xmlStr[start:end]
+
+		// Only normalize whitespace when we have mixed content (text + XML)
+		// Replace tabs with spaces but preserve newlines
+		content = strings.ReplaceAll(content, "\t", " ")
+		// Replace multiple spaces with single space (but keep newlines)
+		for strings.Contains(content, "  ") {
+			content = strings.ReplaceAll(content, "  ", " ")
+		}
+		content = strings.TrimSpace(content)
+
+		return content
+	}
+
+	// Fallback to plain text if something goes wrong
+	return elem.Text()
+}
+
+// setInnerXML sets the inner XML content of an element, preserving any inner XML markup
+func setInnerXML(elem *etree.Element, content string) {
+	if elem == nil {
+		return
+	}
+
+	if content == "" {
+		// For empty content, just set empty text
+		elem.SetText("")
+		return
+	}
+
+	// Try to parse as XML first
+	tempDoc := etree.NewDocument()
+	tempXML := "<temp>" + content + "</temp>"
+	err := tempDoc.ReadFromString(tempXML)
+
+	if err != nil {
+		// If parsing fails, treat as plain text
+		elem.SetText(content)
+		return
+	}
+
+	// If parsing succeeds, copy the child elements
+	tempRoot := tempDoc.SelectElement("temp")
+	if tempRoot != nil {
+		for _, child := range tempRoot.Child {
+			switch token := child.(type) {
+			case *etree.Element:
+				elem.AddChild(token.Copy())
+			case *etree.CharData:
+				if token.IsCData() {
+					elem.AddChild(etree.NewCData(token.Data))
+				} else {
+					elem.AddChild(etree.NewText(token.Data))
+				}
+			case *etree.Comment:
+				elem.CreateComment(token.Data)
+			}
+		}
+	}
 }
