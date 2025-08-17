@@ -35,73 +35,118 @@ agentpm config
 
 ## Essential Commands
 
-### Basic Operations
+The CLI is organized into **logical command groups** for easy discovery:
+
+### 🎯 **AGENT POWER COMMAND - `show`** 
+**The most important command for agents to understand context:**
 
 ```bash
-# Work with current epic (from .agentpm.json)
-agentpm status
-agentpm current
+# 🔥 COMPLETE CONTEXT INSPECTION (--full is the secret sauce!)
+agentpm show epic --full               # Complete epic with ALL details
+agentpm show phase 2A --full           # Phase + all tasks/tests + full context
+agentpm show task 2A_1 --full          # Task + parent phase + sibling tasks + tests
+agentpm show test 2A_T1 --full         # Test + parent task + parent phase + related
 
-# Epic-level operations
-agentpm start-epic
-agentpm done-epic
-agentpm pause-epic
-agentpm resume-epic
+# Quick summaries (without --full)
+agentpm show epic                      # Epic overview  
+agentpm show phase 2A                  # Phase summary
+agentpm show task 2A_1                 # Task summary
+agentpm show test 2A_T1                # Test summary
 
-# Start work
-agentpm start-phase 2A
-agentpm start-task 2A_1
-agentpm start-next                  # Auto-pick next pending task
-
-# Update progress
-agentpm done-task 2A_1
-agentpm done-phase 2A
-agentpm fail-test 2A_1 "Button not rendering properly"
-agentpm pass-test 2A_1
-
-# Log what happened
-agentpm log "Implemented pagination controls" --files="src/Pagination.js:added"
-agentpm log "Found accessibility issue" --type=issue
-
-# Override with specific file when needed
-agentpm status -f epic-9.xml
-agentpm start-epic -f epic-10.xml
+# Multiple output formats
+agentpm show task 2A_1 --full --format=json    # Full context as JSON
+agentpm show phase 2A --full --format=xml      # Full context as XML
 ```
 
-### Quick Queries
+**🧠 Why `--full` is Essential for Agents:**
+- **Complete Context**: Shows ALL related entities with full details
+- **Relationship Mapping**: Understand parent/child/sibling relationships  
+- **Acceptance Criteria**: Full task details including what defines "done"
+- **Test Coverage**: See all tests for a task/phase with execution status
+- **Dependency Awareness**: Understand what blocks or enables your work
 
+**💡 Agent Workflow Tip**: Always use `show <entity> --full` before starting work to get complete context!
+
+### 🔄 Core Workflow
 ```bash
-# What am I working on?
-agentpm current
+# Start working on something (requires explicit entity type)
+agentpm start epic                 # Start current epic
+agentpm start phase 2A             # Start specific phase
+agentpm start task 2A_1            # Start specific task
+agentpm start test 2A_T1           # Start test execution
+agentpm next                       # Auto-pick and start next available work
 
-# What's broken?
-agentpm failing
+# Complete work (requires explicit entity type)  
+agentpm done epic                  # Complete current epic
+agentpm done phase 2A              # Complete specific phase
+agentpm done task 2A_1             # Complete specific task
 
-# What's left to do?
-agentpm pending
-
-# Recent activity
-agentpm events --limit=5
+# Cancel work
+agentpm cancel                     # Cancel current task or test
 ```
 
-### Agent Handoff
-
+### 📊 Status & Information
 ```bash
-# Comprehensive status for next agent
-agentpm handoff
-
-# Generate human-readable docs
-agentpm docs
+# Quick status checks
+agentpm status                     # Epic progress overview (alias: s)
+agentpm current                    # What am I working on? (alias: c)
+agentpm pending                    # What's left to do? (alias: p)
+agentpm failing                    # What's broken? (alias: f)
 ```
 
-### File Validation
-
+### 🔍 Inspection & Queries - **POWERFUL FOR AGENTS**
 ```bash
-# Check epic structure
-agentpm validate
+# 🎯 SHOW COMMAND - Essential for understanding context
+agentpm show epic                  # Epic overview and summary
+agentpm show epic --full           # Complete epic details with all entities
+agentpm show phase 2A              # Phase 2A summary  
+agentpm show phase 2A --full       # Complete phase details + related tasks/tests
+agentpm show task 2A_1             # Task summary
+agentpm show task 2A_1 --full      # Complete task details + acceptance criteria
+agentpm show test 2A_T1 --full     # Complete test details + execution history
 
-# Generate documentation
-agentpm docs > epic-status.md
+# Advanced queries
+agentpm query                      # Execute XPath queries against epic XML
+```
+
+**💡 Agent Pro Tip**: Use `show --full` to get complete context about any entity - it includes all related information, dependencies, and current state. Essential for understanding what to work on next!
+
+### 🏗️ Project Management
+```bash
+# Project setup
+agentpm init --epic epic-8.xml     # Initialize project with epic
+agentpm switch epic-9.xml          # Switch to different epic (alias: sw)
+agentpm config                     # Show current configuration
+
+# Maintenance
+agentpm validate                   # Check epic XML structure  
+agentpm fix-xml                    # Fix XML encoding issues (alias: fix)
+```
+
+### 📝 Reporting & Documentation
+```bash
+# Event logging
+agentpm log "Implemented pagination" --files="src/Pagination.js:added"
+agentpm events                     # Recent activity timeline (alias: evt)
+
+# Documentation & handoff
+agentpm docs                       # Generate human-readable documentation
+agentpm handoff                    # Comprehensive handoff report
+```
+
+### 🧪 Testing
+```bash
+# Test management
+agentpm pass 2A_T1                 # Mark specific test as passed
+agentpm fail 2A_T1 "Timeout error" # Mark test as failed with reason
+```
+
+### 🔧 Output Formatting
+```bash
+# All commands support multiple output formats
+agentpm status --format=json      # JSON output
+agentpm current -F xml             # XML output  
+agentpm pending                    # Text output (default)
 ```
 
 ## Agent Workflow Examples
@@ -115,11 +160,11 @@ agentpm init --epic epic-8.xml
 agentpm status
 # Output: Epic status: planning
 
-agentpm start-epic
+agentpm start epic
 # Output: Epic 8 started. Status changed to in_progress.
 
 agentpm current
-# Output: Epic active. No current phase. Use start-phase or start-next.
+# Output: Epic active. No current phase. Use 'start phase <id>' or 'next'.
 ```
 
 ### Daily Work Session
@@ -128,35 +173,44 @@ agentpm current
 agentpm current
 # Output: Epic in_progress. Phase 1A completed. Phase 2A pending.
 
-# Start working
-agentpm start-phase 2A
+# 🎯 GET COMPLETE CONTEXT before starting work
+agentpm show phase 2A --full
+# Output: Complete phase details + all tasks + tests + acceptance criteria
+
+# Start working (requires explicit entity specification)
+agentpm start phase 2A
 # Output: Started Phase 2A: Create PaginationComponent
 
-agentpm start-task 2A_1  
+# 🎯 UNDERSTAND THE TASK FULLY before implementation
+agentpm show task 2A_1 --full
+# Output: Task details + parent phase + related tests + acceptance criteria
+
+agentpm start task 2A_1  
 # Output: Started Task 2A_1: Implement pagination controls
 
-# Or auto-pick next task
-agentpm start-next
+# Or auto-pick next available work
+agentpm next
 # Output: Started Task 2A_1: Implement pagination controls (auto-selected)
 
-# Complete some work
-agentpm done-task 2A_1
+# Complete work (requires explicit entity specification)
+agentpm done task 2A_1
 agentpm log "Implemented basic pagination structure"
-agentpm pass-test 2A_1
+agentpm pass 2A_T1
 
-# Hit an issue
-agentpm fail-test 2A_2 "Mobile responsive design not working"
+# Hit an issue - check test context for debugging
+agentpm show test 2A_T2 --full
+agentpm fail 2A_T2 "Mobile responsive design not working"
 agentpm log "Need design system tokens for mobile" --type=blocker
 
 # Continue to next task
-agentpm start-next
+agentpm next
 # Output: Started Task 2A_2: Add accessibility features
 ```
 
 ### Working with Multiple Epics
 ```bash
 # Switch to different epic
-agentpm switch epic-9.xml
+agentpm switch epic-9.xml          # (alias: sw)
 # Updates .agentpm.json current_epic
 
 # Work on the new epic
@@ -171,14 +225,13 @@ agentpm status -f epic-8.xml
 ### Completing an Epic
 ```bash
 # All phases and tests complete
-agentpm done-phase 4B
-agentpm done-epic
+agentpm done phase 4B              # Complete final phase
+agentpm done epic                  # Complete epic when all phases done
 # Output: Epic 8 completed successfully. Status changed to completed.
 
 agentpm status
 # Output: Epic completed. All 4 phases done. 47/47 tests passing.
 ```
-
 
 ### Agent Handoff
 ```bash
@@ -186,10 +239,35 @@ agentpm status
 agentpm handoff
 # Output: Comprehensive XML with current status, recent events, blockers
 
-# Incoming agent
-agentpm current        # What's active?
-agentpm failing        # What's broken?  
-agentpm events         # What happened recently?
+# Incoming agent - ESSENTIAL commands for context
+agentpm current                    # What's active? (alias: c)
+agentpm failing                    # What's broken? (alias: f)
+agentpm events                     # What happened recently? (alias: evt)
+
+# 🎯 DEEP DIVE into current work context
+agentpm show epic --full           # Complete epic understanding
+agentpm show task $(agentpm current | grep active_task) --full  # Full context of active work
+```
+
+## 🚀 **Quick Reference for Agents**
+
+### **Essential Context Commands (Use These First!)**
+```bash
+agentpm show epic --full           # 🔥 Complete epic overview
+agentpm current                    # What am I working on?
+agentpm pending                    # What's left to do?
+agentpm failing                    # What's broken?
+
+# Before starting ANY work:
+agentpm show <entity> --full       # Get COMPLETE context
+```
+
+### **Core Work Commands**  
+```bash
+agentpm start <type> <id>          # Start specific work
+agentpm next                       # Auto-pick next work
+agentpm done <type> <id>           # Complete specific work
+agentpm pass/fail <test-id>        # Test outcomes
 ```
 
 ## Output Examples
@@ -511,6 +589,20 @@ The epic file follows this minimal structure:
 ✅ **Human Transparency** - Generate readable docs anytime  
 ✅ **Pause/Resume** - Handle interruptions and context switches gracefully  
 
-**Total commands: 23 core commands for complete agent workflow management**
+**Total commands: 17 streamlined commands across 7 logical categories**
 
 Perfect for LLM agent self-management and clean handoffs between agents or sessions.
+
+---
+
+## 🚀 **CLI Interface Improvements**
+
+### **Simplified Command Structure**
+- **Explicit Commands**: `start` and `done` require explicit entity type (epic/phase/task) for clarity
+- **Auto-Next**: Only `next` command is fully automatic, picking next available work
+- **Smart Aliases**: Short forms like `s`, `c`, `p`, `f` for frequent status checks  
+- **Categorized Help**: Commands grouped by function for easy discovery
+- **Flexible Output**: JSON, XML, or text formatting for any command
+
+### **Command Clarity**
+The new CLI prioritizes explicitness over magic. Commands require specific entity types except for `next` which auto-selects work, making workflows predictable and debuggable.
