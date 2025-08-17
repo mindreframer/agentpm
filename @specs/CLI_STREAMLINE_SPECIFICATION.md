@@ -1,430 +1,451 @@
-# CLI STREAMLINE SPECIFICATION: Unified Command Interface
+# CLI STREAMLINE SPECIFICATION
 
 ## Overview
 
-**Epic ID:** CLI-Streamline  
-**Name:** CLI Interface Streamlining  
-**Duration:** 5-7 days  
-**Status:** pending  
-**Priority:** high  
-**Depends On:** Existing CLI infrastructure
+**Goal:** Redesign the AgentPM CLI interface to provide a more intuitive, unified command structure that reduces cognitive load and improves developer productivity through better command organization and simplified argument patterns.
 
-**Goal:** Redesign the AgentPM CLI interface to provide a more intuitive and streamlined user experience by consolidating 18+ individual commands into 12 logical command groups with consistent syntax and behavior.
+**Duration:** 5-7 days  
+**Priority:** high  
+**Epic Dependencies:** All existing epics (1-9) will be affected by this refactoring
 
 ## Business Context
 
-The current AgentPM CLI has grown organically to 18+ individual commands with inconsistent patterns, making it difficult for users to remember and navigate. The new interface groups related functionality into logical command families while maintaining all existing functionality. This streamlining improves usability without sacrificing power or flexibility.
+The current CLI has grown organically with 20+ commands using inconsistent naming patterns, scattered aliases, and varying argument structures. This creates confusion for users and increases the learning curve. The streamlined interface consolidates related operations under unified command verbs, introduces consistent short aliases, and establishes clear argument patterns that make the tool more intuitive and faster to use.
 
-## Current vs. Desired Interface Mapping
+## Current State Analysis
 
-### CORE WORKFLOW Commands
-| Desired | Current Commands | Changes Required |
-|---------|------------------|------------------|
-| `start [epic\|phase\|task\|test]` | `start-epic`, `start-phase`, `start-task`, various test commands | **MAJOR**: Consolidate into single `start` command with subcommands |
-| `done [epic\|phase\|task]` | `done-epic`, `done-phase`, `done-task` | **MAJOR**: Consolidate into single `done` command with subcommands |
-| `next` | `start-next` | **MINOR**: Rename existing command |
+### Current CLI Surface (20 commands)
+| Category | Current Commands | Issues |
+|----------|------------------|---------|
+| **Start Operations** | `start-epic`, `start-phase`, `start-task`, `start-next`, `start-test` | Inconsistent naming, missing unified verb |
+| **Completion Operations** | `done-epic`, `done-phase`, `done-task` | No unified completion command |
+| **Test Operations** | `pass-test`, `fail-test`, `cancel-test` | Scattered across CLI, inconsistent patterns |
+| **Status Operations** | `status`, `current`, `pending`, `failing`, `events` | Some have aliases (`st`, `cur`), others don't |
+| **Project Operations** | `init`, `switch`, `validate`, `config` | Good organization |
+| **Reporting** | `handoff`, `docs`, `log` | Missing `show` inspection |
+| **System** | `version` | Has aliases (`ver`, `v`) |
 
-### STATUS Commands  
-| Desired | Current Commands | Changes Required |
-|---------|------------------|------------------|
-| `status, s` | `status` | **NONE**: Already exists with alias |
-| `current, c` | `current` | **MINOR**: Add alias `c` |
-| `pending, p` | `pending` | **MINOR**: Add alias `p` |
-| `failing, f` | `failing` | **MINOR**: Add alias `f` |
+### Command Naming Issues
+- **Verb-Object vs Object-Verb:** Mix of `start-epic` vs `epic-start`
+- **Inconsistent Aliases:** Only some commands have short aliases
+- **Missing Unification:** Related operations spread across multiple commands
+- **Argument Inconsistency:** Some take `<id>`, others use flags, some take no args
 
-### INSPECTION Commands
-| Desired | Current Commands | Changes Required |
-|---------|------------------|------------------|
-| `show <type> [id]` | Multiple status/query commands | **MAJOR**: New unified inspection interface |
+## Desired CLI Interface Analysis
 
-### PROJECT Commands
-| Desired | Current Commands | Changes Required |
-|---------|------------------|------------------|
-| `init` | `init` | **NONE**: Already exists |
-| `switch <epic>` | `switch` | **MINOR**: Simplify arguments |
-| `config` | `config` | **NONE**: Already exists |
+### New Command Structure (15 commands, 25% reduction)
+| Category | New Commands | Consolidation |
+|----------|--------------|---------------|
+| **CORE WORKFLOW** | `start`, `done`, `cancel`, `next` | Unified verbs |
+| **TESTING** | `pass`, `fail` | Simple test operations |
+| **STATUS** | `status`, `current`, `pending`, `failing` | Consistent short aliases |
+| **INSPECTION** | `show` | New unified inspection command |
+| **PROJECT** | `init`, `switch`, `config`, `validate` | Maintained |
+| **REPORTING** | `events`, `docs`, `handoff` | Maintained |
+| **SYSTEM** | `version`, `help` | Standard system commands |
 
-### REPORTING Commands
-| Desired | Current Commands | Changes Required |
-|---------|------------------|------------------|
-| `events` | `events`, `log` | **MAJOR**: Consolidate event viewing and logging |
-| `docs` | `docs` | **NONE**: Already exists |
-| `handoff` | `handoff` | **NONE**: Already exists |
+### Key Improvements
+1. **Unified Verbs:** `start [epic|phase|task|test]` instead of separate commands
+2. **Consistent Aliases:** Every frequent command gets a short alias
+3. **Argument Standardization:** Clear patterns for IDs, options, and flags
+4. **Reduced Commands:** 20 → 15 commands (25% reduction)
+5. **Logical Grouping:** Related operations under common verbs
 
-### REMOVED Commands
-| Current Command | Removal Reason | Replacement |
-|----------------|----------------|-------------|
-| `validate` | Incorporated into other commands | Automatic validation in all operations |
-| `version` | Standard CLI practice | `agentpm --version` global flag |
-| `cancel-task` | Rarely used, complex workflow | Not included in streamlined interface |
+## Detailed Command Mapping
+
+### CORE WORKFLOW COMMANDS
+
+#### `start [epic|phase|task|test] [id] [options]`
+**Current Mapping:**
+- `start-epic` → `start epic`
+- `start-phase <id>` → `start phase <id>`
+- `start-task <id>` → `start task <id>`
+- `start-next` → `next` (separate command for auto-progression)
+- `start-test <id>` → `start test <id>`
+
+**New Behavior:**
+```bash
+# Epic operations (no ID needed, uses current epic)
+agentpm start epic [--time <timestamp>]
+
+# Phase/Task/Test operations (ID required)
+agentpm start phase <phase-id> [--time <timestamp>]
+agentpm start task <task-id> [--time <timestamp>]
+agentpm start test <test-id> [--time <timestamp>]
+
+# Auto-progression remains separate
+agentpm next [--time <timestamp>]
+```
+
+#### `done [epic|phase|task] [id] [options]`
+**Current Mapping:**
+- `done-epic` → `done epic`
+- `done-phase <id>` → `done phase <id>`
+- `done-task <id>` → `done task <id>`
+
+**New Behavior:**
+```bash
+# Epic completion (no ID needed)
+agentpm done epic [--time <timestamp>]
+
+# Phase/Task completion (ID required)
+agentpm done phase <phase-id> [--time <timestamp>]
+agentpm done task <task-id> [--time <timestamp>]
+```
+
+#### `cancel [task|test] <id> [reason] [options]`
+**Current Mapping:**
+- `cancel-task <id>` → `cancel task <id> [reason]`
+- `cancel-test <id> "reason"` → `cancel test <id> [reason]`
+
+**New Behavior:**
+```bash
+# Task/Test cancellation with optional reason
+agentpm cancel task <task-id> [reason] [--time <timestamp>]
+agentpm cancel test <test-id> [reason] [--time <timestamp>]
+```
+
+#### `next [options]`
+**Current Mapping:**
+- `start-next` → `next`
+
+**New Behavior:**
+```bash
+# Auto-start next available work
+agentpm next [--time <timestamp>]
+```
+
+### TESTING COMMANDS
+
+#### `pass <test-id> [options]`
+**Current Mapping:**
+- `pass-test <id>` → `pass <id>`
+
+**New Behavior:**
+```bash
+agentpm pass <test-id> [--time <timestamp>]
+```
+
+#### `fail <test-id> [reason] [options]`
+**Current Mapping:**
+- `fail-test <id> "reason"` → `fail <id> [reason]`
+
+**New Behavior:**
+```bash
+agentpm fail <test-id> [reason] [--time <timestamp>]
+```
+
+### STATUS COMMANDS (with new aliases)
+
+#### `status, s [options]`
+**Current Mapping:**
+- `status` (alias: `st`) → `status` (alias: `s`)
+
+#### `current, c [options]`
+**Current Mapping:**
+- `current` (alias: `cur`) → `current` (alias: `c`)
+
+#### `pending, p [options]`
+**Current Mapping:**
+- `pending` (alias: `pend`) → `pending` (alias: `p`)
+
+#### `failing, f [options]`
+**Current Mapping:**
+- `failing` (alias: `fail`) → `failing` (alias: `f`)
+
+### NEW INSPECTION COMMAND
+
+#### `show <type> [id] [options]`
+**New Command:** Unified inspection for specific entities
+
+**Behavior:**
+```bash
+# Show epic details
+agentpm show epic [--file <epic-file>]
+
+# Show specific phase details
+agentpm show phase <phase-id>
+
+# Show specific task details  
+agentpm show task <task-id>
+
+# Show specific test details
+agentpm show test <test-id>
+
+# Show event details (if events have IDs)
+agentpm show event <event-id>
+```
+
+### PROJECT COMMANDS (unchanged)
+
+#### `init`, `switch <epic>`, `config`, `validate`
+**No Changes:** These commands work well as-is
+
+### REPORTING COMMANDS (minimal changes)
+
+#### `events`, `docs`, `handoff`
+**Current Mapping:**
+- `events` (alias: `evt`) → `events` (no alias change needed)
+- `docs` → `docs` (unchanged)
+- `handoff` → `handoff` (unchanged)
+
+**Note:** `log <message>` command is removed - event logging should be automatic
+
+### SYSTEM COMMANDS
+
+#### `version, v`, `help, h`
+**Current Mapping:**
+- `version` (aliases: `ver`, `v`) → `version` (alias: `v`)
+- Built-in help → `help` (alias: `h`)
 
 ## Technical Requirements
 
-### Core Dependencies
-- **Existing CLI Framework:** urfave/cli/v3 with current flag structure
-- **Command Routing:** New command multiplexer for subcommand routing
-- **Backward Compatibility:** Optional support for legacy command names
-- **Service Layer:** Existing service implementations remain unchanged
-
-### Architecture Principles
-- **Command Consolidation:** Group related commands under common verbs
-- **Consistent Syntax:** All commands follow `verb [object] [args]` pattern
-- **Preserved Functionality:** Zero loss of existing capabilities
-- **Maintainable Routing:** Clean separation between command parsing and business logic
-- **Extensible Design:** Easy to add new subcommands to existing command groups
-
-## Functional Requirements
-
-### FR-1: Unified Start Command
-**Command:** `agentpm start [epic|phase|task|test] [id] [options]`
-
-**Behavior:**
-- Route to appropriate existing start command based on first argument
-- Maintain all existing functionality and flags
-- Support type inference when ID is provided without explicit type
-- Provide helpful error messages for ambiguous cases
-
-**Examples:**
-```bash
-agentpm start epic          # start-epic equivalent
-agentpm start phase 3A      # start-phase 3A equivalent  
-agentpm start task T1       # start-task T1 equivalent
-agentpm start test TEST1    # start-test TEST1 equivalent
-agentpm start T1            # Auto-detect task T1
-```
-
-**Implementation:**
-- New `cmd/start.go` that routes to existing start-* command implementations
-- Preserve all existing flags: `--time`, `--file`, `--config`, `--format`
-- Type detection logic based on ID patterns and epic content analysis
-
-### FR-2: Unified Done Command  
-**Command:** `agentpm done [epic|phase|task] [id] [options]`
-
-**Behavior:**
-- Route to appropriate existing done command based on first argument
-- Maintain all existing validation and completion logic
-- Support type inference for task/phase IDs
-- Generate same output formats as existing commands
-
-**Examples:**
-```bash
-agentpm done epic           # done-epic equivalent
-agentpm done phase 3A       # done-phase 3A equivalent
-agentpm done task T1        # done-task T1 equivalent  
-agentpm done T1             # Auto-detect task T1
-```
-
-**Implementation:**
-- New `cmd/done.go` that routes to existing done-* command implementations
-- Preserve all existing validation rules and error handling
-- Maintain automatic state transitions and event logging
-
-### FR-3: Enhanced Status Commands
-**Commands:** `status|s`, `current|c`, `pending|p`, `failing|f`
-
-**Behavior:**
-- Add missing aliases to existing commands
-- Maintain all existing functionality unchanged
-- Ensure consistent output formatting across all status commands
-
-**Implementation:**
-- Update existing command definitions to include new aliases
-- No business logic changes required
-
-### FR-4: Unified Show Command
-**Command:** `agentpm show <epic|phase|task|test> [id] [options]`
-
-**Behavior:**
-- Provide detailed inspection interface for any entity type
-- Show comprehensive information including status, dependencies, history
-- Support both specific ID lookup and current context inspection
-- Output structured data in text/json/xml formats
-
-**Examples:**
-```bash
-agentpm show epic           # Show current epic details
-agentpm show phase 3A       # Show specific phase details
-agentpm show task T1        # Show specific task details  
-agentpm show test TEST1     # Show specific test details
-```
-
-**Implementation:**
-- New comprehensive inspection service
-- Leverage existing query services for data retrieval
-- Rich formatting for human-readable output
-
-### FR-5: Simplified Switch Command
-**Command:** `agentpm switch <epic-file>`
-
-**Behavior:**
-- Simplify to single required argument (epic file path)
-- Remove complex flag-based switching options
-- Maintain same validation and configuration update logic
-- Keep `--back` flag for returning to previous epic
-
-**Examples:**
-```bash
-agentpm switch epic-9.xml   # Switch to epic-9.xml
-agentpm switch --back       # Switch to previous epic
-```
-
-**Implementation:**
-- Simplify argument parsing in existing switch command
-- Remove unused flags and complex argument handling
-
-### FR-6: Consolidated Events Command
-**Command:** `agentpm events [log <message>] [options]`
-
-**Behavior:**
-- Default: Show recent events (existing events command functionality)
-- With `log` subcommand: Add new event (existing log command functionality)  
-- Maintain all existing event logging capabilities
-- Preserve event viewing and filtering options
-
-**Examples:**
-```bash
-agentpm events                      # Show recent events
-agentpm events --limit 10           # Show last 10 events
-agentpm events log "Fixed bug X"    # Log new event
-agentpm events log --type milestone "Phase 1 complete"
-```
-
-**Implementation:**
-- New events command that routes between viewing and logging
-- Preserve all existing functionality from both events and log commands
-
-## Non-Functional Requirements
-
-### NFR-1: Performance
-- Command routing overhead < 5ms
-- Same execution performance as existing individual commands
-- No impact on memory usage or startup time
-
-### NFR-2: Maintainability
-- Clean separation between new routing logic and existing business logic
-- Preserve existing test coverage and test infrastructure
-- New routing code should be unit testable in isolation
-
-### NFR-3: User Experience
-- Intuitive command discovery with help system
-- Consistent error messages and help text across all commands
-- Auto-completion support for shells
-
-## Data Model Changes
-
 ### Command Structure Changes
+
+#### 1. Unified Command Implementation
+**Current:** Each command is a separate function (e.g., `StartEpicCommand()`, `StartPhaseCommand()`)
+**New:** Consolidated commands with sub-command routing:
+
 ```go
-// New command structure in main.go
-Commands: []*cli.Command{
-    // CORE WORKFLOW  
-    cmd.NewStartCommand(),     // Replaces start-epic, start-phase, start-task, test commands
-    cmd.NewDoneCommand(),      // Replaces done-epic, done-phase, done-task  
-    cmd.NextCommand(),         // Renamed from start-next
-    
-    // STATUS (enhanced with aliases)
-    cmd.StatusCommand(),       // Add alias 's'
-    cmd.CurrentCommand(),      // Add alias 'c'  
-    cmd.PendingCommand(),      // Add alias 'p'
-    cmd.FailingCommand(),      // Add alias 'f'
-    
-    // INSPECTION
-    cmd.ShowCommand(),         // New unified inspection interface
-    
-    // PROJECT
-    cmd.InitCommand(),         // Unchanged
-    cmd.SwitchCommand(),       // Simplified arguments
-    cmd.ConfigCommand(),       // Unchanged
-    
-    // REPORTING  
-    cmd.EventsCommand(),       // Consolidates events + log
-    cmd.DocsCommand(),         // Unchanged
-    cmd.HandoffCommand(),      // Unchanged
+// cmd/start.go - New unified start command
+func StartCommand() *cli.Command {
+    return &cli.Command{
+        Name:    "start",
+        Usage:   "Start working on something",
+        Subcommands: []*cli.Command{
+            startEpicSubcommand(),
+            startPhaseSubcommand(), 
+            startTaskSubcommand(),
+            startTestSubcommand(),
+        },
+    }
 }
 ```
 
-### Configuration Changes
-No changes to .agentpm.json structure required.
+#### 2. Argument Pattern Standardization
+**Consistent Patterns:**
+- **Type-only operations:** `start epic`, `done epic` (no ID needed)
+- **Type+ID operations:** `start phase <id>`, `done task <id>` (ID required)
+- **ID-only operations:** `pass <test-id>`, `fail <test-id>` (type implied)
 
-### Help System Enhancement
-```
-agentpm help                 # Show command overview
-agentpm start --help         # Show start subcommand options  
-agentpm done --help          # Show done subcommand options
-agentpm show --help          # Show inspection options
-```
-
-## Error Handling
-
-### Command Routing Errors
-```xml
-<error>
-    <type>invalid_subcommand</type>
-    <message>Unknown subcommand 'foobar' for start command</message>
-    <details>
-        <available_subcommands>
-            <subcommand>epic</subcommand>
-            <subcommand>phase</subcommand>
-            <subcommand>task</subcommand>
-            <subcommand>test</subcommand>
-        </available_subcommands>
-        <suggestion>Use 'agentpm start --help' to see available options</suggestion>
-    </details>
-</error>
+#### 3. Global Flag Consolidation
+**Current Flags (inconsistent across commands):**
+```go
+// Some commands have --file/-f, others don't
+// Some have --format/-F, others have different defaults
+// Time flags sometimes have aliases, sometimes don't
 ```
 
-### Type Detection Ambiguity
-```xml
-<error>
-    <type>ambiguous_identifier</type>
-    <message>ID 'P1' could refer to phase or task</message>
-    <details>
-        <matches>
-            <match type="phase" id="P1" name="Planning Phase"/>
-            <match type="task" id="P1" name="Project Setup"/>
-        </matches>
-        <suggestion>Specify type explicitly: 'agentpm start phase P1' or 'agentpm start task P1'</suggestion>
-    </details>
-</error>
+**New Standardized Global Flags:**
+```go
+// All commands inherit these global flags
+&cli.StringFlag{Name: "file", Aliases: []string{"f"}, Usage: "Override epic file from config"}
+&cli.StringFlag{Name: "config", Aliases: []string{"c"}, Usage: "Override config file path", Value: "./.agentpm.json"}
+&cli.StringFlag{Name: "time", Aliases: []string{"t"}, Usage: "Timestamp for current time (testing support)"}
+&cli.StringFlag{Name: "format", Aliases: []string{"F"}, Usage: "Output format - text (default) / json / xml", Value: "text"}
 ```
 
-## Acceptance Criteria
+### Implementation Architecture
 
-### AC-1: Start Command Consolidation
-- **GIVEN** I want to start any type of work
-- **WHEN** I use `agentpm start <type> [id]`  
-- **THEN** it should route to the appropriate existing start command with same behavior
+#### Phase 1: Command Consolidation
+1. **Create unified command files:**
+   - `cmd/start.go` - Consolidates start-epic, start-phase, start-task, start-test
+   - `cmd/done.go` - Consolidates done-epic, done-phase, done-task  
+   - `cmd/cancel.go` - Consolidates cancel-task, cancel-test
+   - `cmd/show.go` - New inspection command
 
-### AC-2: Done Command Consolidation  
-- **GIVEN** I want to complete any type of work
-- **WHEN** I use `agentpm done <type> [id]`
-- **THEN** it should route to the appropriate existing done command with same behavior
+2. **Remove old command files:**
+   - Delete all old individual command files (start-epic.go, start-phase.go, etc.)
+   - Extract reusable service layer logic into internal packages
+   - Update main.go command registration
 
-### AC-3: Auto-Detection Works
-- **GIVEN** I provide an unambiguous ID
-- **WHEN** I use `agentpm start T1` or `agentpm done T1`
-- **THEN** it should detect the type automatically and execute correctly
+#### Phase 2: Alias Standardization
+1. **Update status command aliases:**
+   - `status` alias: `st` → `s`
+   - `current` alias: `cur` → `c` 
+   - `pending` alias: `pend` → `p`
+   - `failing` alias: `fail` → `f`
 
-### AC-4: Status Aliases Work  
-- **GIVEN** I want quick status access
-- **WHEN** I use `agentpm s`, `agentpm c`, `agentpm p`, or `agentpm f`
-- **THEN** they should work the same as the full command names
+2. **Standardize all command aliases:**
+   - Remove inconsistent aliases
+   - Apply uniform alias patterns
 
-### AC-5: Show Command Provides Rich Information
-- **GIVEN** I want detailed information about an entity
-- **WHEN** I use `agentpm show <type> [id]`  
-- **THEN** I should get comprehensive details about that entity
+#### Phase 3: Argument Pattern Enforcement
+1. **Standardize ID argument handling:**
+   - All type+ID commands validate ID format
+   - Consistent error messages for missing/invalid IDs
+   - Help text shows clear argument patterns
 
-### AC-6: Events Command Handles Both Viewing and Logging
-- **GIVEN** I want to work with events
-- **WHEN** I use `agentpm events` I should see recent events
-- **WHEN** I use `agentpm events log <message>` I should add a new event
-
-### AC-7: Help System Works
-- **GIVEN** I need help with commands
-- **WHEN** I use `agentpm help` or `agentpm <command> --help`  
-- **THEN** I should get clear guidance on available options
+2. **Unify flag inheritance:**
+   - Global flags available on all relevant commands
+   - Consistent flag descriptions and defaults
 
 ## Testing Strategy
 
-### Test Categories
-- **Unit Tests (60%):** Command routing logic, argument parsing, type detection
-- **Integration Tests (30%):** End-to-end command execution, backward compatibility  
-- **User Experience Tests (10%):** Help system, error messages, auto-completion
+### Command Functionality Testing
+1. **New Command Tests:**
+   - Verify new unified commands produce expected outputs
+   - Test all argument patterns and flag combinations
+   - Validate error handling for invalid inputs
+   - Test subcommand routing logic
 
-### Test Data Requirements
-- Epic files with various entity types for type detection testing
-- Test cases for ambiguous IDs and edge cases
-- Complete command execution scenarios for all consolidated commands
+2. **Integration Tests:**
+   - End-to-end workflows using new command structure
+   - Configuration file compatibility
+   - Service layer integration verification
 
-### Test Isolation
-- Mock existing command implementations for pure routing tests
-- Integration tests with full command stack
-- Regression tests to ensure no functionality loss
+### User Experience Testing  
+1. **Command Discovery:**
+   - Help system shows logical command groupings
+   - Tab completion works with new patterns
+   - Error messages guide users to correct syntax
+
+2. **Workflow Efficiency:**
+   - Common workflows are faster with new syntax
+   - Aliases reduce typing for frequent operations
+   - Consistent patterns reduce mental overhead
+
+## Migration Guide for Users
+
+### Quick Reference Card
+```bash
+# OLD SYNTAX → NEW SYNTAX
+start-epic              → start epic
+start-phase 3A          → start phase 3A  
+start-task 3A_1         → start task 3A_1
+start-test 3A_T1        → start test 3A_T1
+start-next              → next
+
+done-epic               → done epic
+done-phase 3A           → done phase 3A
+done-task 3A_1          → done task 3A_1
+
+pass-test 3A_T1         → pass 3A_T1
+fail-test 3A_T1 "reason" → fail 3A_T1 reason
+
+cancel-task 3A_1        → cancel task 3A_1
+cancel-test 3A_T1 "why" → cancel test 3A_T1 why
+
+status (alias: st)      → status (alias: s)
+current (alias: cur)    → current (alias: c)
+pending (alias: pend)   → pending (alias: p)
+failing (alias: fail)   → failing (alias: f)
+
+# NEW COMMANDS
+agentpm show epic       → Show epic details
+agentpm show phase 3A   → Show specific phase
+agentpm show task 3A_1  → Show specific task
+agentpm show test 3A_T1 → Show specific test
+```
+
+### Workflow Examples
+```bash
+# Start working on epic → work on phase → complete task
+agentpm start epic
+agentpm start phase 3A  
+agentpm start task 3A_1
+agentpm done task 3A_1
+
+# Check status with short aliases
+agentpm s               # Overall status
+agentpm c               # Current work
+agentpm p               # Pending items
+agentpm f               # Failing tests
+
+# Test workflow
+agentpm start test 3A_T1
+agentpm pass 3A_T1      # or: agentpm fail 3A_T1 "reason"
+
+# Inspection
+agentpm show task 3A_1  # Detailed task info
+agentpm show phase 3A   # Phase overview
+```
 
 ## Implementation Phases
 
-### Phase 1: Command Consolidation Foundation (Day 1-2)
-- Create new routing infrastructure for `start` and `done` commands
-- Implement type detection logic for entity IDs
-- Build argument parsing and validation for consolidated commands
-- Unit tests for routing logic
+### Phase 1: Core Command Consolidation (Days 1-2)
+- [ ] Create `cmd/start.go` with unified start command and subcommands
+- [ ] Create `cmd/done.go` with unified done command and subcommands  
+- [ ] Create `cmd/cancel.go` with unified cancel command
+- [ ] Extract service layer logic from old commands into reusable packages
+- [ ] Delete old command files (start-epic.go, start-phase.go, etc.)
+- [ ] Update `main.go` to register only new commands
+- [ ] Comprehensive testing of new command paths
 
-### Phase 2: Status and Inspection Commands (Day 2-3)  
-- Add aliases to existing status commands
-- Implement new `show` command with comprehensive entity inspection
-- Enhance help system for new command structure
-- Integration testing for status workflows
+### Phase 2: Testing Commands & Aliases (Days 3-4)
+- [ ] Create `cmd/pass.go` and `cmd/fail.go` for simplified test commands
+- [ ] Implement `cmd/show.go` for unified inspection
+- [ ] Update status command aliases (`st`→`s`, `cur`→`c`, `pend`→`p`, `fail`→`f`)
+- [ ] Rename `start-next` to `next` command
+- [ ] Standardize global flags across all commands
+- [ ] Update help text and usage examples
 
-### Phase 3: Events and Project Commands (Day 3-4)
-- Consolidate events viewing and logging into single command
-- Simplify switch command argument handling  
-- Update help system and error messages
-- Complete integration testing
+### Phase 3: Service Layer & Testing (Days 5-6)
+- [ ] Refactor extracted service logic for clean interfaces
+- [ ] Comprehensive test suite for new command structure
+- [ ] Integration tests for complete workflows
+- [ ] Update all documentation and examples  
+- [ ] Performance testing to ensure no regressions
+- [ ] User experience testing with new command patterns
 
-### Phase 4: Polish and Final Testing (Day 4-5)
-- Enhance error messages and user guidance
-- Performance optimization and final testing
-- Update all documentation and examples
-- Final user acceptance testing and release preparation
+### Phase 4: Polish & Finalization (Day 7)
+- [ ] Error message standardization across all commands
+- [ ] Tab completion configuration for new structure
+- [ ] Final integration testing and bug fixes
+- [ ] Documentation updates and examples
+- [ ] Release preparation and validation
 
-## Definition of Done
+## Success Criteria
 
-- [ ] All existing functionality preserved in new command structure
-- [ ] Command routing performance < 5ms overhead
-- [ ] Comprehensive help system for all new commands  
-- [ ] Type detection works for 95% of unambiguous cases
-- [ ] All acceptance criteria verified with automated tests
+### Functional Requirements
+- [ ] All existing functionality accessible through new command structure
+- [ ] New commands produce identical outputs to old functionality
+- [ ] All global flags work consistently across commands
+- [ ] Error handling maintains current quality and helpfulness
 
-- [ ] Zero regression in existing functionality
-- [ ] User experience testing completed with positive feedback
+### User Experience Goals
+- [ ] 25% reduction in total command count (20 → 15)
+- [ ] Consistent short aliases for all frequent commands
+- [ ] Logical command grouping reduces learning curve
+- [ ] Common workflows require fewer keystrokes
+- [ ] Help system clearly shows new command patterns
 
-## Dependencies and Risks
+### Technical Goals
+- [ ] Code complexity reduced through command consolidation
+- [ ] Shared logic extracted into reusable components
+- [ ] Flag handling standardized across all commands
+- [ ] Test coverage maintained at >90% for all new commands
+- [ ] No performance regressions in command execution time
 
-### Dependencies
-- **Existing CLI Infrastructure:** urfave/cli/v3 framework and all current command implementations
-- **Service Layer:** All existing service implementations must remain unchanged
-- **Test Infrastructure:** Current test framework and test data
+## Risk Assessment
 
-### Risks
-- **Medium Risk:** Complex type detection logic for ambiguous IDs
-- **Low Risk:** Performance impact from command routing overhead
+### Low Risks
+- **Existing functionality:** Well-tested service layer remains unchanged
+- **Flag compatibility:** Current flag patterns are preserved
+- **Output formats:** JSON/XML outputs remain identical
 
-### Mitigation Strategies
-- Implement type detection as fallback mechanism with explicit type preference
-- Performance testing throughout implementation to catch issues early
+### Medium Risks  
+- **User disruption:** Breaking change will require users to update workflows immediately
+  - *Mitigation:* Clear migration guide and comprehensive documentation
+- **Muscle memory:** Users will need to relearn command patterns
+  - *Mitigation:* Intuitive new patterns and helpful error messages
+
+### High Risks
+- **Complex command routing:** Subcommand implementation may introduce bugs
+  - *Mitigation:* Extensive testing and phased rollout
+- **Edge case handling:** New argument patterns may miss existing edge cases
+  - *Mitigation:* Comprehensive regression testing against current test suite
 
 ## Future Considerations
 
-### Potential Enhancements (Not in Scope)
-- Auto-completion scripts for popular shells
-- Interactive command mode for complex workflows
-- Command aliases and custom shortcuts
-- Plugin system for custom commands
+### Post-Implementation Opportunities
+1. **Interactive Mode:** `agentpm start` could prompt for epic/phase/task selection
+2. **Tab Completion:** Enhanced completion for new command structure
+3. **Command Chaining:** `agentpm start phase 3A && agentpm start task 3A_1`
+4. **Workflow Templates:** `agentpm workflow start-phase-work 3A`
 
-### Integration Points
-- **Shell Integration:** Future auto-completion and shell integration features
-- **IDE Integration:** Structured command interface could support IDE plugins
-- **API Layer:** Command structure could inform future REST API design
-- **Automation:** Simplified interface better supports scripting and automation
+### CLI Evolution Path
+1. **v2.0:** Complete CLI restructure with new command interface
+2. **v2.1+:** Add advanced features like interactive mode and chaining
 
-## Migration Strategy
-
-### For Existing Users
-1. **Immediate:** New interface available alongside existing commands
-2. **Month 1-3:** Deprecation warnings on old commands
-3. **Month 3-6:** Old commands still work but marked as deprecated in help
-4. **Month 6+:** Consider removing old commands (major version bump)
-
-### For Scripts and Automation
-- Provide explicit flag to use legacy command names without warnings
-- Document migration path for automated systems
-- Maintain stable output formats during transition period
-
-## Success Metrics
-
-- **User Experience:** Reduced time to discover and execute commands
-- **Learning Curve:** New users can become productive faster
-- **Maintainability:** Cleaner command structure reduces maintenance overhead  
-- **Adoption:** Positive feedback from existing users on new interface
-- **Performance:** No measurable impact on command execution speed
+This specification provides a comprehensive roadmap for streamlining the AgentPM CLI as a breaking change that delivers immediate benefits through a cleaner, more intuitive interface.
