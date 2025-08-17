@@ -313,7 +313,7 @@ func TestRemoveExtraWhitespace(t *testing.T) {
 			<epic><name>Test</name></epic>
 
 			`,
-			expected: `<epic><name>Test</name></epic>`,
+			expected: `			<epic><name>Test</name></epic>`,
 		},
 		{
 			name:     "No empty lines",

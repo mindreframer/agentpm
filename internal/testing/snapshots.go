@@ -43,9 +43,10 @@ func DefaultConfig() SnapshotConfig {
 
 // NewSnapshotTester creates a new snapshot tester with default configuration
 func NewSnapshotTester() SnapshotTester {
+	config := DefaultConfig()
 	return &DefaultSnapshotTester{
-		config:     DefaultConfig(),
-		normalizer: NewXMLNormalizer(),
+		config:     config,
+		normalizer: newXMLNormalizerFromSnapshotConfig(config),
 	}
 }
 
@@ -53,8 +54,20 @@ func NewSnapshotTester() SnapshotTester {
 func NewSnapshotTesterWithConfig(config SnapshotConfig) SnapshotTester {
 	return &DefaultSnapshotTester{
 		config:     config,
-		normalizer: NewXMLNormalizer(),
+		normalizer: newXMLNormalizerFromSnapshotConfig(config),
 	}
+}
+
+// newXMLNormalizerFromSnapshotConfig creates an XMLNormalizer configured from SnapshotConfig
+func newXMLNormalizerFromSnapshotConfig(snapConfig SnapshotConfig) *XMLNormalizer {
+	normConfig := NormalizationConfig{
+		IndentSize:          2,
+		RemoveWhitespace:    true,
+		SortAttributes:      snapConfig.SortAttributes,
+		NormalizeTimestamps: snapConfig.RemoveTimestamps,
+		TimestampFields:     snapConfig.TimestampFields,
+	}
+	return NewXMLNormalizerWithConfig(normConfig)
 }
 
 // MatchSnapshot matches any data against a snapshot
