@@ -194,6 +194,7 @@ func DefaultHintRegistry() *HintRegistry {
 	registry.Register(&StateTransitionHintGenerator{})
 	registry.Register(&WorkflowHintGenerator{})
 	registry.Register(&EpicPhaseAwareHintGenerator{})
+	registry.Register(&TestDependencyHintGenerator{})
 
 	return registry
 }
@@ -620,3 +621,70 @@ func (g *EpicPhaseAwareHintGenerator) analyzePhaseDependencies(epicData *epic.Ep
 }
 
 func (g *EpicPhaseAwareHintGenerator) Priority() int { return 90 }
+
+// TestDependencyHintGenerator provides hints for test dependency issues
+type TestDependencyHintGenerator struct{}
+
+func (g *TestDependencyHintGenerator) CanHandle(ctx *HintContext) bool {
+	// Handle test dependency related errors
+	return ctx.ErrorType == "PhaseTestDependencyError" || ctx.ErrorType == "PhaseTestPrerequisiteError"
+}
+
+func (g *TestDependencyHintGenerator) GenerateHint(ctx *HintContext) *Hint {
+	hint := &Hint{
+		Category: HintCategoryActionable,
+		Priority: HintPriorityHigh,
+	}
+
+	switch ctx.ErrorType {
+	case "PhaseTestDependencyError":
+		hint = g.generatePhaseDependencyHint(ctx)
+	case "PhaseTestPrerequisiteError":
+		hint = g.generatePrerequisiteHint(ctx)
+	default:
+		hint.Content = "Check test completion status for phase dependencies"
+		hint.Command = "agentpm status"
+	}
+
+	return hint
+}
+
+func (g *TestDependencyHintGenerator) generatePhaseDependencyHint(ctx *HintContext) *Hint {
+	phaseID := ctx.EntityID
+
+	hint := &Hint{
+		Category:  HintCategoryActionable,
+		Priority:  HintPriorityHigh,
+		Content:   fmt.Sprintf("Phase %s cannot be completed with incomplete tests. Run tests to completion before marking phase as done.", phaseID),
+		Command:   "agentpm status",
+		Reference: "Test completion is required for phase transitions",
+		Conditions: []string{
+			"All tests in phase must be completed (passed)",
+			"Failed tests must be fixed and re-run",
+			"Cancelled tests are acceptable if no longer needed",
+		},
+	}
+
+	return hint
+}
+
+func (g *TestDependencyHintGenerator) generatePrerequisiteHint(ctx *HintContext) *Hint {
+	phaseID := ctx.EntityID
+
+	hint := &Hint{
+		Category:  HintCategoryWorkflow,
+		Priority:  HintPriorityHigh,
+		Content:   fmt.Sprintf("Phase %s cannot be started with incomplete prerequisite tests from earlier phases. Complete tests in previous phases first.", phaseID),
+		Command:   "agentpm status",
+		Reference: "Earlier phase tests must be completed before starting new phases",
+		Conditions: []string{
+			"All tests in earlier phases must be completed",
+			"Failed tests in earlier phases must be resolved",
+			"Complete current phase tests before starting next phase",
+		},
+	}
+
+	return hint
+}
+
+func (g *TestDependencyHintGenerator) Priority() int { return 95 }

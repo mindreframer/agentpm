@@ -118,6 +118,12 @@ func (s *PhaseService) validatePhaseStart(epicData *epic.Epic, phase *epic.Phase
 		return NewPhaseConstraintError(phase.ID, activePhase.ID, "Cannot start phase: another phase is already active")
 	}
 
+	// Check prerequisite tests from earlier phases are completed
+	prerequisiteTests := s.getIncompleteTestsInEarlierPhases(epicData, phase.ID)
+	if len(prerequisiteTests) > 0 {
+		return NewPhaseTestPrerequisiteError(phase.ID, prerequisiteTests)
+	}
+
 	return nil
 }
 
@@ -134,6 +140,12 @@ func (s *PhaseService) validatePhaseCompletion(epicData *epic.Epic, phase *epic.
 		return NewPhaseIncompleteError(phase.ID, pendingTasks)
 	}
 
+	// Check all tests in phase are completed (passed)
+	incompleteTests := s.getIncompleteTestsInPhase(epicData, phase.ID)
+	if len(incompleteTests) > 0 {
+		return NewPhaseTestDependencyError(phase.ID, incompleteTests)
+	}
+
 	return nil
 }
 
@@ -146,4 +158,106 @@ func (s *PhaseService) getPendingTasksInPhase(epicData *epic.Epic, phaseID strin
 		}
 	}
 	return pendingTasks
+}
+
+// getIncompleteTestsInPhase returns tests in the phase that are not passed
+func (s *PhaseService) getIncompleteTestsInPhase(epicData *epic.Epic, phaseID string) []epic.Test {
+	var incompleteTests []epic.Test
+	for _, test := range epicData.Tests {
+		if test.PhaseID == phaseID && !s.isTestCompleted(test) {
+			incompleteTests = append(incompleteTests, test)
+		}
+	}
+	return incompleteTests
+}
+
+// isTestCompleted checks if a test is considered completed (passed)
+func (s *PhaseService) isTestCompleted(test epic.Test) bool {
+	// Test is completed if Status is completed AND TestStatus is passed
+	// Cancelled tests are also considered "completed" for dependency purposes
+	// For backwards compatibility, if TestStatus is not set, only check Status
+	if test.TestStatus != "" {
+		return (test.Status == epic.StatusCompleted && test.TestStatus == epic.TestStatusPassed) ||
+			(test.Status == epic.StatusCancelled && test.TestStatus == epic.TestStatusCancelled)
+	}
+	return test.Status == epic.StatusCompleted || test.Status == epic.StatusCancelled
+}
+
+// getIncompleteTestsInEarlierPhases returns tests from earlier phases that are not completed
+func (s *PhaseService) getIncompleteTestsInEarlierPhases(epicData *epic.Epic, currentPhaseID string) []epic.Test {
+	var incompleteTests []epic.Test
+	currentPhaseIndex := s.getPhaseIndex(epicData, currentPhaseID)
+
+	// Check all phases before the current one
+	for i := 0; i < currentPhaseIndex; i++ {
+		phaseID := epicData.Phases[i].ID
+		phaseIncompleteTests := s.getIncompleteTestsInPhase(epicData, phaseID)
+		incompleteTests = append(incompleteTests, phaseIncompleteTests...)
+	}
+
+	return incompleteTests
+}
+
+// getPhaseIndex returns the index of a phase in the phases slice
+func (s *PhaseService) getPhaseIndex(epicData *epic.Epic, phaseID string) int {
+	for i, phase := range epicData.Phases {
+		if phase.ID == phaseID {
+			return i
+		}
+	}
+	return -1
+}
+
+// GetTestCompletionStatus returns detailed status of tests in a phase
+func (s *PhaseService) GetTestCompletionStatus(epicData *epic.Epic, phaseID string) TestCompletionStatus {
+	var totalTests, passedTests, failedTests, pendingTests int
+	var incompleteTests []epic.Test
+
+	for _, test := range epicData.Tests {
+		if test.PhaseID == phaseID {
+			totalTests++
+			if s.isTestCompleted(test) {
+				passedTests++
+			} else {
+				incompleteTests = append(incompleteTests, test)
+				if test.TestStatus == epic.TestStatusFailed {
+					failedTests++
+				} else {
+					pendingTests++
+				}
+			}
+		}
+	}
+
+	return TestCompletionStatus{
+		PhaseID:           phaseID,
+		TotalTests:        totalTests,
+		PassedTests:       passedTests,
+		FailedTests:       failedTests,
+		PendingTests:      pendingTests,
+		IncompleteTests:   incompleteTests,
+		AllTestsCompleted: len(incompleteTests) == 0 && totalTests > 0,
+	}
+}
+
+// GetOverallTestCompletionStatus returns completion status for all phases
+func (s *PhaseService) GetOverallTestCompletionStatus(epicData *epic.Epic) map[string]TestCompletionStatus {
+	statusMap := make(map[string]TestCompletionStatus)
+
+	for _, phase := range epicData.Phases {
+		statusMap[phase.ID] = s.GetTestCompletionStatus(epicData, phase.ID)
+	}
+
+	return statusMap
+}
+
+// TestCompletionStatus represents the test completion status for a phase
+type TestCompletionStatus struct {
+	PhaseID           string
+	TotalTests        int
+	PassedTests       int
+	FailedTests       int
+	PendingTests      int
+	IncompleteTests   []epic.Test
+	AllTestsCompleted bool
 }

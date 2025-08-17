@@ -13,7 +13,7 @@ func TestHintRegistry_DefaultRegistry(t *testing.T) {
 	registry := DefaultHintRegistry()
 
 	assert.NotNil(t, registry)
-	assert.Len(t, registry.generators, 5) // PhaseConstraint, TaskConstraint, StateTransition, Workflow, EpicPhaseAware
+	assert.Len(t, registry.generators, 6) // PhaseConstraint, TaskConstraint, StateTransition, Workflow, EpicPhaseAware, TestDependency
 	assert.NotNil(t, registry.config)
 	assert.True(t, registry.config.Enabled)
 	assert.True(t, registry.config.ShowCommands)

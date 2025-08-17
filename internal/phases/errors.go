@@ -113,3 +113,59 @@ func NewPhaseAlreadyActiveError(phaseID string) *PhaseAlreadyActiveError {
 		PhaseID: phaseID,
 	}
 }
+
+// PhaseTestDependencyError represents attempting to complete a phase with incomplete tests
+type PhaseTestDependencyError struct {
+	PhaseID         string
+	IncompleteTests []epic.Test
+	Hint            string // Actionable hint for resolving incomplete tests
+}
+
+func (e *PhaseTestDependencyError) Error() string {
+	return fmt.Sprintf("phase %s: cannot complete with %d incomplete tests",
+		e.PhaseID, len(e.IncompleteTests))
+}
+
+func NewPhaseTestDependencyError(phaseID string, incompleteTests []epic.Test) *PhaseTestDependencyError {
+	return &PhaseTestDependencyError{
+		PhaseID:         phaseID,
+		IncompleteTests: incompleteTests,
+		Hint:            "", // Will be populated by hint generator
+	}
+}
+
+func NewPhaseTestDependencyErrorWithHint(phaseID string, incompleteTests []epic.Test, hint string) *PhaseTestDependencyError {
+	return &PhaseTestDependencyError{
+		PhaseID:         phaseID,
+		IncompleteTests: incompleteTests,
+		Hint:            hint,
+	}
+}
+
+// PhaseTestPrerequisiteError represents attempting to start a phase with incomplete prerequisite tests
+type PhaseTestPrerequisiteError struct {
+	PhaseID           string
+	PrerequisiteTests []epic.Test
+	Hint              string // Actionable hint for resolving prerequisite tests
+}
+
+func (e *PhaseTestPrerequisiteError) Error() string {
+	return fmt.Sprintf("phase %s: cannot start with %d incomplete prerequisite tests",
+		e.PhaseID, len(e.PrerequisiteTests))
+}
+
+func NewPhaseTestPrerequisiteError(phaseID string, prerequisiteTests []epic.Test) *PhaseTestPrerequisiteError {
+	return &PhaseTestPrerequisiteError{
+		PhaseID:           phaseID,
+		PrerequisiteTests: prerequisiteTests,
+		Hint:              "", // Will be populated by hint generator
+	}
+}
+
+func NewPhaseTestPrerequisiteErrorWithHint(phaseID string, prerequisiteTests []epic.Test, hint string) *PhaseTestPrerequisiteError {
+	return &PhaseTestPrerequisiteError{
+		PhaseID:           phaseID,
+		PrerequisiteTests: prerequisiteTests,
+		Hint:              hint,
+	}
+}
