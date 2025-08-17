@@ -13,5 +13,25 @@ status_command_xml_format
     </progress>
     <current_phase>P2</current_phase>
     <current_task>T2</current_task>
+    <epic13_status>
+        <can_complete>false</can_complete>
+        <blocking_items>2</blocking_items>
+        <unified_statuses>
+            <epic_status>wip</epic_status>
+            <phases_wip>1</phases_wip>
+            <phases_done>1</phases_done>
+            <tasks_wip>1</tasks_wip>
+            <tasks_done>1</tasks_done>
+            <tests_wip>0</tests_wip>
+            <tests_done>1</tests_done>
+        </unified_statuses>
+        <validation_errors>
+        <error>Phase Implementation Phase (P2) is not complete</error>
+        <error>Phase Testing Phase (P3) is not complete</error>
+        </validation_errors>
+        <next_actions>
+        <action>Complete active task: Active Task</action>
+        </next_actions>
+    </epic13_status>
 </status>
 ---

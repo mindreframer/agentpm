@@ -33,6 +33,18 @@ type Epic struct {
 	Events       []Event       `xml:"events>event"`
 }
 
+// Epic 13 Status System Methods
+
+// GetEpicStatus returns the Epic 13 unified epic status
+func (e *Epic) GetEpicStatus() EpicStatus {
+	return e.Status.ToEpicStatus()
+}
+
+// SetEpicStatus sets the epic status using the Epic 13 unified system
+func (e *Epic) SetEpicStatus(status EpicStatus) {
+	e.Status = FromEpicStatus(status)
+}
+
 type EpicMetadata struct {
 	Created         time.Time `xml:"created"`
 	Assignee        string    `xml:"assignee"`
@@ -55,6 +67,18 @@ type Phase struct {
 	CompletedAt  *time.Time `xml:"completed_at,omitempty"`
 }
 
+// Epic 13 Status System Methods
+
+// GetPhaseStatus returns the Epic 13 unified phase status
+func (p *Phase) GetPhaseStatus() PhaseStatus {
+	return p.Status.ToPhaseStatus()
+}
+
+// SetPhaseStatus sets the phase status using the Epic 13 unified system
+func (p *Phase) SetPhaseStatus(status PhaseStatus) {
+	p.Status = FromPhaseStatus(status)
+}
+
 type Task struct {
 	ID                 string     `xml:"id,attr"`
 	PhaseID            string     `xml:"phase_id,attr"`
@@ -66,6 +90,18 @@ type Task struct {
 	StartedAt          *time.Time `xml:"started_at,omitempty"`
 	CompletedAt        *time.Time `xml:"completed_at,omitempty"`
 	CancelledAt        *time.Time `xml:"cancelled_at,omitempty"`
+}
+
+// Epic 13 Status System Methods
+
+// GetTaskStatus returns the Epic 13 unified task status
+func (t *Task) GetTaskStatus() TaskStatus {
+	return t.Status.ToTaskStatus()
+}
+
+// SetTaskStatus sets the task status using the Epic 13 unified system
+func (t *Task) SetTaskStatus(status TaskStatus) {
+	t.Status = FromTaskStatus(status)
 }
 
 type TestStatus string
@@ -120,6 +156,69 @@ type Test struct {
 	CancellationReason string     `xml:"cancellation_reason,omitempty"`
 }
 
+// Epic 13 Status System Methods for Test
+
+// GetTestStatusUnified returns the unified Epic 13 test status
+func (t *Test) GetTestStatusUnified() TestStatus {
+	// If TestStatus is already set (new format), use it
+	if t.TestStatus.IsValid() {
+		return t.TestStatus
+	}
+	// Otherwise convert from legacy Status field
+	switch t.Status {
+	case StatusPending, StatusPlanning:
+		return TestStatusPending
+	case StatusActive:
+		return TestStatusWIP
+	case StatusCompleted:
+		return TestStatusDone
+	case StatusCancelled:
+		return TestStatusCancelled
+	default:
+		return TestStatusPending
+	}
+}
+
+// SetTestStatusUnified sets the test status using the Epic 13 unified system
+func (t *Test) SetTestStatusUnified(status TestStatus) {
+	t.TestStatus = status
+	// Also update legacy Status field for backwards compatibility
+	switch status {
+	case TestStatusPending:
+		t.Status = StatusPending
+	case TestStatusWIP:
+		t.Status = StatusActive
+	case TestStatusDone:
+		t.Status = StatusCompleted
+	case TestStatusCancelled:
+		t.Status = StatusCancelled
+	}
+}
+
+// GetTestResult returns the test result with backwards compatibility
+func (t *Test) GetTestResult() TestResult {
+	// If TestResult is already set (new format), use it
+	if t.TestResult.IsValid() {
+		return t.TestResult
+	}
+	// For backwards compatibility, infer from status
+	// WIP tests with failure timestamps are considered failing
+	if t.GetTestStatusUnified() == TestStatusWIP && t.FailedAt != nil {
+		return TestResultFailing
+	}
+	// Done tests are considered passing
+	if t.GetTestStatusUnified() == TestStatusDone {
+		return TestResultPassing
+	}
+	// Default for pending/cancelled tests
+	return TestResultPassing
+}
+
+// SetTestResult sets the test result using the Epic 13 unified system
+func (t *Test) SetTestResult(result TestResult) {
+	t.TestResult = result
+}
+
 type Event struct {
 	ID        string    `xml:"id,attr"`
 	Type      string    `xml:"type,attr"`
@@ -145,6 +244,96 @@ func TestStatusPassed() TestStatus {
 // Use TestStatusWIP with TestResultFailing instead of TestStatusFailed()
 func TestStatusFailed() TestStatus {
 	return TestStatusWIP
+}
+
+// Epic 13 Migration Functions - Convert between old and new status systems
+
+// ToEpicStatus converts legacy Status to Epic 13 EpicStatus
+func (s Status) ToEpicStatus() EpicStatus {
+	switch s {
+	case StatusPlanning, StatusPending:
+		return EpicStatusPending
+	case StatusActive:
+		return EpicStatusWIP
+	case StatusCompleted:
+		return EpicStatusDone
+	default:
+		return EpicStatusPending
+	}
+}
+
+// ToPhaseStatus converts legacy Status to Epic 13 PhaseStatus
+func (s Status) ToPhaseStatus() PhaseStatus {
+	switch s {
+	case StatusPlanning, StatusPending:
+		return PhaseStatusPending
+	case StatusActive:
+		return PhaseStatusWIP
+	case StatusCompleted:
+		return PhaseStatusDone
+	default:
+		return PhaseStatusPending
+	}
+}
+
+// ToTaskStatus converts legacy Status to Epic 13 TaskStatus
+func (s Status) ToTaskStatus() TaskStatus {
+	switch s {
+	case StatusPlanning, StatusPending:
+		return TaskStatusPending
+	case StatusActive:
+		return TaskStatusWIP
+	case StatusCompleted:
+		return TaskStatusDone
+	case StatusCancelled:
+		return TaskStatusCancelled
+	default:
+		return TaskStatusPending
+	}
+}
+
+// FromEpicStatus converts Epic 13 EpicStatus back to legacy Status
+func FromEpicStatus(s EpicStatus) Status {
+	switch s {
+	case EpicStatusPending:
+		return StatusPending
+	case EpicStatusWIP:
+		return StatusActive
+	case EpicStatusDone:
+		return StatusCompleted
+	default:
+		return StatusPending
+	}
+}
+
+// FromPhaseStatus converts Epic 13 PhaseStatus back to legacy Status
+func FromPhaseStatus(s PhaseStatus) Status {
+	switch s {
+	case PhaseStatusPending:
+		return StatusPending
+	case PhaseStatusWIP:
+		return StatusActive
+	case PhaseStatusDone:
+		return StatusCompleted
+	default:
+		return StatusPending
+	}
+}
+
+// FromTaskStatus converts Epic 13 TaskStatus back to legacy Status
+func FromTaskStatus(s TaskStatus) Status {
+	switch s {
+	case TaskStatusPending:
+		return StatusPending
+	case TaskStatusWIP:
+		return StatusActive
+	case TaskStatusDone:
+		return StatusCompleted
+	case TaskStatusCancelled:
+		return StatusCancelled
+	default:
+		return StatusPending
+	}
 }
 
 // GetTestResultFromLegacyStatus returns the appropriate TestResult for legacy passed/failed status

@@ -33,6 +33,26 @@ func (qs *QueryService) LoadEpic(epicFile string) error {
 	return nil
 }
 
+// Epic13StatusInfo represents Epic 13 validation and status information
+type Epic13StatusInfo struct {
+	CanComplete      bool
+	ValidationErrors []string
+	BlockingItems    int
+	UnifiedStatuses  Epic13UnifiedStatuses
+	NextActions      []string
+}
+
+// Epic13UnifiedStatuses shows the Epic 13 unified status breakdown
+type Epic13UnifiedStatuses struct {
+	EpicStatus epic.EpicStatus
+	PhasesWIP  int
+	PhasesDone int
+	TasksWIP   int
+	TasksDone  int
+	TestsWIP   int
+	TestsDone  int
+}
+
 // EpicStatus represents the overall status and progress of an epic
 type EpicStatus struct {
 	ID                   string
@@ -45,6 +65,8 @@ type EpicStatus struct {
 	CompletionPercentage int
 	CurrentPhase         string
 	CurrentTask          string
+	// Epic 13 Enhanced Validation Information
+	Epic13Status Epic13StatusInfo
 }
 
 // GetEpicStatus calculates and returns comprehensive epic status information
@@ -83,6 +105,9 @@ func (qs *QueryService) GetEpicStatus() (*EpicStatus, error) {
 	// Find current phase and task
 	status.CurrentPhase = qs.findCurrentPhase()
 	status.CurrentTask = qs.findCurrentTask()
+
+	// Calculate Epic 13 validation information
+	status.Epic13Status = qs.calculateEpic13Status()
 
 	return status, nil
 }
@@ -996,4 +1021,144 @@ func (qs *QueryService) GetTest(testID string) (*epic.Test, error) {
 		}
 	}
 	return nil, fmt.Errorf("test %s not found", testID)
+}
+
+// calculateEpic13Status calculates Epic 13 validation and status information
+func (qs *QueryService) calculateEpic13Status() Epic13StatusInfo {
+	if qs.epic == nil {
+		return Epic13StatusInfo{}
+	}
+
+	info := Epic13StatusInfo{
+		ValidationErrors: []string{},
+		NextActions:      []string{},
+	}
+
+	// Calculate unified status breakdown
+	info.UnifiedStatuses.EpicStatus = qs.epic.GetEpicStatus()
+
+	// Count phases by Epic 13 unified status
+	for _, phase := range qs.epic.Phases {
+		switch phase.GetPhaseStatus() {
+		case epic.PhaseStatusWIP:
+			info.UnifiedStatuses.PhasesWIP++
+		case epic.PhaseStatusDone:
+			info.UnifiedStatuses.PhasesDone++
+		}
+	}
+
+	// Count tasks by Epic 13 unified status
+	for _, task := range qs.epic.Tasks {
+		switch task.GetTaskStatus() {
+		case epic.TaskStatusWIP:
+			info.UnifiedStatuses.TasksWIP++
+		case epic.TaskStatusDone:
+			info.UnifiedStatuses.TasksDone++
+		}
+	}
+
+	// Count tests by Epic 13 unified status
+	for _, test := range qs.epic.Tests {
+		switch test.GetTestStatusUnified() {
+		case epic.TestStatusWIP:
+			info.UnifiedStatuses.TestsWIP++
+		case epic.TestStatusDone:
+			info.UnifiedStatuses.TestsDone++
+		}
+	}
+
+	// Validate epic completion readiness
+	canComplete, blockingItems, validationErrors := qs.validateEpicCompletion()
+	info.CanComplete = canComplete
+	info.BlockingItems = blockingItems
+	info.ValidationErrors = validationErrors
+
+	// Generate next actions
+	info.NextActions = qs.generateNextActions()
+
+	return info
+}
+
+// validateEpicCompletion checks if the epic can be completed using Epic 13 rules
+func (qs *QueryService) validateEpicCompletion() (bool, int, []string) {
+	var errors []string
+	blockingItems := 0
+
+	// Check for incomplete phases
+	for _, phase := range qs.epic.Phases {
+		if phase.GetPhaseStatus() != epic.PhaseStatusDone {
+			errors = append(errors, fmt.Sprintf("Phase %s (%s) is not complete", phase.Name, phase.ID))
+			blockingItems++
+		}
+	}
+
+	// Check for failing tests (Epic 13 core rule)
+	for _, test := range qs.epic.Tests {
+		if test.GetTestResult() == epic.TestResultFailing {
+			errors = append(errors, fmt.Sprintf("Test %s (%s) is failing", test.Name, test.ID))
+			blockingItems++
+		}
+	}
+
+	return len(errors) == 0, blockingItems, errors
+}
+
+// generateNextActions creates suggested next actions based on Epic 13 validation
+func (qs *QueryService) generateNextActions() []string {
+	var actions []string
+
+	// Find active phase
+	activePhase := ""
+	for _, phase := range qs.epic.Phases {
+		if phase.GetPhaseStatus() == epic.PhaseStatusWIP {
+			activePhase = phase.ID
+			break
+		}
+	}
+
+	if activePhase == "" {
+		// No active phase - suggest starting the next pending phase
+		for _, phase := range qs.epic.Phases {
+			if phase.GetPhaseStatus() == epic.PhaseStatusPending {
+				actions = append(actions, fmt.Sprintf("Start phase: %s", phase.Name))
+				break
+			}
+		}
+	} else {
+		// Active phase exists - check for next task or completion
+		hasActiveTask := false
+		for _, task := range qs.epic.Tasks {
+			if task.PhaseID == activePhase && task.GetTaskStatus() == epic.TaskStatusWIP {
+				hasActiveTask = true
+				actions = append(actions, fmt.Sprintf("Complete active task: %s", task.Name))
+				break
+			}
+		}
+
+		if !hasActiveTask {
+			// No active task - check for next pending task
+			for _, task := range qs.epic.Tasks {
+				if task.PhaseID == activePhase && task.GetTaskStatus() == epic.TaskStatusPending {
+					actions = append(actions, fmt.Sprintf("Start next task: %s", task.Name))
+					break
+				}
+			}
+		}
+	}
+
+	// Check for failing tests
+	for _, test := range qs.epic.Tests {
+		if test.GetTestResult() == epic.TestResultFailing {
+			actions = append(actions, fmt.Sprintf("Fix failing test: %s", test.Name))
+			if len(actions) >= 3 { // Limit to top 3 actions
+				break
+			}
+		}
+	}
+
+	if len(actions) == 0 {
+		actions = append(actions, "All work complete - epic ready for completion")
+	}
+
+	return actions
 }

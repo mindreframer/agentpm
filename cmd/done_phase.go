@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/beevik/etree"
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/epic"
 	"github.com/mindreframer/agentpm/internal/messages"
@@ -71,6 +73,16 @@ func DonePhaseCommand() *cli.Command {
 			epicData, err := storageImpl.LoadEpic(epicFile)
 			if err != nil {
 				return fmt.Errorf("failed to load epic: %w", err)
+			}
+
+			// Validate using Epic 13 framework before completing
+			phaseValidationService := phases.NewPhaseValidationService()
+			phase := findPhaseByID(epicData, phaseID)
+			if phase == nil {
+				return fmt.Errorf("phase %s not found", phaseID)
+			}
+			if validationErr := phaseValidationService.ValidatePhaseCompletion(epicData, phase); validationErr != nil {
+				return outputPhaseEpic13ValidationError(cmd, validationErr, cmd.String("format"))
 			}
 
 			// Complete the phase
@@ -140,4 +152,116 @@ func outputPhaseIncompleteError(cmd *cli.Command, phaseID string, pendingTasks [
 	fmt.Fprintf(cmd.ErrWriter, "</error>\n")
 
 	return fmt.Errorf("Error: Cannot complete phase %s: %d tasks are still pending", phaseID, len(pendingTasks))
+}
+
+// findPhaseByID finds a phase by its ID
+func findPhaseByID(epicData *epic.Epic, phaseID string) *epic.Phase {
+	for i := range epicData.Phases {
+		if epicData.Phases[i].ID == phaseID {
+			return &epicData.Phases[i]
+		}
+	}
+	return nil
+}
+
+// outputPhaseEpic13ValidationError outputs Epic 13 validation errors in the specified format
+func outputPhaseEpic13ValidationError(cmd *cli.Command, err error, format string) error {
+	if validationErr, ok := err.(*epic.StatusValidationError); ok {
+		switch format {
+		case "json":
+			return outputValidationErrorJSON(cmd, validationErr)
+		case "xml":
+			return outputValidationErrorXML(cmd, validationErr)
+		default:
+			return outputValidationErrorText(cmd, validationErr)
+		}
+	}
+
+	// Fallback for other error types
+	fmt.Fprintf(cmd.ErrWriter, "Error: %v\n", err)
+	return err
+}
+
+// outputValidationErrorText outputs validation error in text format
+func outputValidationErrorText(cmd *cli.Command, err *epic.StatusValidationError) error {
+	fmt.Fprintf(cmd.ErrWriter, "Error: %s\n", err.Message)
+	fmt.Fprintf(cmd.ErrWriter, "Entity: %s %s (%s)\n", err.EntityType, err.EntityName, err.EntityID)
+	fmt.Fprintf(cmd.ErrWriter, "Status: %s → %s\n", err.CurrentStatus, err.TargetStatus)
+
+	if len(err.BlockingItems) > 0 {
+		fmt.Fprintf(cmd.ErrWriter, "Blocking items: %d\n", len(err.BlockingItems))
+		for i, item := range err.BlockingItems {
+			if i >= 3 {
+				fmt.Fprintf(cmd.ErrWriter, "  ... and %d more items\n", len(err.BlockingItems)-3)
+				break
+			}
+			fmt.Fprintf(cmd.ErrWriter, "  - %s %s (%s): %s\n", item.Type, item.Name, item.ID, item.Status)
+		}
+	}
+
+	return err
+}
+
+// outputValidationErrorJSON outputs validation error in JSON format
+func outputValidationErrorJSON(cmd *cli.Command, err *epic.StatusValidationError) error {
+	output := map[string]interface{}{
+		"error": map[string]interface{}{
+			"type":           "epic13_validation",
+			"entity_type":    err.EntityType,
+			"entity_id":      err.EntityID,
+			"entity_name":    err.EntityName,
+			"current_status": err.CurrentStatus,
+			"target_status":  err.TargetStatus,
+			"message":        err.Message,
+			"blocking_items": err.BlockingItems,
+		},
+	}
+
+	encoder := json.NewEncoder(cmd.ErrWriter)
+	encoder.SetIndent("", "  ")
+	encoder.Encode(output)
+	return err
+}
+
+// outputValidationErrorXML outputs validation error in XML format
+func outputValidationErrorXML(cmd *cli.Command, err *epic.StatusValidationError) error {
+	doc := etree.NewDocument()
+	root := doc.CreateElement("error")
+
+	errorType := root.CreateElement("type")
+	errorType.SetText("epic13_validation")
+
+	entityType := root.CreateElement("entity_type")
+	entityType.SetText(err.EntityType)
+
+	entityID := root.CreateElement("entity_id")
+	entityID.SetText(err.EntityID)
+
+	entityName := root.CreateElement("entity_name")
+	entityName.SetText(err.EntityName)
+
+	currentStatus := root.CreateElement("current_status")
+	currentStatus.SetText(err.CurrentStatus)
+
+	targetStatus := root.CreateElement("target_status")
+	targetStatus.SetText(err.TargetStatus)
+
+	message := root.CreateElement("message")
+	message.SetText(err.Message)
+
+	if len(err.BlockingItems) > 0 {
+		blockingItems := root.CreateElement("blocking_items")
+		for _, item := range err.BlockingItems {
+			itemElem := blockingItems.CreateElement("item")
+			itemElem.CreateAttr("type", item.Type)
+			itemElem.CreateAttr("id", item.ID)
+			itemElem.CreateAttr("status", item.Status)
+			itemElem.SetText(item.Name)
+		}
+	}
+
+	doc.Indent(4)
+	doc.WriteTo(cmd.ErrWriter)
+	fmt.Fprintf(cmd.ErrWriter, "\n")
+	return err
 }

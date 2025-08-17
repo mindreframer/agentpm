@@ -148,9 +148,9 @@ func TestDonePhaseCommand(t *testing.T) {
 
 		require.Error(t, err)
 		output := stderr.String()
-		assert.Contains(t, output, "<error>")
-		assert.Contains(t, output, "<type>incomplete_phase</type>")
-		assert.Contains(t, output, "2 tasks are still pending")
+		// Epic 13 validation format
+		assert.Contains(t, output, "blocking items")
+		assert.Contains(t, output, "active")
 		assert.Contains(t, output, "phase-1")
 
 		// Verify phase is still active

@@ -97,10 +97,81 @@ func outputStatusText(c *cli.Command, status *query.EpicStatus) error {
 		fmt.Fprintf(c.Root().Writer, "Current Task: %s\n", status.CurrentTask)
 	}
 
+	// Epic 13 Enhanced Status Information
+	fmt.Fprintf(c.Root().Writer, "\n--- Epic 13 Status Overview ---\n")
+	fmt.Fprintf(c.Root().Writer, "Epic Status (Epic 13): %s\n", status.Epic13Status.UnifiedStatuses.EpicStatus)
+	fmt.Fprintf(c.Root().Writer, "Can Complete: %t\n", status.Epic13Status.CanComplete)
+
+	if status.Epic13Status.BlockingItems > 0 {
+		fmt.Fprintf(c.Root().Writer, "Blocking Items: %d\n", status.Epic13Status.BlockingItems)
+	}
+
+	// Unified status breakdown
+	fmt.Fprintf(c.Root().Writer, "\nUnified Status Breakdown:\n")
+	fmt.Fprintf(c.Root().Writer, "  Phases: %d WIP, %d Done\n",
+		status.Epic13Status.UnifiedStatuses.PhasesWIP,
+		status.Epic13Status.UnifiedStatuses.PhasesDone)
+	fmt.Fprintf(c.Root().Writer, "  Tasks:  %d WIP, %d Done\n",
+		status.Epic13Status.UnifiedStatuses.TasksWIP,
+		status.Epic13Status.UnifiedStatuses.TasksDone)
+	fmt.Fprintf(c.Root().Writer, "  Tests:  %d WIP, %d Done\n",
+		status.Epic13Status.UnifiedStatuses.TestsWIP,
+		status.Epic13Status.UnifiedStatuses.TestsDone)
+
+	// Next actions
+	if len(status.Epic13Status.NextActions) > 0 {
+		fmt.Fprintf(c.Root().Writer, "\nNext Actions:\n")
+		for i, action := range status.Epic13Status.NextActions {
+			if i >= 3 { // Limit to top 3 actions for readability
+				break
+			}
+			fmt.Fprintf(c.Root().Writer, "  - %s\n", action)
+		}
+	}
+
+	// Validation errors (if any)
+	if len(status.Epic13Status.ValidationErrors) > 0 {
+		fmt.Fprintf(c.Root().Writer, "\nValidation Issues:\n")
+		for i, err := range status.Epic13Status.ValidationErrors {
+			if i >= 5 { // Limit to top 5 errors for readability
+				fmt.Fprintf(c.Root().Writer, "  ... and %d more issues\n",
+					len(status.Epic13Status.ValidationErrors)-5)
+				break
+			}
+			fmt.Fprintf(c.Root().Writer, "  - %s\n", err)
+		}
+	}
+
 	return nil
 }
 
 func outputStatusJSON(c *cli.Command, status *query.EpicStatus) error {
+	// Build validation errors array
+	validationErrors := "[]"
+	if len(status.Epic13Status.ValidationErrors) > 0 {
+		validationErrors = `["`
+		for i, err := range status.Epic13Status.ValidationErrors {
+			if i > 0 {
+				validationErrors += `", "`
+			}
+			validationErrors += err
+		}
+		validationErrors += `"]`
+	}
+
+	// Build next actions array
+	nextActions := "[]"
+	if len(status.Epic13Status.NextActions) > 0 {
+		nextActions = `["`
+		for i, action := range status.Epic13Status.NextActions {
+			if i > 0 {
+				nextActions += `", "`
+			}
+			nextActions += action
+		}
+		nextActions += `"]`
+	}
+
 	jsonOutput := fmt.Sprintf(`{
   "epic": "%s",
   "name": "%s",
@@ -113,7 +184,22 @@ func outputStatusJSON(c *cli.Command, status *query.EpicStatus) error {
     "failing_tests": %d
   },
   "current_phase": "%s",
-  "current_task": "%s"
+  "current_task": "%s",
+  "epic13_status": {
+    "can_complete": %t,
+    "blocking_items": %d,
+    "unified_statuses": {
+      "epic_status": "%s",
+      "phases_wip": %d,
+      "phases_done": %d,
+      "tasks_wip": %d,
+      "tasks_done": %d,
+      "tests_wip": %d,
+      "tests_done": %d
+    },
+    "validation_errors": %s,
+    "next_actions": %s
+  }
 }`,
 		status.ID,
 		status.Name,
@@ -125,6 +211,17 @@ func outputStatusJSON(c *cli.Command, status *query.EpicStatus) error {
 		status.FailingTests,
 		status.CurrentPhase,
 		status.CurrentTask,
+		status.Epic13Status.CanComplete,
+		status.Epic13Status.BlockingItems,
+		status.Epic13Status.UnifiedStatuses.EpicStatus,
+		status.Epic13Status.UnifiedStatuses.PhasesWIP,
+		status.Epic13Status.UnifiedStatuses.PhasesDone,
+		status.Epic13Status.UnifiedStatuses.TasksWIP,
+		status.Epic13Status.UnifiedStatuses.TasksDone,
+		status.Epic13Status.UnifiedStatuses.TestsWIP,
+		status.Epic13Status.UnifiedStatuses.TestsDone,
+		validationErrors,
+		nextActions,
 	)
 
 	fmt.Fprintf(c.Root().Writer, "%s\n", jsonOutput)
@@ -132,6 +229,18 @@ func outputStatusJSON(c *cli.Command, status *query.EpicStatus) error {
 }
 
 func outputStatusXML(c *cli.Command, status *query.EpicStatus) error {
+	// Build validation errors XML
+	validationErrorsXML := ""
+	for _, err := range status.Epic13Status.ValidationErrors {
+		validationErrorsXML += fmt.Sprintf("        <error>%s</error>\n", err)
+	}
+
+	// Build next actions XML
+	nextActionsXML := ""
+	for _, action := range status.Epic13Status.NextActions {
+		nextActionsXML += fmt.Sprintf("        <action>%s</action>\n", action)
+	}
+
 	xmlOutput := fmt.Sprintf(`<status epic="%s">
     <name>%s</name>
     <status>%s</status>
@@ -144,6 +253,23 @@ func outputStatusXML(c *cli.Command, status *query.EpicStatus) error {
     </progress>
     <current_phase>%s</current_phase>
     <current_task>%s</current_task>
+    <epic13_status>
+        <can_complete>%t</can_complete>
+        <blocking_items>%d</blocking_items>
+        <unified_statuses>
+            <epic_status>%s</epic_status>
+            <phases_wip>%d</phases_wip>
+            <phases_done>%d</phases_done>
+            <tasks_wip>%d</tasks_wip>
+            <tasks_done>%d</tasks_done>
+            <tests_wip>%d</tests_wip>
+            <tests_done>%d</tests_done>
+        </unified_statuses>
+        <validation_errors>
+%s        </validation_errors>
+        <next_actions>
+%s        </next_actions>
+    </epic13_status>
 </status>`,
 		status.ID,
 		status.Name,
@@ -155,6 +281,17 @@ func outputStatusXML(c *cli.Command, status *query.EpicStatus) error {
 		status.CompletionPercentage,
 		status.CurrentPhase,
 		status.CurrentTask,
+		status.Epic13Status.CanComplete,
+		status.Epic13Status.BlockingItems,
+		status.Epic13Status.UnifiedStatuses.EpicStatus,
+		status.Epic13Status.UnifiedStatuses.PhasesWIP,
+		status.Epic13Status.UnifiedStatuses.PhasesDone,
+		status.Epic13Status.UnifiedStatuses.TasksWIP,
+		status.Epic13Status.UnifiedStatuses.TasksDone,
+		status.Epic13Status.UnifiedStatuses.TestsWIP,
+		status.Epic13Status.UnifiedStatuses.TestsDone,
+		validationErrorsXML,
+		nextActionsXML,
 	)
 
 	fmt.Fprintf(c.Root().Writer, "%s\n", xmlOutput)
