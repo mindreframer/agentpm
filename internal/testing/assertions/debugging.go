@@ -198,19 +198,45 @@ func generateErrorSuggestions(err error, stage string, chainIndex int) []string 
 		suggestions = append(suggestions, "Review the transition chain logic leading to this assertion")
 	}
 
+	if strings.Contains(errorMsg, "Expected epic status") {
+		suggestions = append(suggestions, "Check if the expected state matches the actual result")
+		suggestions = append(suggestions, "Review the transition chain logic leading to this assertion")
+	}
+
 	if strings.Contains(errorMsg, "timeout") {
 		suggestions = append(suggestions, "Consider increasing timeout values for slow operations")
 		suggestions = append(suggestions, "Check if there are blocking operations in the chain")
 	}
 
-	if strings.Contains(errorMsg, "phase not found") {
+	if strings.Contains(errorMsg, "not found") && (strings.Contains(errorMsg, "Phase") || strings.Contains(errorMsg, "phase")) {
 		suggestions = append(suggestions, "Verify phase ID exists in the epic structure")
 		suggestions = append(suggestions, "Check for typos in phase identifiers")
 	}
 
-	if strings.Contains(errorMsg, "task not found") {
+	if strings.Contains(errorMsg, "not found") && (strings.Contains(errorMsg, "Task") || strings.Contains(errorMsg, "task")) {
 		suggestions = append(suggestions, "Verify task ID exists in the specified phase")
 		suggestions = append(suggestions, "Ensure task is properly defined in the epic XML")
+	}
+
+	if strings.Contains(errorMsg, "Expected phase") && strings.Contains(errorMsg, "status") {
+		suggestions = append(suggestions, "Check if the phase is in the expected state")
+		suggestions = append(suggestions, "Review phase transition logic")
+	}
+
+	if strings.Contains(errorMsg, "Expected task") && strings.Contains(errorMsg, "status") {
+		suggestions = append(suggestions, "Check if the task is in the expected state")
+		suggestions = append(suggestions, "Review task completion logic")
+	}
+
+	// Handle status mismatch patterns
+	if strings.Contains(errorMsg, "Expected") && strings.Contains(errorMsg, "status") && strings.Contains(errorMsg, "got") {
+		suggestions = append(suggestions, "Verify the expected state matches the current state")
+	}
+
+	if strings.Contains(errorMsg, "event") && (strings.Contains(errorMsg, "not found") || strings.Contains(errorMsg, "Expected")) {
+		suggestions = append(suggestions, "Check if the expected events were generated")
+		suggestions = append(suggestions, "Review event logging in the transition chain")
+		suggestions = append(suggestions, "Enable debug mode for detailed event tracing")
 	}
 
 	// Stage-specific suggestions
@@ -229,6 +255,11 @@ func generateErrorSuggestions(err error, stage string, chainIndex int) []string 
 	if chainIndex > 0 {
 		suggestions = append(suggestions, fmt.Sprintf("This error occurred at step %d in the chain", chainIndex+1))
 		suggestions = append(suggestions, "Review previous steps that may have caused this state")
+	}
+
+	// Add generic "not found" suggestion
+	if strings.Contains(errorMsg, "not found") {
+		suggestions = append(suggestions, "Review the 'not found' error and verify referenced items exist")
 	}
 
 	if len(suggestions) == 0 {

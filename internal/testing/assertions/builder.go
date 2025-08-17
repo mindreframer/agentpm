@@ -668,11 +668,18 @@ func (e *CompositeAssertionError) GetErrors() []AssertionError {
 func (ab *AssertionBuilder) addError(errorType, message string, expected, actual interface{}, context map[string]interface{}) {
 	// Add debug trace
 	if ab.debugCtx != nil {
-		ab.debugCtx.Trace("ERROR", message, map[string]interface{}{
+		debugContext := map[string]interface{}{
 			"type":     errorType,
 			"expected": expected,
 			"actual":   actual,
-		})
+		}
+
+		// Add epic ID for isolation tracking
+		if ab.result.FinalState != nil {
+			debugContext["epic_id"] = ab.result.FinalState.ID
+		}
+
+		ab.debugCtx.Trace("ERROR", message, debugContext)
 	}
 
 	// Create base error
