@@ -280,8 +280,8 @@ func TestPassTestCommand_Success(t *testing.T) {
 		t.Fatal("Test not found in updated epic")
 	}
 
-	if updatedTest.TestStatus != epic.TestStatusPassed {
-		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusPassed, updatedTest.TestStatus)
+	if updatedTest.TestStatus != epic.TestStatusDone {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusDone, updatedTest.TestStatus)
 	}
 
 	if updatedTest.PassedAt == nil {
@@ -352,8 +352,8 @@ func TestFailTestCommand_Success(t *testing.T) {
 		t.Fatal("Test not found in updated epic")
 	}
 
-	if updatedTest.TestStatus != epic.TestStatusFailed {
-		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusFailed, updatedTest.TestStatus)
+	if updatedTest.TestStatus != epic.TestStatusWIP {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusWIP, updatedTest.TestStatus)
 	}
 
 	if updatedTest.FailedAt == nil {

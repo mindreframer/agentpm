@@ -146,8 +146,8 @@ func TestPassTest_Success(t *testing.T) {
 		t.Errorf("Expected operation 'passed', got %s", result.Operation)
 	}
 
-	if result.Status != string(epic.TestStatusPassed) {
-		t.Errorf("Expected status %s, got %s", epic.TestStatusPassed, result.Status)
+	if result.Status != string(epic.TestStatusDone) {
+		t.Errorf("Expected status %s, got %s", epic.TestStatusDone, result.Status)
 	}
 
 	// Verify epic was updated
@@ -168,8 +168,8 @@ func TestPassTest_Success(t *testing.T) {
 		t.Fatal("Test not found in updated epic")
 	}
 
-	if updatedTest.TestStatus != epic.TestStatusPassed {
-		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusPassed, updatedTest.TestStatus)
+	if updatedTest.TestStatus != epic.TestStatusDone {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusDone, updatedTest.TestStatus)
 	}
 
 	if updatedTest.Status != epic.StatusCompleted {
@@ -285,8 +285,8 @@ func TestFailTest_Success(t *testing.T) {
 		t.Errorf("Expected operation 'failed', got %s", result.Operation)
 	}
 
-	if result.Status != string(epic.TestStatusFailed) {
-		t.Errorf("Expected status %s, got %s", epic.TestStatusFailed, result.Status)
+	if result.Status != string(epic.TestStatusWIP) {
+		t.Errorf("Expected status %s, got %s", epic.TestStatusWIP, result.Status)
 	}
 
 	if result.FailureReason != failureReason {
@@ -311,12 +311,13 @@ func TestFailTest_Success(t *testing.T) {
 		t.Fatal("Test not found in updated epic")
 	}
 
-	if updatedTest.TestStatus != epic.TestStatusFailed {
-		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusFailed, updatedTest.TestStatus)
+	if updatedTest.TestStatus != epic.TestStatusWIP {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusWIP, updatedTest.TestStatus)
 	}
 
-	if updatedTest.Status != epic.StatusCompleted {
-		t.Errorf("Expected legacy Status %s, got %s", epic.StatusCompleted, updatedTest.Status)
+	// Epic 13: Failed tests stay in WIP status, which maps to active in legacy Status
+	if updatedTest.Status != epic.StatusActive {
+		t.Errorf("Expected legacy Status %s, got %s", epic.StatusActive, updatedTest.Status)
 	}
 
 	if updatedTest.FailedAt == nil {
@@ -400,7 +401,7 @@ func TestCancelTest_Success(t *testing.T) {
 	}
 
 	if updatedTest.Status != epic.StatusCancelled {
-		t.Errorf("Expected legacy Status %s, got %s", epic.StatusCompleted, updatedTest.Status)
+		t.Errorf("Expected legacy Status %s, got %s", epic.StatusCancelled, updatedTest.Status)
 	}
 
 	if updatedTest.CancelledAt == nil {
@@ -605,7 +606,7 @@ func TestPassedToFailedTransition(t *testing.T) {
 			TaskID:     "task_1",
 			PhaseID:    "phase_1",
 			Status:     epic.StatusCompleted,
-			TestStatus: epic.TestStatusPassed,
+			TestStatus: epic.TestStatusDone,
 			PassedAt:   &passedTime,
 		},
 	}
@@ -623,8 +624,8 @@ func TestPassedToFailedTransition(t *testing.T) {
 		t.Fatalf("FailTest failed: %v", err)
 	}
 
-	if result.Status != string(epic.TestStatusFailed) {
-		t.Errorf("Expected status %s, got %s", epic.TestStatusFailed, result.Status)
+	if result.Status != string(epic.TestStatusWIP) {
+		t.Errorf("Expected status %s, got %s", epic.TestStatusWIP, result.Status)
 	}
 
 	// Verify epic was updated
@@ -645,8 +646,8 @@ func TestPassedToFailedTransition(t *testing.T) {
 		t.Fatal("Test not found in updated epic")
 	}
 
-	if updatedTest.TestStatus != epic.TestStatusFailed {
-		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusFailed, updatedTest.TestStatus)
+	if updatedTest.TestStatus != epic.TestStatusWIP {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusWIP, updatedTest.TestStatus)
 	}
 
 	if updatedTest.FailureNote != failureReason {
@@ -673,7 +674,7 @@ func TestFailedToPassedTransition(t *testing.T) {
 			TaskID:      "task_1",
 			PhaseID:     "phase_1",
 			Status:      epic.StatusCancelled,
-			TestStatus:  epic.TestStatusFailed,
+			TestStatus:  epic.TestStatusWIP,
 			FailedAt:    &failedTime,
 			FailureNote: "Previous failure reason",
 		},
@@ -692,8 +693,8 @@ func TestFailedToPassedTransition(t *testing.T) {
 		t.Fatalf("PassTest failed: %v", err)
 	}
 
-	if result.Status != string(epic.TestStatusPassed) {
-		t.Errorf("Expected status %s, got %s", epic.TestStatusPassed, result.Status)
+	if result.Status != string(epic.TestStatusDone) {
+		t.Errorf("Expected status %s, got %s", epic.TestStatusDone, result.Status)
 	}
 
 	// Verify epic was updated
@@ -714,8 +715,8 @@ func TestFailedToPassedTransition(t *testing.T) {
 		t.Fatal("Test not found in updated epic")
 	}
 
-	if updatedTest.TestStatus != epic.TestStatusPassed {
-		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusPassed, updatedTest.TestStatus)
+	if updatedTest.TestStatus != epic.TestStatusDone {
+		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusDone, updatedTest.TestStatus)
 	}
 
 	// FailureNote should be cleared when test passes
@@ -847,16 +848,19 @@ func TestStatusTransitionValidation(t *testing.T) {
 		target        epic.TestStatus
 		shouldSucceed bool
 	}{
+		// Epic 13 valid transitions
 		{"pending to wip", epic.TestStatusPending, epic.TestStatusWIP, true},
-		{"wip to passed", epic.TestStatusWIP, epic.TestStatusPassed, true},
-		{"wip to failed", epic.TestStatusWIP, epic.TestStatusFailed, true},
+		{"pending to cancelled", epic.TestStatusPending, epic.TestStatusCancelled, true},
+		{"wip to done", epic.TestStatusWIP, epic.TestStatusDone, true},
 		{"wip to cancelled", epic.TestStatusWIP, epic.TestStatusCancelled, true},
-		{"passed to failed", epic.TestStatusPassed, epic.TestStatusFailed, true},
-		{"failed to passed", epic.TestStatusFailed, epic.TestStatusPassed, true},
-		{"pending to passed", epic.TestStatusPending, epic.TestStatusPassed, false},
-		{"pending to failed", epic.TestStatusPending, epic.TestStatusFailed, false},
-		{"cancelled to wip", epic.TestStatusCancelled, epic.TestStatusWIP, false},
-		{"passed to wip", epic.TestStatusPassed, epic.TestStatusWIP, false},
+		{"done to wip", epic.TestStatusDone, epic.TestStatusWIP, true}, // Can go back to WIP for failing tests
+
+		// Epic 13 invalid transitions
+		{"pending to done", epic.TestStatusPending, epic.TestStatusDone, false},     // Must go through wip
+		{"cancelled to wip", epic.TestStatusCancelled, epic.TestStatusWIP, false},   // Cancelled is terminal
+		{"cancelled to done", epic.TestStatusCancelled, epic.TestStatusDone, false}, // Cancelled is terminal
+		{"wip to pending", epic.TestStatusWIP, epic.TestStatusPending, false},       // Can't go backwards to pending
+		{"done to pending", epic.TestStatusDone, epic.TestStatusPending, false},     // Can't go backwards to pending
 	}
 
 	for _, tc := range testCases {
@@ -947,7 +951,7 @@ func TestTestServiceEventCreation(t *testing.T) {
 			t.Fatalf("PassTest failed: %v", err)
 		}
 
-		if result.Status != string(epic.TestStatusPassed) {
+		if result.Status != string(epic.TestStatusDone) {
 			t.Errorf("Expected test status passed, got %s", result.Status)
 		}
 
@@ -988,7 +992,7 @@ func TestTestServiceEventCreation(t *testing.T) {
 			t.Fatalf("FailTest failed: %v", err)
 		}
 
-		if result.Status != string(epic.TestStatusFailed) {
+		if result.Status != string(epic.TestStatusWIP) {
 			t.Errorf("Expected test status failed, got %s", result.Status)
 		}
 

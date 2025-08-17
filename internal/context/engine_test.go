@@ -523,7 +523,7 @@ func createTestEpic() *epic.Epic {
 				Name:        "Test Project Init",
 				Description: "Verify that project initializes correctly with all dependencies",
 				Status:      epic.StatusCompleted,
-				TestStatus:  epic.TestStatusPassed,
+				TestStatus:  epic.TestStatusDone,
 				StartedAt:   &earlier,
 				PassedAt:    &now,
 			},

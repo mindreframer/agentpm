@@ -36,8 +36,8 @@ func createTestEpicForHandoff() *epic.Epic {
 			{ID: "T4", PhaseID: "P3", Name: "Future Task", Status: epic.StatusPlanning},
 		},
 		Tests: []epic.Test{
-			{ID: "TEST1", TaskID: "T1", Name: "Setup Test", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
-			{ID: "TEST2", TaskID: "T2", Name: "Active Test", Status: epic.StatusPlanning, TestStatus: epic.TestStatusFailed},
+			{ID: "TEST1", TaskID: "T1", Name: "Setup Test", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
+			{ID: "TEST2", TaskID: "T2", Name: "Active Test", Status: epic.StatusPlanning, TestStatus: epic.TestStatusWIP},
 			{ID: "TEST3", TaskID: "T3", Name: "Pending Test", Status: epic.StatusPlanning, TestStatus: epic.TestStatusPending},
 		},
 		Events: []epic.Event{
@@ -79,8 +79,8 @@ func createCompletedEpicForHandoff() *epic.Epic {
 			{ID: "T2", PhaseID: "P2", Name: "Task 2", Status: epic.StatusCompleted},
 		},
 		Tests: []epic.Test{
-			{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
-			{ID: "TEST2", TaskID: "T2", Name: "Test 2", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+			{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
+			{ID: "TEST2", TaskID: "T2", Name: "Test 2", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 		},
 		Events: []epic.Event{
 			{

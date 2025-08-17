@@ -122,18 +122,19 @@ func (s *TestService) PassTest(epicFile, testID string, timestamp *time.Time) (*
 	currentTestStatus := s.getTestStatus(test)
 
 	// Validate state transition
-	if !currentTestStatus.CanTransitionTo(epic.TestStatusPassed) {
+	if !currentTestStatus.CanTransitionTo(epic.TestStatusDone) {
 		return nil, &TestError{
 			Type:    ErrorTypeInvalidTransition,
 			TestID:  testID,
 			Current: string(currentTestStatus),
-			Target:  string(epic.TestStatusPassed),
+			Target:  string(epic.TestStatusDone),
 			Message: fmt.Sprintf("Cannot pass test %s: test is not currently in progress", testID),
 		}
 	}
 
-	// Update test status and timestamp
-	s.setTestStatus(test, epic.TestStatusPassed)
+	// Update test status and result
+	s.setTestStatus(test, epic.TestStatusDone)
+	test.TestResult = epic.TestResultPassing
 	if timestamp == nil {
 		now := s.timeSource()
 		timestamp = &now
@@ -158,7 +159,7 @@ func (s *TestService) PassTest(epicFile, testID string, timestamp *time.Time) (*
 	return &TestOperation{
 		TestID:    testID,
 		Operation: "passed",
-		Status:    string(epic.TestStatusPassed),
+		Status:    string(epic.TestStatusDone),
 		Timestamp: *timestamp,
 	}, nil
 }
@@ -178,19 +179,20 @@ func (s *TestService) FailTest(epicFile, testID, failureReason string, timestamp
 	// Get current test status
 	currentTestStatus := s.getTestStatus(test)
 
-	// Validate state transition
-	if !currentTestStatus.CanTransitionTo(epic.TestStatusFailed) {
+	// Epic 13: Test must be in WIP status to be failed, or Done status (which can transition to WIP)
+	if currentTestStatus != epic.TestStatusWIP && currentTestStatus != epic.TestStatusDone {
 		return nil, &TestError{
 			Type:    ErrorTypeInvalidTransition,
 			TestID:  testID,
 			Current: string(currentTestStatus),
-			Target:  string(epic.TestStatusFailed),
-			Message: fmt.Sprintf("Cannot fail test %s: test is not currently in progress", testID),
+			Target:  string(epic.TestStatusWIP),
+			Message: fmt.Sprintf("Cannot fail test %s: test must be in progress (wip) or done to be failed", testID),
 		}
 	}
 
-	// Update test status, timestamp, and failure details
-	s.setTestStatus(test, epic.TestStatusFailed)
+	// Update test status and result
+	s.setTestStatus(test, epic.TestStatusWIP)
+	test.TestResult = epic.TestResultFailing
 	if timestamp == nil {
 		now := s.timeSource()
 		timestamp = &now
@@ -214,7 +216,7 @@ func (s *TestService) FailTest(epicFile, testID, failureReason string, timestamp
 	return &TestOperation{
 		TestID:        testID,
 		Operation:     "failed",
-		Status:        string(epic.TestStatusFailed),
+		Status:        string(epic.TestStatusWIP),
 		Timestamp:     *timestamp,
 		FailureReason: failureReason,
 	}, nil
@@ -326,7 +328,7 @@ func (s *TestService) getTestStatus(test *epic.Test) epic.TestStatus {
 	case epic.StatusActive:
 		return epic.TestStatusWIP
 	case epic.StatusCompleted:
-		return epic.TestStatusPassed
+		return epic.TestStatusDone
 	case epic.StatusCancelled:
 		return epic.TestStatusCancelled
 	default:
@@ -344,10 +346,8 @@ func (s *TestService) setTestStatus(test *epic.Test, status epic.TestStatus) {
 		test.Status = epic.StatusPlanning
 	case epic.TestStatusWIP:
 		test.Status = epic.StatusActive
-	case epic.TestStatusPassed:
+	case epic.TestStatusDone:
 		test.Status = epic.StatusCompleted
-	case epic.TestStatusFailed:
-		test.Status = epic.StatusCompleted // Map failed to completed for legacy
 	case epic.TestStatusCancelled:
 		test.Status = epic.StatusCancelled
 	}

@@ -482,8 +482,8 @@ func TestPhaseService_TestDependencyValidation(t *testing.T) {
 				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tests: []epic.Test{
-				{ID: "test-1", PhaseID: "phase-1", Name: "Test 1", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
-				{ID: "test-2", PhaseID: "phase-1", Name: "Test 2", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-1", PhaseID: "phase-1", Name: "Test 1", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
+				{ID: "test-2", PhaseID: "phase-1", Name: "Test 2", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 			},
 		}
 
@@ -512,8 +512,8 @@ func TestPhaseService_TestDependencyValidation(t *testing.T) {
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
 			},
 			Tests: []epic.Test{
-				{ID: "test-1", PhaseID: "phase-1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
-				{ID: "test-2", PhaseID: "phase-1", Name: "Test 2", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-1", PhaseID: "phase-1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
+				{ID: "test-2", PhaseID: "phase-1", Name: "Test 2", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 			},
 		}
 
@@ -538,7 +538,7 @@ func TestPhaseService_TestDependencyValidation(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
 			},
 			Tests: []epic.Test{
-				{ID: "test-1", PhaseID: "phase-1", Name: "Critical Test", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				{ID: "test-1", PhaseID: "phase-1", Name: "Critical Test", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
 				{ID: "test-2", PhaseID: "phase-1", Name: "Integration Test", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
 			},
 		}
@@ -571,11 +571,11 @@ func TestPhaseService_TestDependencyValidation(t *testing.T) {
 			},
 			Tests: []epic.Test{
 				// Phase 1 tests - mixed completion
-				{ID: "test-1-1", PhaseID: "phase-1", Name: "Test 1.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-1-1", PhaseID: "phase-1", Name: "Test 1.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 				{ID: "test-1-2", PhaseID: "phase-1", Name: "Test 1.2", Status: epic.StatusCancelled, TestStatus: epic.TestStatusCancelled},
 				// Phase 2 tests - one failed
-				{ID: "test-2-1", PhaseID: "phase-2", Name: "Test 2.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
-				{ID: "test-2-2", PhaseID: "phase-2", Name: "Test 2.2", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				{ID: "test-2-1", PhaseID: "phase-2", Name: "Test 2.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
+				{ID: "test-2-2", PhaseID: "phase-2", Name: "Test 2.2", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
 			},
 		}
 
@@ -587,7 +587,7 @@ func TestPhaseService_TestDependencyValidation(t *testing.T) {
 		prereqError := err.(*PhaseTestPrerequisiteError)
 		assert.Len(t, prereqError.PrerequisiteTests, 1)
 		assert.Equal(t, "test-2-2", prereqError.PrerequisiteTests[0].ID)
-		assert.Equal(t, epic.TestStatusFailed, prereqError.PrerequisiteTests[0].TestStatus)
+		assert.Equal(t, epic.TestStatusWIP, prereqError.PrerequisiteTests[0].TestStatus)
 	})
 
 	t.Run("Epic 9 Test: Backwards compatibility with existing epics", func(t *testing.T) {
@@ -603,7 +603,7 @@ func TestPhaseService_TestDependencyValidation(t *testing.T) {
 				// Legacy test without TestStatus - only has Status
 				{ID: "test-legacy", PhaseID: "phase-1", Name: "Legacy Test", Status: epic.StatusCompleted},
 				// Modern test with both Status and TestStatus
-				{ID: "test-modern", PhaseID: "phase-1", Name: "Modern Test", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-modern", PhaseID: "phase-1", Name: "Modern Test", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 			},
 		}
 
@@ -635,11 +635,11 @@ func TestPhaseService_TestCompletionStatus(t *testing.T) {
 			},
 			Tests: []epic.Test{
 				// Phase 1 tests
-				{ID: "test-1-1", PhaseID: "phase-1", Name: "Test 1.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
-				{ID: "test-1-2", PhaseID: "phase-1", Name: "Test 1.2", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				{ID: "test-1-1", PhaseID: "phase-1", Name: "Test 1.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
+				{ID: "test-1-2", PhaseID: "phase-1", Name: "Test 1.2", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
 				{ID: "test-1-3", PhaseID: "phase-1", Name: "Test 1.3", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
 				// Phase 2 tests
-				{ID: "test-2-1", PhaseID: "phase-2", Name: "Test 2.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-2-1", PhaseID: "phase-2", Name: "Test 2.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 			},
 		}
 
@@ -732,11 +732,11 @@ func TestPhaseService_TestDependencyEdgeCases(t *testing.T) {
 			},
 			Tests: []epic.Test{
 				// Phase 1: All completed (passed and cancelled)
-				{ID: "test-1-1", PhaseID: "phase-1", Name: "Test 1.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-1-1", PhaseID: "phase-1", Name: "Test 1.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 				{ID: "test-1-2", PhaseID: "phase-1", Name: "Test 1.2", Status: epic.StatusCancelled, TestStatus: epic.TestStatusCancelled},
 				// Phase 2: Mixed with one failed
-				{ID: "test-2-1", PhaseID: "phase-2", Name: "Test 2.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
-				{ID: "test-2-2", PhaseID: "phase-2", Name: "Test 2.2", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				{ID: "test-2-1", PhaseID: "phase-2", Name: "Test 2.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
+				{ID: "test-2-2", PhaseID: "phase-2", Name: "Test 2.2", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
 				// Phase 3: Not started
 				{ID: "test-3-1", PhaseID: "phase-3", Name: "Test 3.1", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
 			},
@@ -752,7 +752,7 @@ func TestPhaseService_TestDependencyEdgeCases(t *testing.T) {
 		assert.Equal(t, "phase-3", prereqError.PhaseID)
 		assert.Len(t, prereqError.PrerequisiteTests, 1)
 		assert.Equal(t, "test-2-2", prereqError.PrerequisiteTests[0].ID)
-		assert.Equal(t, epic.TestStatusFailed, prereqError.PrerequisiteTests[0].TestStatus)
+		assert.Equal(t, epic.TestStatusWIP, prereqError.PrerequisiteTests[0].TestStatus)
 	})
 
 	t.Run("Epic 9 Test: Large scale test dependency validation performance", func(t *testing.T) {
@@ -780,13 +780,13 @@ func TestPhaseService_TestDependencyEdgeCases(t *testing.T) {
 				PhaseID:    fmt.Sprintf("phase-%d", phaseIndex+1),
 				Name:       fmt.Sprintf("Test %d.%d", phaseIndex+1, testIndex+1),
 				Status:     epic.StatusCompleted,
-				TestStatus: epic.TestStatusPassed,
+				TestStatus: epic.TestStatusDone,
 			}
 		}
 
 		// Make one test in phase 9 failed to block phase 10 start
 		tests[44].Status = epic.StatusActive // test-9-5
-		tests[44].TestStatus = epic.TestStatusFailed
+		tests[44].TestStatus = epic.TestStatusWIP
 
 		epicData := &epic.Epic{
 			ID:     "epic-large-scale",
@@ -851,7 +851,7 @@ func TestPhaseService_ErrorMessageClarity(t *testing.T) {
 				{ID: "delivery-phase", Name: "Delivery Phase", Status: epic.StatusActive},
 			},
 			Tests: []epic.Test{
-				{ID: "unit-test-auth", PhaseID: "delivery-phase", Name: "Unit Test - Authentication", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				{ID: "unit-test-auth", PhaseID: "delivery-phase", Name: "Unit Test - Authentication", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
 				{ID: "integration-test-api", PhaseID: "delivery-phase", Name: "Integration Test - API", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
 				{ID: "e2e-test-workflow", PhaseID: "delivery-phase", Name: "E2E Test - Workflow", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
 			},
@@ -893,10 +893,10 @@ func TestPhaseService_ErrorMessageClarity(t *testing.T) {
 			},
 			Tests: []epic.Test{
 				// Foundation phase tests - all good
-				{ID: "test-foundation-1", PhaseID: "foundation", Name: "Foundation Unit Tests", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-foundation-1", PhaseID: "foundation", Name: "Foundation Unit Tests", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 				// Implementation phase tests - one failed
-				{ID: "test-impl-integration", PhaseID: "implementation", Name: "Implementation Integration Test", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
-				{ID: "test-impl-performance", PhaseID: "implementation", Name: "Implementation Performance Test", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-impl-integration", PhaseID: "implementation", Name: "Implementation Integration Test", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
+				{ID: "test-impl-performance", PhaseID: "implementation", Name: "Implementation Performance Test", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 			},
 		}
 
@@ -915,7 +915,7 @@ func TestPhaseService_ErrorMessageClarity(t *testing.T) {
 		assert.Len(t, prereqError.PrerequisiteTests, 1)
 		assert.Equal(t, "test-impl-integration", prereqError.PrerequisiteTests[0].ID)
 		assert.Equal(t, "Implementation Integration Test", prereqError.PrerequisiteTests[0].Name)
-		assert.Equal(t, epic.TestStatusFailed, prereqError.PrerequisiteTests[0].TestStatus)
+		assert.Equal(t, epic.TestStatusWIP, prereqError.PrerequisiteTests[0].TestStatus)
 	})
 
 	t.Run("Epic 9 Test: Error messages distinguish between different test failure types", func(t *testing.T) {
@@ -927,7 +927,7 @@ func TestPhaseService_ErrorMessageClarity(t *testing.T) {
 				{ID: "testing-phase", Name: "Testing Phase", Status: epic.StatusActive},
 			},
 			Tests: []epic.Test{
-				{ID: "test-failed", PhaseID: "testing-phase", Name: "Failed Test", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				{ID: "test-failed", PhaseID: "testing-phase", Name: "Failed Test", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
 				{ID: "test-pending", PhaseID: "testing-phase", Name: "Pending Test", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
 				{ID: "test-wip", PhaseID: "testing-phase", Name: "WIP Test", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
 			},
@@ -947,9 +947,8 @@ func TestPhaseService_ErrorMessageClarity(t *testing.T) {
 			statusTypes[test.TestStatus]++
 		}
 
-		assert.Equal(t, 1, statusTypes[epic.TestStatusFailed])
+		assert.Equal(t, 2, statusTypes[epic.TestStatusWIP])
 		assert.Equal(t, 1, statusTypes[epic.TestStatusPending])
-		assert.Equal(t, 1, statusTypes[epic.TestStatusWIP])
 	})
 
 	t.Run("Epic 9 Test: Test completion status provides comprehensive breakdown", func(t *testing.T) {
@@ -961,9 +960,9 @@ func TestPhaseService_ErrorMessageClarity(t *testing.T) {
 				{ID: "comprehensive-phase", Name: "Comprehensive Phase", Status: epic.StatusActive},
 			},
 			Tests: []epic.Test{
-				{ID: "test-passed-1", PhaseID: "comprehensive-phase", Name: "Passed Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
-				{ID: "test-passed-2", PhaseID: "comprehensive-phase", Name: "Passed Test 2", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
-				{ID: "test-failed-1", PhaseID: "comprehensive-phase", Name: "Failed Test 1", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				{ID: "test-passed-1", PhaseID: "comprehensive-phase", Name: "Passed Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
+				{ID: "test-passed-2", PhaseID: "comprehensive-phase", Name: "Passed Test 2", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
+				{ID: "test-failed-1", PhaseID: "comprehensive-phase", Name: "Failed Test 1", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
 				{ID: "test-pending-1", PhaseID: "comprehensive-phase", Name: "Pending Test 1", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
 				{ID: "test-pending-2", PhaseID: "comprehensive-phase", Name: "Pending Test 2", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
 				{ID: "test-cancelled", PhaseID: "comprehensive-phase", Name: "Cancelled Test", Status: epic.StatusCancelled, TestStatus: epic.TestStatusCancelled},

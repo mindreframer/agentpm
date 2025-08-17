@@ -177,7 +177,7 @@ func (s *PhaseService) isTestCompleted(test epic.Test) bool {
 	// Cancelled tests are also considered "completed" for dependency purposes
 	// For backwards compatibility, if TestStatus is not set, only check Status
 	if test.TestStatus != "" {
-		return (test.Status == epic.StatusCompleted && test.TestStatus == epic.TestStatusPassed) ||
+		return (test.Status == epic.StatusCompleted && test.TestStatus == epic.TestStatusDone) ||
 			(test.Status == epic.StatusCancelled && test.TestStatus == epic.TestStatusCancelled)
 	}
 	return test.Status == epic.StatusCompleted || test.Status == epic.StatusCancelled
@@ -220,9 +220,9 @@ func (s *PhaseService) GetTestCompletionStatus(epicData *epic.Epic, phaseID stri
 			// Check specific test status for accurate counting
 			if test.TestStatus != "" {
 				switch test.TestStatus {
-				case epic.TestStatusPassed:
+				case epic.TestStatusDone:
 					passedTests++
-				case epic.TestStatusFailed:
+				case epic.TestStatusWIP:
 					failedTests++
 					incompleteTests = append(incompleteTests, test)
 				case epic.TestStatusCancelled:

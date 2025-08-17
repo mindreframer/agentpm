@@ -248,7 +248,7 @@ func (rs *ReportService) identifyBlockers() []string {
 
 	// Find failed tests
 	for _, test := range rs.epic.Tests {
-		if test.TestStatus == epic.TestStatusFailed {
+		if test.TestStatus == epic.TestStatusWIP {
 			blockers = append(blockers, fmt.Sprintf("Failed test %s: %s", test.ID, test.Name))
 		}
 	}
@@ -445,7 +445,7 @@ func (rs *ReportService) generateTestResults() TestResults {
 	}
 
 	for _, test := range rs.epic.Tests {
-		if test.TestStatus == epic.TestStatusPassed {
+		if test.TestStatus == epic.TestStatusDone {
 			results.PassingTests++
 		} else {
 			results.FailingTests++
@@ -561,7 +561,7 @@ func (rs *ReportService) formatMarkdown(report *DocumentationReport) string {
 			}
 
 			md.WriteString(fmt.Sprintf("| %s | %s | %s | %s |\n",
-				test.Name, test.TaskID, rs.formatTestStatusIcon(test.TestStatus), notes))
+				test.Name, test.TaskID, rs.formatTestStatusWithContext(test), notes))
 		}
 		md.WriteString("\n")
 	}
@@ -612,17 +612,32 @@ func (rs *ReportService) formatStatusIcon(status string) string {
 
 func (rs *ReportService) formatTestStatusIcon(status string) string {
 	switch status {
+	// Epic 13 unified status system
+	case "done":
+		return "✅ passed"
+	case "wip":
+		return "🔄 in progress"
+	case "pending":
+		return "⏳ pending"
+	case "cancelled":
+		return "⏹️ cancelled"
+	// Legacy status support
 	case "passed":
 		return "✅ passed"
 	case "failed":
 		return "❌ failed"
-	case "pending":
-		return "⏳ pending"
-	case "wip":
-		return "🔄 in progress"
-	case "cancelled":
-		return "⏹️ cancelled"
 	default:
 		return status
 	}
+}
+
+// formatTestStatusWithContext determines test status considering Epic 13 status system
+func (rs *ReportService) formatTestStatusWithContext(test TestDetail) string {
+	// Epic 13 logic: If test has failure note and is wip, it's failed
+	if test.FailureNote != "" && test.TestStatus == "wip" {
+		return "❌ failed"
+	}
+
+	// Fall back to status-based formatting
+	return rs.formatTestStatusIcon(test.TestStatus)
 }

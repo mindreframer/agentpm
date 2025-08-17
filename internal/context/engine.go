@@ -237,7 +237,7 @@ func (e *Engine) calculatePhaseProgress(phaseID string) *ProgressSummary {
 			case epic.StatusCompleted:
 				passedTests++
 			default:
-				if test.TestStatus == epic.TestStatusFailed {
+				if test.TestStatus == epic.TestStatusWIP {
 					failedTests++
 				} else {
 					pendingTests++

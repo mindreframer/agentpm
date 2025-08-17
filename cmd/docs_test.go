@@ -38,8 +38,8 @@ func createTestEpicForDocs() *epic.Epic {
 			{ID: "T4", PhaseID: "P3", Name: "Future Task", Status: epic.StatusPlanning},
 		},
 		Tests: []epic.Test{
-			{ID: "TEST1", TaskID: "T1", Name: "Setup Test", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
-			{ID: "TEST2", TaskID: "T2", Name: "Active Test", Status: epic.StatusPlanning, TestStatus: epic.TestStatusFailed, FailureNote: "Connection timeout"},
+			{ID: "TEST1", TaskID: "T1", Name: "Setup Test", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
+			{ID: "TEST2", TaskID: "T2", Name: "Active Test", Status: epic.StatusPlanning, TestStatus: epic.TestStatusWIP, FailureNote: "Connection timeout"},
 			{ID: "TEST3", TaskID: "T3", Name: "Pending Test", Status: epic.StatusPlanning, TestStatus: epic.TestStatusPending},
 		},
 		Events: []epic.Event{

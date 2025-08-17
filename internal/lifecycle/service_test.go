@@ -732,7 +732,7 @@ func TestLifecycleService_EpicEventCreation(t *testing.T) {
 			{ID: "task1", PhaseID: "phase1", Name: "Task 1", Status: epic.StatusCompleted},
 		},
 		Tests: []epic.Test{
-			{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+			{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 		},
 	}
 
@@ -795,7 +795,7 @@ func TestLifecycleService_EpicEventCreation(t *testing.T) {
 				{ID: "task1", PhaseID: "phase1", Name: "Task 1", Status: epic.StatusCompleted},
 			},
 			Tests: []epic.Test{
-				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 			},
 			Events: []epic.Event{}, // Clear events for this test
 		}
@@ -857,7 +857,7 @@ func TestLifecycleService_EpicEventCreation(t *testing.T) {
 				{ID: "task1", PhaseID: "phase1", Name: "Task 1", Status: epic.StatusCompleted},
 			},
 			Tests: []epic.Test{
-				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
 			},
 		}
 

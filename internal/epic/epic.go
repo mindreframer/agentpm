@@ -73,14 +73,13 @@ type TestStatus string
 const (
 	TestStatusPending   TestStatus = "pending"
 	TestStatusWIP       TestStatus = "wip"
-	TestStatusPassed    TestStatus = "passed"
-	TestStatusFailed    TestStatus = "failed"
+	TestStatusDone      TestStatus = "done"
 	TestStatusCancelled TestStatus = "cancelled"
 )
 
 func (s TestStatus) IsValid() bool {
 	switch s {
-	case TestStatusPending, TestStatusWIP, TestStatusPassed, TestStatusFailed, TestStatusCancelled:
+	case TestStatusPending, TestStatusWIP, TestStatusDone, TestStatusCancelled:
 		return true
 	default:
 		return false
@@ -89,11 +88,10 @@ func (s TestStatus) IsValid() bool {
 
 func (s TestStatus) CanTransitionTo(target TestStatus) bool {
 	transitions := map[TestStatus][]TestStatus{
-		TestStatusPending:   {TestStatusWIP},
-		TestStatusWIP:       {TestStatusPassed, TestStatusFailed, TestStatusCancelled},
-		TestStatusPassed:    {TestStatusFailed},
-		TestStatusFailed:    {TestStatusPassed},
-		TestStatusCancelled: {},
+		TestStatusPending:   {TestStatusWIP, TestStatusCancelled},
+		TestStatusWIP:       {TestStatusDone, TestStatusCancelled},
+		TestStatusDone:      {TestStatusWIP}, // Can go back to WIP for failing tests
+		TestStatusCancelled: {},              // Cancelled is terminal
 	}
 
 	for _, allowed := range transitions[s] {
@@ -111,8 +109,9 @@ type Test struct {
 	Name        string `xml:"name,attr"`
 	Description string `xml:"description"`
 	Status      Status `xml:"status,attr"`
-	// Epic 4 enhancements - optional fields for enhanced test management
+	// Epic 13 unified status system
 	TestStatus         TestStatus `xml:"test_status,attr"`
+	TestResult         TestResult `xml:"result,attr"`
 	StartedAt          *time.Time `xml:"started_at,omitempty"`
 	PassedAt           *time.Time `xml:"passed_at,omitempty"`
 	FailedAt           *time.Time `xml:"failed_at,omitempty"`
@@ -135,6 +134,25 @@ func (s Status) IsValid() bool {
 	default:
 		return false
 	}
+}
+
+// Legacy migration helpers for Epic 13 status system - DEPRECATED
+// Use TestStatusDone with TestResultPassing instead of TestStatusPassed()
+func TestStatusPassed() TestStatus {
+	return TestStatusDone
+}
+
+// Use TestStatusWIP with TestResultFailing instead of TestStatusFailed()
+func TestStatusFailed() TestStatus {
+	return TestStatusWIP
+}
+
+// GetTestResultFromLegacyStatus returns the appropriate TestResult for legacy passed/failed status
+func GetTestResultFromLegacyStatus(legacyPassed bool) TestResult {
+	if legacyPassed {
+		return TestResultPassing
+	}
+	return TestResultFailing
 }
 
 func NewEpic(id, name string) *Epic {
