@@ -171,7 +171,7 @@ func TestHintIntegrationInCommands(t *testing.T) {
 		assert.Contains(t, output, "<error>")
 		assert.Contains(t, output, "<type>phase_constraint_violation</type>")
 		assert.Contains(t, output, "<message>Cannot start phase phase-2: phase phase-1 is still active</message>")
-		assert.Contains(t, output, "<hint>Complete the current active phase before starting a new one</hint>")
+		assert.Contains(t, output, "<hint>Complete phase 'phase-1' before starting 'phase-2'</hint>")
 		assert.Contains(t, output, "</error>")
 	})
 
@@ -226,7 +226,7 @@ func TestHintIntegrationInCommands(t *testing.T) {
 		assert.Contains(t, output, "<error>")
 		assert.Contains(t, output, "<type>task_constraint_violation</type>")
 		assert.Contains(t, output, "<message>Cannot start task task-2: task task-1 is already active in phase phase-1</message>")
-		assert.Contains(t, output, "<hint>Complete the current active task before starting a new one in the same phase</hint>")
+		assert.Contains(t, output, "<hint>Complete task 'task-1' in phase 'phase-1' before starting 'task-2'</hint>")
 		assert.Contains(t, output, "</error>")
 	})
 }
