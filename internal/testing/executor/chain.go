@@ -756,3 +756,37 @@ func (ab *IntermediateAssertionBuilder) TestStatus(testID, expectedStatus string
 	}
 	return ab.chain.AddIntermediateAssertion(ab.afterCommand, assertionFn)
 }
+
+// TestStatusUnified adds a test status assertion using Epic 13 unified system
+func (ab *IntermediateAssertionBuilder) TestStatusUnified(testID, expectedStatus string) *TransitionChain {
+	assertionFn := func(e *epic.Epic) error {
+		for _, test := range e.Tests {
+			if test.ID == testID {
+				actualStatus := string(test.GetTestStatusUnified())
+				if actualStatus != expectedStatus {
+					return fmt.Errorf("expected test %s unified status %s, got %s", testID, expectedStatus, actualStatus)
+				}
+				return nil
+			}
+		}
+		return fmt.Errorf("test %s not found", testID)
+	}
+	return ab.chain.AddIntermediateAssertion(ab.afterCommand, assertionFn)
+}
+
+// TestResult adds a test result assertion using Epic 13 unified system
+func (ab *IntermediateAssertionBuilder) TestResult(testID, expectedResult string) *TransitionChain {
+	assertionFn := func(e *epic.Epic) error {
+		for _, test := range e.Tests {
+			if test.ID == testID {
+				actualResult := string(test.GetTestResult())
+				if actualResult != expectedResult {
+					return fmt.Errorf("expected test %s result %s, got %s", testID, expectedResult, actualResult)
+				}
+				return nil
+			}
+		}
+		return fmt.Errorf("test %s not found", testID)
+	}
+	return ab.chain.AddIntermediateAssertion(ab.afterCommand, assertionFn)
+}
