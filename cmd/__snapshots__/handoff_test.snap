@@ -1,0 +1,40 @@
+
+[TestHandoffCommand/comprehensive_handoff_report_-_XML_format - 1]
+handoff_comprehensive_xml_format
+<?xml version="1.0" encoding="UTF-8"?>
+<handoff epic="handoff-test-epic" timestamp="[TIMESTAMP]">
+    <epic_info>
+        <name>Handoff Test Epic</name>
+        <status>active</status>
+        <started>[TIMESTAMP]</started>
+        <assignee>test_agent</assignee>
+    </epic_info>
+    <current_state>
+        <active_phase>P2</active_phase>
+        <active_task>T2</active_task>
+        <next_action>Start task T3: Pending Task</next_action>
+    </current_state>
+    <summary>
+        <completed_phases>1</completed_phases>
+        <total_phases>3</total_phases>
+        <passing_tests>1</passing_tests>
+        <failing_tests>2</failing_tests>
+        <completion_percentage>30</completion_percentage>
+    </summary>
+    <recent_events limit="3">
+        <event timestamp="[TIMESTAMP]" type="blocker">
+            Found dependency issue
+        </event>
+        <event timestamp="[TIMESTAMP]" type="task_completed">
+            Setup task completed
+        </event>
+        <event timestamp="[TIMESTAMP]" type="created">
+            Epic created
+        </event>
+    </recent_events>
+    <blockers>
+        <blocker>Failed test TEST2: Active Test</blocker>
+        <blocker>Found dependency issue</blocker>
+    </blockers>
+</handoff>
+---

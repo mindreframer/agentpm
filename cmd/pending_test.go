@@ -11,6 +11,7 @@ import (
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/epic"
 	"github.com/mindreframer/agentpm/internal/storage"
+	apmtesting "github.com/mindreframer/agentpm/internal/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -274,13 +275,8 @@ func TestPendingCommand(t *testing.T) {
 		require.NoError(t, err)
 
 		output := stdout.String()
-		assert.Contains(t, output, `<pending_work>`)
-		assert.Contains(t, output, `<phases>`)
-		assert.Contains(t, output, `<phase id="P2" name="Implementation Phase" status="active"/>`)
-		assert.Contains(t, output, `<tasks>`)
-		assert.Contains(t, output, `<task id="T2" phase_id="P2" status="active">Active Task</task>`)
-		assert.Contains(t, output, `<tests>`)
-		assert.Contains(t, output, `<test id="TEST2" task_id="T2" phase_id="P2" status="planning">Active Test</test>`)
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "pending_xml_format")
 	})
 
 	t.Run("pending command error handling", func(t *testing.T) {

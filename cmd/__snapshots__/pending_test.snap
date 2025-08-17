@@ -1,0 +1,22 @@
+
+[TestPendingCommand/pending_with_XML_format - 1]
+pending_xml_format
+<pending_work>
+    <phases>
+        <phase id="P2" name="Implementation Phase" status="active"/>
+        <phase id="P3" name="Testing Phase" status="planning"/>
+        <phase id="P4" name="Deployment Phase" status="planning"/>
+    </phases>
+    <tasks>
+        <task id="T2" phase_id="P2" status="active">Active Task</task>
+        <task id="T3" phase_id="P2" status="planning">Pending Task 1</task>
+        <task id="T4" phase_id="P3" status="planning">Pending Task 2</task>
+        <task id="T5" phase_id="P4" status="planning">Pending Task 3</task>
+    </tasks>
+    <tests>
+        <test id="TEST2" phase_id="P2" status="planning" task_id="T2">Active Test</test>
+        <test id="TEST3" phase_id="P2" status="planning" task_id="T3">Pending Test 1</test>
+        <test id="TEST4" phase_id="P3" status="planning" task_id="T4">Pending Test 2</test>
+    </tests>
+</pending_work>
+---

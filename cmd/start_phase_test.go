@@ -8,6 +8,7 @@ import (
 
 	"github.com/mindreframer/agentpm/internal/epic"
 	"github.com/mindreframer/agentpm/internal/storage"
+	apmtesting "github.com/mindreframer/agentpm/internal/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -91,9 +92,8 @@ func TestStartPhaseCommand(t *testing.T) {
 
 		require.Error(t, err)
 		output := stderr.String()
-		assert.Contains(t, output, "<error>")
-		assert.Contains(t, output, "<type>phase_constraint_violation</type>")
-		assert.Contains(t, output, "phase phase-1 is still active")
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "start_phase_constraint_violation_error")
 	})
 
 	t.Run("cannot start non-existent phase", func(t *testing.T) {

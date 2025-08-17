@@ -12,6 +12,7 @@ import (
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/epic"
 	"github.com/mindreframer/agentpm/internal/storage"
+	apmtesting "github.com/mindreframer/agentpm/internal/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -193,26 +194,8 @@ func TestHandoffCommand(t *testing.T) {
 		require.NoError(t, err)
 
 		output := stdout.String()
-
-		// Verify XML structure
-		assert.Contains(t, output, `<?xml version="1.0" encoding="UTF-8"?>`)
-		assert.Contains(t, output, `<handoff epic="handoff-test-epic"`)
-		assert.Contains(t, output, `<epic_info>`)
-		assert.Contains(t, output, `<name>Handoff Test Epic</name>`)
-		assert.Contains(t, output, `<status>active</status>`)
-		assert.Contains(t, output, `<assignee>test_agent</assignee>`)
-		assert.Contains(t, output, `<current_state>`)
-		assert.Contains(t, output, `<active_phase>P2</active_phase>`)
-		assert.Contains(t, output, `<active_task>T2</active_task>`)
-		assert.Contains(t, output, `<summary>`)
-		assert.Contains(t, output, `<completed_phases>1</completed_phases>`)
-		assert.Contains(t, output, `<total_phases>3</total_phases>`)
-		assert.Contains(t, output, `<passing_tests>1</passing_tests>`)
-		assert.Contains(t, output, `<failing_tests>2</failing_tests>`)
-		assert.Contains(t, output, `<recent_events`)
-		assert.Contains(t, output, `<blockers>`)
-		assert.Contains(t, output, `<blocker>Failed test TEST2`)
-		assert.Contains(t, output, `<blocker>Found dependency issue`)
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "handoff_comprehensive_xml_format")
 	})
 
 	t.Run("handoff report for completed epic", func(t *testing.T) {

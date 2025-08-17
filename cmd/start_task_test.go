@@ -8,6 +8,7 @@ import (
 
 	"github.com/mindreframer/agentpm/internal/epic"
 	"github.com/mindreframer/agentpm/internal/storage"
+	apmtesting "github.com/mindreframer/agentpm/internal/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -98,9 +99,8 @@ func TestStartTaskCommand(t *testing.T) {
 
 		require.Error(t, err)
 		output := stderr.String()
-		assert.Contains(t, output, "<error>")
-		assert.Contains(t, output, "<type>task_phase_violation</type>")
-		assert.Contains(t, output, "phase phase-2 is not active")
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "start_task_phase_violation_error")
 	})
 
 	t.Run("prevent multiple active tasks in same phase", func(t *testing.T) {
@@ -136,9 +136,8 @@ func TestStartTaskCommand(t *testing.T) {
 
 		require.Error(t, err)
 		output := stderr.String()
-		assert.Contains(t, output, "<error>")
-		assert.Contains(t, output, "<type>task_constraint_violation</type>")
-		assert.Contains(t, output, "task task-1 is already active")
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "start_task_constraint_violation_error")
 	})
 
 	t.Run("cannot start task that is not pending", func(t *testing.T) {
@@ -173,8 +172,8 @@ func TestStartTaskCommand(t *testing.T) {
 
 		require.Error(t, err)
 		output := stderr.String()
-		assert.Contains(t, output, "<error>")
-		assert.Contains(t, output, "<type>invalid_task_state</type>")
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "start_task_invalid_state_error")
 	})
 
 	t.Run("cannot start non-existent task", func(t *testing.T) {

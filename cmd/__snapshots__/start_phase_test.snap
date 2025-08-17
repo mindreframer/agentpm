@@ -1,0 +1,13 @@
+
+[TestStartPhaseCommand/prevent_multiple_active_phases - 1]
+start_phase_constraint_violation_error
+<error>
+    <type>phase_constraint_violation</type>
+    <message>Cannot start phase phase-2: phase phase-1 is still active</message>
+    <hint>Complete phase 'phase-1' before starting 'phase-2'</hint>
+    <details>
+        <active_phase>phase-1</active_phase>
+        <suggestion>Complete phase phase-1 first or use 'agentpm current' to see active work</suggestion>
+    </details>
+</error>
+---

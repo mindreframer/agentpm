@@ -1,0 +1,43 @@
+
+[TestStartTaskCommand/prevent_starting_task_in_non-active_phase - 1]
+start_task_phase_violation_error
+<error>
+    <type>task_phase_violation</type>
+    <message>Cannot start task task-2: phase phase-2 is not active</message>
+    <details>
+        <task_id>task-2</task_id>
+        <phase_id>phase-2</phase_id>
+        <phase_status>planning</phase_status>
+        <suggestion>Start phase phase-2 first or use 'agentpm current' to see active work</suggestion>
+    </details>
+</error>
+---
+
+[TestStartTaskCommand/prevent_multiple_active_tasks_in_same_phase - 1]
+start_task_constraint_violation_error
+<error>
+    <type>task_constraint_violation</type>
+    <message>Cannot start task task-2: task task-1 is already active in phase phase-1</message>
+    <hint>Complete task 'task-1' in phase 'phase-1' before starting 'task-2'</hint>
+    <details>
+        <task_id>task-2</task_id>
+        <active_task_id>task-1</active_task_id>
+        <phase_id>phase-1</phase_id>
+        <suggestion>Complete task task-1 first or use 'agentpm current' to see active work</suggestion>
+    </details>
+</error>
+---
+
+[TestStartTaskCommand/cannot_start_task_that_is_not_pending - 1]
+start_task_invalid_state_error
+<error>
+    <type>invalid_task_state</type>
+    <message>Cannot start task task-1: Task is not in pending state</message>
+    <hint>task 'task-1' is already completed. Use 'agentpm status' to see available work</hint>
+    <details>
+        <current_status>completed</current_status>
+        <target_status>active</target_status>
+        <task_id>task-1</task_id>
+    </details>
+</error>
+---
