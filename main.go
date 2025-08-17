@@ -62,6 +62,7 @@ func main() {
 
 			// INSPECTION - Detailed entity examination
 			addCategory(cmd.ShowCommand(), "INSPECTION"),
+			addCategory(cmd.QueryCommand(), "INSPECTION"),
 
 			// PROJECT - Project setup and management
 			addCategory(cmd.InitCommand(), "PROJECT"),
