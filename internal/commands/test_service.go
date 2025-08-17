@@ -20,8 +20,24 @@ type TestRequest struct {
 	Format             string
 }
 
+type BatchTestRequest struct {
+	TestIDs            []string
+	Operation          string // "pass", "fail", "cancel"
+	FailureReason      string // For fail operations
+	CancellationReason string // For cancel operations
+	ConfigPath         string
+	EpicFile           string
+	Time               string
+	Format             string
+}
+
 type TestResult struct {
 	Result *tests.TestOperation
+	Error  *TestError
+}
+
+type BatchTestResult struct {
+	Result *BatchSuccessReport
 	Error  *TestError
 }
 
@@ -380,4 +396,223 @@ func getEpicFileFromRequest(request TestRequest) (string, error) {
 	}
 
 	return cfg.CurrentEpic, nil
+}
+
+func PassBatchTestService(request BatchTestRequest) (*BatchTestResult, error) {
+	if len(request.TestIDs) == 0 {
+		return nil, fmt.Errorf("pass-batch requires at least one test ID")
+	}
+
+	// Load configuration and determine epic file
+	epicFile, err := getEpicFileFromBatchRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	// Load epic for validation
+	storageService := storage.NewFileStorage()
+	epicData, err := storageService.LoadEpic(epicFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load epic: %w", err)
+	}
+
+	// Create batch operations
+	var operations []BatchOperation
+	for _, testID := range request.TestIDs {
+		operations = append(operations, BatchOperation{
+			TestID:        testID,
+			OperationType: "pass",
+		})
+	}
+
+	// Validate batch operations
+	bvs := NewBatchValidationService()
+	validationResult, err := bvs.ValidateBatchOperations(epicData, operations)
+	if err != nil {
+		return nil, err
+	}
+
+	// If validation failed, return error
+	if !validationResult.Valid {
+		return &BatchTestResult{
+			Error: &TestError{
+				Type:    "batch_validation_failed",
+				Message: validationResult.ErrorMessage,
+			},
+		}, nil
+	}
+
+	// Parse timestamp if provided
+	var timestamp *time.Time
+	if request.Time != "" {
+		t, err := time.Parse(time.RFC3339, request.Time)
+		if err != nil {
+			return nil, fmt.Errorf("invalid time format: %s (expected ISO8601/RFC3339)", request.Time)
+		}
+		timestamp = &t
+	}
+
+	// Create test service
+	service := tests.NewTestService(tests.ServiceConfig{
+		UseMemory: false,
+	})
+
+	// Execute all operations (since validation passed, all should succeed)
+	var results []BatchOperationResult
+	for _, op := range operations {
+		_, err := service.PassTest(epicFile, op.TestID, timestamp)
+		if err != nil {
+			// This should not happen if validation worked correctly
+			return nil, fmt.Errorf("failed to pass test %s: %w", op.TestID, err)
+		}
+
+		// Find test for result
+		var test *epic.Test
+		for i := range epicData.Tests {
+			if epicData.Tests[i].ID == op.TestID {
+				test = &epicData.Tests[i]
+				break
+			}
+		}
+
+		result := BatchOperationResult{
+			TestID:        op.TestID,
+			OperationType: op.OperationType,
+			Valid:         true,
+		}
+		if test != nil {
+			result.TestName = test.Name
+		}
+		results = append(results, result)
+	}
+
+	// Create success report
+	successReport := bvs.CreateBatchSuccessReport(operations, results)
+
+	return &BatchTestResult{
+		Result: &successReport,
+	}, nil
+}
+
+func getEpicFileFromBatchRequest(request BatchTestRequest) (string, error) {
+	// Check if file is provided directly
+	epicFile := request.EpicFile
+	if epicFile != "" {
+		return epicFile, nil
+	}
+
+	// Load configuration
+	configPath := request.ConfigPath
+	if configPath == "" {
+		configPath = "./.agentpm.json"
+	}
+
+	cfg, err := config.LoadConfig(configPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to load configuration: %w", err)
+	}
+
+	// Use epic file from config
+	if cfg.CurrentEpic == "" {
+		return "", fmt.Errorf("no epic file specified. Use --file flag or run 'agentpm init' first")
+	}
+
+	return cfg.CurrentEpic, nil
+}
+
+func FailBatchTestService(request BatchTestRequest) (*BatchTestResult, error) {
+	if len(request.TestIDs) == 0 {
+		return nil, fmt.Errorf("fail-batch requires at least one test ID")
+	}
+
+	// Load configuration and determine epic file
+	epicFile, err := getEpicFileFromBatchRequest(request)
+	if err != nil {
+		return nil, err
+	}
+
+	// Load epic for validation
+	storageService := storage.NewFileStorage()
+	epicData, err := storageService.LoadEpic(epicFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load epic: %w", err)
+	}
+
+	// Create batch operations
+	var operations []BatchOperation
+	for _, testID := range request.TestIDs {
+		operations = append(operations, BatchOperation{
+			TestID:        testID,
+			OperationType: "fail",
+			Reason:        request.FailureReason,
+		})
+	}
+
+	// Validate batch operations
+	bvs := NewBatchValidationService()
+	validationResult, err := bvs.ValidateBatchOperations(epicData, operations)
+	if err != nil {
+		return nil, err
+	}
+
+	// If validation failed, return error
+	if !validationResult.Valid {
+		return &BatchTestResult{
+			Error: &TestError{
+				Type:    "batch_validation_failed",
+				Message: validationResult.ErrorMessage,
+			},
+		}, nil
+	}
+
+	// Parse timestamp if provided
+	var timestamp *time.Time
+	if request.Time != "" {
+		t, err := time.Parse(time.RFC3339, request.Time)
+		if err != nil {
+			return nil, fmt.Errorf("invalid time format: %s (expected ISO8601/RFC3339)", request.Time)
+		}
+		timestamp = &t
+	}
+
+	// Create test service
+	service := tests.NewTestService(tests.ServiceConfig{
+		UseMemory: false,
+	})
+
+	// Execute all operations (since validation passed, all should succeed)
+	var results []BatchOperationResult
+	for _, op := range operations {
+		_, err := service.FailTest(epicFile, op.TestID, op.Reason, timestamp)
+		if err != nil {
+			// This should not happen if validation worked correctly
+			return nil, fmt.Errorf("failed to fail test %s: %w", op.TestID, err)
+		}
+
+		// Find test for result
+		var test *epic.Test
+		for i := range epicData.Tests {
+			if epicData.Tests[i].ID == op.TestID {
+				test = &epicData.Tests[i]
+				break
+			}
+		}
+
+		result := BatchOperationResult{
+			TestID:        op.TestID,
+			OperationType: op.OperationType,
+			Valid:         true,
+		}
+		if test != nil {
+			result.TestName = test.Name
+		}
+		results = append(results, result)
+	}
+
+	// Create success report
+	successReport := bvs.CreateBatchSuccessReport(operations, results)
+
+	return &BatchTestResult{
+		Result: &successReport,
+	}, nil
 }
