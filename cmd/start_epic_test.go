@@ -12,6 +12,7 @@ import (
 
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/epic"
+	apmtesting "github.com/mindreframer/agentpm/internal/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v3"
@@ -267,12 +268,10 @@ func TestStartEpicCommand_XMLOutput(t *testing.T) {
 
 	require.NoError(t, err)
 
-	// Verify XML output structure
+	// Verify XML output structure using snapshots
 	output := stdout.String()
-	assert.Contains(t, output, `<epic_started epic="epic-1">`)
-	assert.Contains(t, output, `<previous_status>pending</previous_status>`)
-	assert.Contains(t, output, `<new_status>wip</new_status>`)
-	assert.Contains(t, output, `<event_created>false</event_created>`)
+	snapshotTester := apmtesting.NewSnapshotTester()
+	snapshotTester.MatchXMLSnapshot(t, output, "start_epic_xml_output")
 }
 
 func TestStartEpicCommand_FriendlyOutput_JSON(t *testing.T) {

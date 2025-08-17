@@ -66,6 +66,8 @@ func newXMLNormalizerFromSnapshotConfig(snapConfig SnapshotConfig) *XMLNormalize
 		SortAttributes:      snapConfig.SortAttributes,
 		NormalizeTimestamps: snapConfig.RemoveTimestamps,
 		TimestampFields:     snapConfig.TimestampFields,
+		NormalizePaths:      true, // Enable path normalization for snapshots
+		PathFields:          []string{"previous_epic", "new_epic", "epic_path", "message"},
 	}
 	return NewXMLNormalizerWithConfig(normConfig)
 }

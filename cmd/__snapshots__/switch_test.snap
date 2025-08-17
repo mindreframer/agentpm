@@ -1,0 +1,10 @@
+
+[TestSwitchCommand_XMLOutput - 1]
+switch_command_xml_output
+<epic_switched>
+    <previous_epic>[TEST_DIR]/001/current-epic.xml</previous_epic>
+    <new_epic>[TEST_DIR]/001/target-epic.xml</new_epic>
+    <epic_path>[TEST_DIR]/001/target-epic.xml</epic_path>
+    <message>Switched from [TEST_DIR]/001/current-epic.xml to [TEST_DIR]/001/target-epic.xml</message>
+</epic_switched>
+---

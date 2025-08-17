@@ -76,6 +76,20 @@ test:
 	@echo "Running tests..."
 	go test -v ./...
 
+# Update snapshots target
+.PHONY: update-snapshots
+update-snapshots:
+	@echo "Updating all test snapshots..."
+	SNAPS_UPDATE=true go test ./cmd ./internal/testing -run ".*XML.*|.*Snapshot.*"
+	@echo "Snapshots updated"
+
+# Test with snapshot validation
+.PHONY: test-snapshots
+test-snapshots:
+	@echo "Running tests with snapshot validation..."
+	go test -v ./cmd ./internal/testing -run ".*XML.*|.*Snapshot.*"
+	@echo "Snapshot tests complete"
+
 # Clean target
 .PHONY: clean
 clean:

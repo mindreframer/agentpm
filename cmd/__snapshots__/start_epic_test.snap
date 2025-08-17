@@ -1,0 +1,11 @@
+
+[TestStartEpicCommand_XMLOutput - 1]
+start_epic_xml_output
+<epic_started epic="epic-1">
+    <previous_status>pending</previous_status>
+    <new_status>wip</new_status>
+    <started_at>[TIMESTAMP]</started_at>
+    <event_created>false</event_created>
+    <message>Epic epic-1 started. Status changed to wip.</message>
+</epic_started>
+---

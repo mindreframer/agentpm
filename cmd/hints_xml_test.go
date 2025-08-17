@@ -8,6 +8,7 @@ import (
 
 	"github.com/mindreframer/agentpm/internal/epic"
 	"github.com/mindreframer/agentpm/internal/storage"
+	apmtesting "github.com/mindreframer/agentpm/internal/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v3"
@@ -28,15 +29,9 @@ func TestXMLOutputWithHints(t *testing.T) {
 		require.Error(t, err)
 		output := stderr.String()
 
-		// Verify XML structure includes hint
-		assert.Contains(t, output, "<error>")
-		assert.Contains(t, output, "<type>test_error</type>")
-		assert.Contains(t, output, "<message>Test error message</message>")
-		assert.Contains(t, output, "<hint>This is a test hint</hint>")
-		assert.Contains(t, output, "<details>")
-		assert.Contains(t, output, "<test_key>test_value</test_key>")
-		assert.Contains(t, output, "</details>")
-		assert.Contains(t, output, "</error>")
+		// Check XML output using snapshots
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "outputXMLErrorWithHint_includes_hint_element")
 	})
 
 	t.Run("outputXMLErrorWithHint without hint omits hint element", func(t *testing.T) {
@@ -53,15 +48,9 @@ func TestXMLOutputWithHints(t *testing.T) {
 		require.Error(t, err)
 		output := stderr.String()
 
-		// Verify XML structure without hint
-		assert.Contains(t, output, "<error>")
-		assert.Contains(t, output, "<type>test_error</type>")
-		assert.Contains(t, output, "<message>Test error message</message>")
-		assert.NotContains(t, output, "<hint>")
-		assert.Contains(t, output, "<details>")
-		assert.Contains(t, output, "<test_key>test_value</test_key>")
-		assert.Contains(t, output, "</details>")
-		assert.Contains(t, output, "</error>")
+		// Check XML output using snapshots
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "outputXMLErrorWithHint_without_hint_omits_hint_element")
 	})
 
 	t.Run("outputXMLErrorWithHint without details", func(t *testing.T) {
@@ -76,13 +65,9 @@ func TestXMLOutputWithHints(t *testing.T) {
 		require.Error(t, err)
 		output := stderr.String()
 
-		// Verify XML structure without details but with hint
-		assert.Contains(t, output, "<error>")
-		assert.Contains(t, output, "<type>test_error</type>")
-		assert.Contains(t, output, "<message>Test error message</message>")
-		assert.Contains(t, output, "<hint>This is a test hint</hint>")
-		assert.NotContains(t, output, "<details>")
-		assert.Contains(t, output, "</error>")
+		// Check XML output using snapshots
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "outputXMLErrorWithHint_without_details")
 	})
 
 	t.Run("outputXMLErrorWithHint handles special characters in hint", func(t *testing.T) {
@@ -98,8 +83,9 @@ func TestXMLOutputWithHints(t *testing.T) {
 		require.Error(t, err)
 		output := stderr.String()
 
-		// Verify hint is included (basic XML escaping is handled by fmt.Fprintf)
-		assert.Contains(t, output, "<hint>Use 'agentpm current' & check status</hint>")
+		// Check XML output using snapshots
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "outputXMLErrorWithHint_handles_special_characters_in_hint")
 	})
 
 	t.Run("outputXMLError compatibility maintained", func(t *testing.T) {
@@ -116,15 +102,9 @@ func TestXMLOutputWithHints(t *testing.T) {
 		require.Error(t, err)
 		output := stderr.String()
 
-		// Verify old function still works without hints
-		assert.Contains(t, output, "<error>")
-		assert.Contains(t, output, "<type>test_error</type>")
-		assert.Contains(t, output, "<message>Test error message</message>")
-		assert.NotContains(t, output, "<hint>")
-		assert.Contains(t, output, "<details>")
-		assert.Contains(t, output, "<test_key>test_value</test_key>")
-		assert.Contains(t, output, "</details>")
-		assert.Contains(t, output, "</error>")
+		// Check XML output using snapshots
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "outputXMLError_compatibility_maintained")
 	})
 }
 

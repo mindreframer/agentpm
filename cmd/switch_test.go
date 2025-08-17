@@ -10,6 +10,7 @@ import (
 
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/epic"
+	apmtesting "github.com/mindreframer/agentpm/internal/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v3"
@@ -267,12 +268,10 @@ func TestSwitchCommand_XMLOutput(t *testing.T) {
 
 	require.NoError(t, err)
 
-	// Check XML output contains expected elements
+	// Check XML output using snapshots
 	output := stdout.String()
-	assert.Contains(t, output, "<epic_switched>")
-	assert.Contains(t, output, "<previous_epic>"+currentEpicFile+"</previous_epic>")
-	assert.Contains(t, output, "<new_epic>"+targetEpicFile+"</new_epic>")
-	assert.Contains(t, output, "Switched from "+currentEpicFile+" to "+targetEpicFile)
+	snapshotTester := apmtesting.NewSnapshotTester()
+	snapshotTester.MatchXMLSnapshot(t, output, "switch_command_xml_output")
 }
 
 func TestSwitchCommand_ErrorNonExistentFile(t *testing.T) {

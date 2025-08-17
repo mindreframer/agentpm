@@ -1,0 +1,52 @@
+
+[TestXMLOutputWithHints/outputXMLErrorWithHint_includes_hint_element - 1]
+outputXMLErrorWithHint_includes_hint_element
+<error>
+    <type>test_error</type>
+    <message>Test error message</message>
+    <hint>This is a test hint</hint>
+    <details>
+        <test_key>test_value</test_key>
+    </details>
+</error>
+---
+
+[TestXMLOutputWithHints/outputXMLErrorWithHint_without_hint_omits_hint_element - 1]
+outputXMLErrorWithHint_without_hint_omits_hint_element
+<error>
+    <type>test_error</type>
+    <message>Test error message</message>
+    <details>
+        <test_key>test_value</test_key>
+    </details>
+</error>
+---
+
+[TestXMLOutputWithHints/outputXMLErrorWithHint_without_details - 1]
+outputXMLErrorWithHint_without_details
+<error>
+    <type>test_error</type>
+    <message>Test error message</message>
+    <hint>This is a test hint</hint>
+</error>
+---
+
+[TestXMLOutputWithHints/outputXMLErrorWithHint_handles_special_characters_in_hint - 1]
+outputXMLErrorWithHint_handles_special_characters_in_hint
+<error>
+    <type>test_error</type>
+    <message>Test error message</message>
+    <hint>Use 'agentpm current' & check status</hint>
+</error>
+---
+
+[TestXMLOutputWithHints/outputXMLError_compatibility_maintained - 1]
+outputXMLError_compatibility_maintained
+<error>
+    <type>test_error</type>
+    <message>Test error message</message>
+    <details>
+        <test_key>test_value</test_key>
+    </details>
+</error>
+---

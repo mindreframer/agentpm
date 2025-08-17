@@ -23,6 +23,10 @@ type NormalizationConfig struct {
 	NormalizeTimestamps bool
 	// TimestampFields contains field names to normalize
 	TimestampFields []string
+	// NormalizePaths replaces filesystem paths with placeholders
+	NormalizePaths bool
+	// PathFields contains field names to normalize for paths
+	PathFields []string
 }
 
 // DefaultNormalizationConfig returns a default configuration for XML normalization
@@ -33,6 +37,8 @@ func DefaultNormalizationConfig() NormalizationConfig {
 		SortAttributes:      true,
 		NormalizeTimestamps: true,
 		TimestampFields:     []string{"created_at", "updated_at", "started_at", "completed_at", "passed_at", "failed_at", "cancelled_at"},
+		NormalizePaths:      true,
+		PathFields:          []string{"previous_epic", "new_epic", "epic_path", "message"},
 	}
 }
 
@@ -74,6 +80,10 @@ func (n *XMLNormalizer) NormalizeXML(xmlData string) (string, error) {
 	// Apply additional normalizations
 	if n.config.NormalizeTimestamps {
 		normalized = n.normalizeTimestamps(normalized)
+	}
+
+	if n.config.NormalizePaths {
+		normalized = n.normalizePaths(normalized)
 	}
 
 	if n.config.SortAttributes {
@@ -122,6 +132,65 @@ func (n *XMLNormalizer) normalizeTimestamps(xmlData string) string {
 	result = iso8601Re.ReplaceAllString(result, "[TIMESTAMP]")
 
 	return result
+}
+
+// normalizePaths replaces filesystem paths with normalized placeholders
+func (n *XMLNormalizer) normalizePaths(xmlData string) string {
+	result := xmlData
+
+	for _, field := range n.config.PathFields {
+		// Pattern for XML elements: <epic_path>/tmp/TestDir123/file.xml</epic_path>
+		elementPattern := fmt.Sprintf(`<%s>([^<]*)</%s>`, regexp.QuoteMeta(field), regexp.QuoteMeta(field))
+		elementRe := regexp.MustCompile(elementPattern)
+		result = elementRe.ReplaceAllStringFunc(result, func(match string) string {
+			submatches := elementRe.FindStringSubmatch(match)
+			if len(submatches) < 2 {
+				return match
+			}
+			normalizedPath := n.normalizeSinglePath(submatches[1])
+			return fmt.Sprintf(`<%s>%s</%s>`, field, normalizedPath, field)
+		})
+
+		// Pattern for XML attributes: epic_path="/tmp/TestDir123/file.xml"
+		attrPattern := fmt.Sprintf(`%s="([^"]*)"`, regexp.QuoteMeta(field))
+		attrRe := regexp.MustCompile(attrPattern)
+		result = attrRe.ReplaceAllStringFunc(result, func(match string) string {
+			submatches := attrRe.FindStringSubmatch(match)
+			if len(submatches) < 2 {
+				return match
+			}
+			normalizedPath := n.normalizeSinglePath(submatches[1])
+			return fmt.Sprintf(`%s="%s"`, field, normalizedPath)
+		})
+	}
+
+	// Also normalize common temp directory patterns
+	// Pattern: /var/folders/.../TestSomething123/...
+	tempDirPattern := `/(?:var/folders/[^/]+/[^/]+/T|tmp)/Test[a-zA-Z_]+\d+`
+	tempDirRe := regexp.MustCompile(tempDirPattern)
+	result = tempDirRe.ReplaceAllString(result, "[TEST_DIR]")
+
+	// Pattern: Absolute paths starting with temp dirs
+	absTempPattern := `(/(?:var/folders/[^/]+/[^/]+/T|tmp)/[^<>\s"']+)`
+	absTempRe := regexp.MustCompile(absTempPattern)
+	result = absTempRe.ReplaceAllStringFunc(result, func(match string) string {
+		return n.normalizeSinglePath(match)
+	})
+
+	return result
+}
+
+// normalizeSinglePath normalizes a single filesystem path
+func (n *XMLNormalizer) normalizeSinglePath(path string) string {
+	// Replace temp directory patterns
+	tempDirPattern := regexp.MustCompile(`/(?:var/folders/[^/]+/[^/]+/T|tmp)/Test[a-zA-Z_]+\d+`)
+	normalized := tempDirPattern.ReplaceAllString(path, "[TEST_DIR]")
+
+	// Replace other temp directory patterns
+	tempPattern := regexp.MustCompile(`/(?:var/folders/[^/]+/[^/]+/T|tmp)/[^/]+`)
+	normalized = tempPattern.ReplaceAllString(normalized, "[TEMP]")
+
+	return normalized
 }
 
 // sortXMLAttributes sorts XML attributes alphabetically for consistent output
