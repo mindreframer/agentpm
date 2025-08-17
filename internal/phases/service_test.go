@@ -1,6 +1,7 @@
 package phases
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -658,5 +659,336 @@ func TestPhaseService_TestCompletionStatus(t *testing.T) {
 		assert.Equal(t, 3, overallStatus["phase-1"].TotalTests)
 		assert.Equal(t, 1, overallStatus["phase-2"].TotalTests)
 		assert.True(t, overallStatus["phase-2"].AllTestsCompleted)
+	})
+}
+
+// EPIC 9 PHASE 4B: Comprehensive Test Dependency Edge Cases
+func TestPhaseService_TestDependencyEdgeCases(t *testing.T) {
+	storage := storage.NewMemoryStorage()
+	queryService := query.NewQueryService(storage)
+	phaseService := NewPhaseService(storage, queryService)
+	testTime := time.Date(2025, 8, 16, 15, 30, 0, 0, time.UTC)
+
+	t.Run("Epic 9 Test: Phase with no tests should complete successfully", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-no-tests",
+			Name:   "Epic With No Tests",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-empty", Name: "Empty Phase", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-empty", Name: "Task 1", Status: epic.StatusCompleted},
+			},
+			Tests: []epic.Test{}, // No tests
+		}
+
+		// Phase completion should succeed with no tests
+		err := phaseService.CompletePhase(epicData, "phase-empty", testTime)
+		require.NoError(t, err)
+
+		// Verify phase was completed
+		phase := findPhaseByID(epicData, "phase-empty")
+		require.NotNil(t, phase)
+		assert.Equal(t, epic.StatusCompleted, phase.Status)
+	})
+
+	t.Run("Epic 9 Test: Phase with only cancelled tests should complete successfully", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-cancelled-tests",
+			Name:   "Epic With Cancelled Tests",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-cancelled", Name: "Cancelled Tests Phase", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task-1", PhaseID: "phase-cancelled", Name: "Task 1", Status: epic.StatusCompleted},
+			},
+			Tests: []epic.Test{
+				{ID: "test-1", PhaseID: "phase-cancelled", Name: "Cancelled Test 1", Status: epic.StatusCancelled, TestStatus: epic.TestStatusCancelled},
+				{ID: "test-2", PhaseID: "phase-cancelled", Name: "Cancelled Test 2", Status: epic.StatusCancelled, TestStatus: epic.TestStatusCancelled},
+			},
+		}
+
+		// Phase completion should succeed with only cancelled tests
+		err := phaseService.CompletePhase(epicData, "phase-cancelled", testTime)
+		require.NoError(t, err)
+
+		// Verify phase was completed
+		phase := findPhaseByID(epicData, "phase-cancelled")
+		require.NotNil(t, phase)
+		assert.Equal(t, epic.StatusCompleted, phase.Status)
+	})
+
+	t.Run("Epic 9 Test: Mixed test statuses with complex dependency chain", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-complex-dependencies",
+			Name:   "Complex Dependencies Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusCompleted},
+				{ID: "phase-3", Name: "Phase 3", Status: epic.StatusPending},
+			},
+			Tests: []epic.Test{
+				// Phase 1: All completed (passed and cancelled)
+				{ID: "test-1-1", PhaseID: "phase-1", Name: "Test 1.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-1-2", PhaseID: "phase-1", Name: "Test 1.2", Status: epic.StatusCancelled, TestStatus: epic.TestStatusCancelled},
+				// Phase 2: Mixed with one failed
+				{ID: "test-2-1", PhaseID: "phase-2", Name: "Test 2.1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-2-2", PhaseID: "phase-2", Name: "Test 2.2", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				// Phase 3: Not started
+				{ID: "test-3-1", PhaseID: "phase-3", Name: "Test 3.1", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
+			},
+		}
+
+		// Phase 3 start should be blocked by failed test in phase 2
+		err := phaseService.StartPhase(epicData, "phase-3", testTime)
+		require.Error(t, err)
+
+		// Verify it's a prerequisite error with correct test details
+		prereqError, ok := err.(*PhaseTestPrerequisiteError)
+		require.True(t, ok, "Expected PhaseTestPrerequisiteError")
+		assert.Equal(t, "phase-3", prereqError.PhaseID)
+		assert.Len(t, prereqError.PrerequisiteTests, 1)
+		assert.Equal(t, "test-2-2", prereqError.PrerequisiteTests[0].ID)
+		assert.Equal(t, epic.TestStatusFailed, prereqError.PrerequisiteTests[0].TestStatus)
+	})
+
+	t.Run("Epic 9 Test: Large scale test dependency validation performance", func(t *testing.T) {
+		// Create epic with many phases and tests
+		phases := make([]epic.Phase, 10)
+		tests := make([]epic.Test, 50)
+
+		for i := 0; i < 10; i++ {
+			phases[i] = epic.Phase{
+				ID:     fmt.Sprintf("phase-%d", i+1),
+				Name:   fmt.Sprintf("Phase %d", i+1),
+				Status: epic.StatusCompleted,
+			}
+		}
+
+		// Set last phase as pending
+		phases[9].Status = epic.StatusPending
+
+		// Create 5 tests per phase
+		for i := 0; i < 50; i++ {
+			phaseIndex := i / 5
+			testIndex := i % 5
+			tests[i] = epic.Test{
+				ID:         fmt.Sprintf("test-%d-%d", phaseIndex+1, testIndex+1),
+				PhaseID:    fmt.Sprintf("phase-%d", phaseIndex+1),
+				Name:       fmt.Sprintf("Test %d.%d", phaseIndex+1, testIndex+1),
+				Status:     epic.StatusCompleted,
+				TestStatus: epic.TestStatusPassed,
+			}
+		}
+
+		// Make one test in phase 9 failed to block phase 10 start
+		tests[44].Status = epic.StatusActive // test-9-5
+		tests[44].TestStatus = epic.TestStatusFailed
+
+		epicData := &epic.Epic{
+			ID:     "epic-large-scale",
+			Name:   "Large Scale Epic",
+			Status: epic.StatusActive,
+			Phases: phases,
+			Tests:  tests,
+		}
+
+		// Phase 10 start should be efficiently blocked by failed test in phase 9
+		start := time.Now()
+		err := phaseService.StartPhase(epicData, "phase-10", testTime)
+		duration := time.Since(start)
+
+		require.Error(t, err)
+		// Performance check: should complete in reasonable time (< 100ms)
+		assert.Less(t, duration.Milliseconds(), int64(100), "Test dependency validation should be fast")
+
+		// Verify correct error detection
+		prereqError, ok := err.(*PhaseTestPrerequisiteError)
+		require.True(t, ok)
+		assert.Len(t, prereqError.PrerequisiteTests, 1)
+		assert.Equal(t, "test-9-5", prereqError.PrerequisiteTests[0].ID)
+	})
+
+	t.Run("Epic 9 Test: Zero tests edge case", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-zero-tests",
+			Name:   "Zero Tests Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
+			},
+			Tests: []epic.Test{}, // No tests at all
+		}
+
+		// Phase 2 start should succeed with no prerequisite tests
+		err := phaseService.StartPhase(epicData, "phase-2", testTime)
+		require.NoError(t, err)
+
+		// Verify phase was started
+		phase := findPhaseByID(epicData, "phase-2")
+		require.NotNil(t, phase)
+		assert.Equal(t, epic.StatusActive, phase.Status)
+	})
+}
+
+// EPIC 9 PHASE 4B: Error Message and Hint Validation Tests
+func TestPhaseService_ErrorMessageClarity(t *testing.T) {
+	storage := storage.NewMemoryStorage()
+	queryService := query.NewQueryService(storage)
+	phaseService := NewPhaseService(storage, queryService)
+	testTime := time.Date(2025, 8, 16, 15, 30, 0, 0, time.UTC)
+
+	t.Run("Epic 9 Test: Phase completion error messages contain specific test details", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-error-clarity",
+			Name:   "Error Clarity Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "delivery-phase", Name: "Delivery Phase", Status: epic.StatusActive},
+			},
+			Tests: []epic.Test{
+				{ID: "unit-test-auth", PhaseID: "delivery-phase", Name: "Unit Test - Authentication", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				{ID: "integration-test-api", PhaseID: "delivery-phase", Name: "Integration Test - API", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
+				{ID: "e2e-test-workflow", PhaseID: "delivery-phase", Name: "E2E Test - Workflow", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
+			},
+		}
+
+		err := phaseService.CompletePhase(epicData, "delivery-phase", testTime)
+		require.Error(t, err)
+
+		// Verify error message contains phase ID and test count
+		assert.Contains(t, err.Error(), "delivery-phase")
+		assert.Contains(t, err.Error(), "3")
+		assert.Contains(t, err.Error(), "incomplete tests")
+
+		// Verify specific test details are accessible
+		testDepError, ok := err.(*PhaseTestDependencyError)
+		require.True(t, ok)
+		assert.Equal(t, "delivery-phase", testDepError.PhaseID)
+		assert.Len(t, testDepError.IncompleteTests, 3)
+
+		// Verify all incomplete tests are captured with meaningful names
+		testNames := make([]string, len(testDepError.IncompleteTests))
+		for i, test := range testDepError.IncompleteTests {
+			testNames[i] = test.Name
+		}
+		assert.Contains(t, testNames, "Unit Test - Authentication")
+		assert.Contains(t, testNames, "Integration Test - API")
+		assert.Contains(t, testNames, "E2E Test - Workflow")
+	})
+
+	t.Run("Epic 9 Test: Phase prerequisite error messages are specific and actionable", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-prereq-clarity",
+			Name:   "Prerequisite Clarity Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "foundation", Name: "Foundation Phase", Status: epic.StatusCompleted},
+				{ID: "implementation", Name: "Implementation Phase", Status: epic.StatusCompleted},
+				{ID: "deployment", Name: "Deployment Phase", Status: epic.StatusPending},
+			},
+			Tests: []epic.Test{
+				// Foundation phase tests - all good
+				{ID: "test-foundation-1", PhaseID: "foundation", Name: "Foundation Unit Tests", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				// Implementation phase tests - one failed
+				{ID: "test-impl-integration", PhaseID: "implementation", Name: "Implementation Integration Test", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				{ID: "test-impl-performance", PhaseID: "implementation", Name: "Implementation Performance Test", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+			},
+		}
+
+		err := phaseService.StartPhase(epicData, "deployment", testTime)
+		require.Error(t, err)
+
+		// Verify error message contains target phase and prerequisite test count
+		assert.Contains(t, err.Error(), "deployment")
+		assert.Contains(t, err.Error(), "1")
+		assert.Contains(t, err.Error(), "prerequisite tests")
+
+		// Verify specific prerequisite test details
+		prereqError, ok := err.(*PhaseTestPrerequisiteError)
+		require.True(t, ok)
+		assert.Equal(t, "deployment", prereqError.PhaseID)
+		assert.Len(t, prereqError.PrerequisiteTests, 1)
+		assert.Equal(t, "test-impl-integration", prereqError.PrerequisiteTests[0].ID)
+		assert.Equal(t, "Implementation Integration Test", prereqError.PrerequisiteTests[0].Name)
+		assert.Equal(t, epic.TestStatusFailed, prereqError.PrerequisiteTests[0].TestStatus)
+	})
+
+	t.Run("Epic 9 Test: Error messages distinguish between different test failure types", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-failure-types",
+			Name:   "Failure Types Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "testing-phase", Name: "Testing Phase", Status: epic.StatusActive},
+			},
+			Tests: []epic.Test{
+				{ID: "test-failed", PhaseID: "testing-phase", Name: "Failed Test", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				{ID: "test-pending", PhaseID: "testing-phase", Name: "Pending Test", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
+				{ID: "test-wip", PhaseID: "testing-phase", Name: "WIP Test", Status: epic.StatusActive, TestStatus: epic.TestStatusWIP},
+			},
+		}
+
+		err := phaseService.CompletePhase(epicData, "testing-phase", testTime)
+		require.Error(t, err)
+
+		testDepError, ok := err.(*PhaseTestDependencyError)
+		require.True(t, ok)
+
+		// Verify all different failure types are captured
+		assert.Len(t, testDepError.IncompleteTests, 3)
+
+		statusTypes := make(map[epic.TestStatus]int)
+		for _, test := range testDepError.IncompleteTests {
+			statusTypes[test.TestStatus]++
+		}
+
+		assert.Equal(t, 1, statusTypes[epic.TestStatusFailed])
+		assert.Equal(t, 1, statusTypes[epic.TestStatusPending])
+		assert.Equal(t, 1, statusTypes[epic.TestStatusWIP])
+	})
+
+	t.Run("Epic 9 Test: Test completion status provides comprehensive breakdown", func(t *testing.T) {
+		epicData := &epic.Epic{
+			ID:     "epic-status-breakdown",
+			Name:   "Status Breakdown Epic",
+			Status: epic.StatusActive,
+			Phases: []epic.Phase{
+				{ID: "comprehensive-phase", Name: "Comprehensive Phase", Status: epic.StatusActive},
+			},
+			Tests: []epic.Test{
+				{ID: "test-passed-1", PhaseID: "comprehensive-phase", Name: "Passed Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-passed-2", PhaseID: "comprehensive-phase", Name: "Passed Test 2", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+				{ID: "test-failed-1", PhaseID: "comprehensive-phase", Name: "Failed Test 1", Status: epic.StatusActive, TestStatus: epic.TestStatusFailed},
+				{ID: "test-pending-1", PhaseID: "comprehensive-phase", Name: "Pending Test 1", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
+				{ID: "test-pending-2", PhaseID: "comprehensive-phase", Name: "Pending Test 2", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
+				{ID: "test-cancelled", PhaseID: "comprehensive-phase", Name: "Cancelled Test", Status: epic.StatusCancelled, TestStatus: epic.TestStatusCancelled},
+			},
+		}
+
+		status := phaseService.GetTestCompletionStatus(epicData, "comprehensive-phase")
+
+		// Verify comprehensive status breakdown
+		assert.Equal(t, "comprehensive-phase", status.PhaseID)
+		assert.Equal(t, 6, status.TotalTests)
+		assert.Equal(t, 2, status.PassedTests)   // 2 passed
+		assert.Equal(t, 1, status.FailedTests)   // 1 failed
+		assert.Equal(t, 2, status.PendingTests)  // 2 pending
+		assert.Len(t, status.IncompleteTests, 3) // failed + pending (cancelled tests are considered complete)
+		assert.False(t, status.AllTestsCompleted)
+
+		// Verify incomplete tests don't include cancelled tests
+		incompleteIDs := make([]string, len(status.IncompleteTests))
+		for i, test := range status.IncompleteTests {
+			incompleteIDs[i] = test.ID
+		}
+		assert.NotContains(t, incompleteIDs, "test-cancelled")
+		assert.Contains(t, incompleteIDs, "test-failed-1")
+		assert.Contains(t, incompleteIDs, "test-pending-1")
+		assert.Contains(t, incompleteIDs, "test-pending-2")
 	})
 }

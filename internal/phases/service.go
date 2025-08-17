@@ -216,14 +216,30 @@ func (s *PhaseService) GetTestCompletionStatus(epicData *epic.Epic, phaseID stri
 	for _, test := range epicData.Tests {
 		if test.PhaseID == phaseID {
 			totalTests++
-			if s.isTestCompleted(test) {
-				passedTests++
-			} else {
-				incompleteTests = append(incompleteTests, test)
-				if test.TestStatus == epic.TestStatusFailed {
+
+			// Check specific test status for accurate counting
+			if test.TestStatus != "" {
+				switch test.TestStatus {
+				case epic.TestStatusPassed:
+					passedTests++
+				case epic.TestStatusFailed:
 					failedTests++
+					incompleteTests = append(incompleteTests, test)
+				case epic.TestStatusCancelled:
+					// Cancelled tests are complete but not "passed"
+				default: // pending, wip
+					pendingTests++
+					incompleteTests = append(incompleteTests, test)
+				}
+			} else {
+				// Legacy test without TestStatus - use Status field
+				if test.Status == epic.StatusCompleted {
+					passedTests++
+				} else if test.Status == epic.StatusCancelled {
+					// Cancelled tests are complete but not "passed"
 				} else {
 					pendingTests++
+					incompleteTests = append(incompleteTests, test)
 				}
 			}
 		}
