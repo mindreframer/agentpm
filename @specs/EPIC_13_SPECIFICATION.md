@@ -206,30 +206,71 @@ agentpm fail A4_1_1    # status: wip, result: failing
 agentpm pass A4_1_1    # status: done, result: passing
 ```
 
-### FR-5: Status Migration
-**Command:** `agentpm migrate-status [--dry-run]`
+### FR-4.1: Batch Test Status Commands
+**Commands:**
+- `agentpm pass-batch <test-id1> <test-id2> <test-id3>...` → batch mark tests as passing
+- `agentpm fail-batch <test-id1> <test-id2> <test-id3>...` → batch mark tests as failing
 
 **Behavior:**
-- Migrates existing XML files to new status values
-- Maps old values to new unified values
-- Preserves data integrity during migration
-- Provides detailed migration report
+- Pre-validates all test IDs exist and their parent tasks belong to current active phase
+- Pre-validates all status transitions are possible according to business rules
+- If ANY validation fails, NO changes are made and detailed error is returned
+- Only executes batch changes if ALL tests can be successfully updated
+- Returns summary of all changes made or comprehensive error details
 
-**Migration Mapping:**
+**Validation Rules:**
+- All test IDs must exist in the current epic
+- All tests must belong to tasks in the current active phase
+- All tests must have valid status for the requested transition
+- Tests marked as cancelled cannot be changed without explicit cancellation reversal
+
+**Error Handling:**
+```xml
+<error>
+    <type>batch_validation_failed</type>
+    <message>Batch operation failed: 2 invalid test IDs, 1 test not in active phase</message>
+    <failed_tests count="3">
+        <test id="A1_1_5" error="test_not_found" message="Test ID A1_1_5 does not exist"/>
+        <test id="A1_2_1" error="wrong_phase" message="Test belongs to task in phase 'done', not current active phase 'wip'"/>
+        <test id="A1_3_1" error="cancelled_test" message="Test is cancelled and cannot be modified without explicit cancellation reversal"/>
+    </failed_tests>
+    <valid_tests count="1">
+        <test id="A1_1_1" current_status="wip" target_status="done"/>
+    </valid_tests>
+</error>
 ```
-epic.StatusPlanning  -> EpicStatusPending
-epic.StatusActive    -> EpicStatusWIP  
-epic.StatusCompleted -> EpicStatusDone
-TestStatusPassed     -> TestStatusDone + TestResultPassing
-TestStatusFailed     -> TestStatusWIP + TestResultFailing
+
+**Success Output:**
+```xml
+<batch_result>
+    <type>batch_pass_success</type>
+    <message>Successfully marked 3 tests as passing</message>
+    <updated_tests count="3">
+        <test id="A1_1_1" old_status="wip" new_status="done" old_result="failing" new_result="passing"/>
+        <test id="A1_1_2" old_status="pending" new_status="done" old_result="failing" new_result="passing"/>
+        <test id="A1_1_3" old_status="wip" new_status="done" old_result="failing" new_result="passing"/>
+    </updated_tests>
+</batch_result>
 ```
+
+**Examples:**
+```bash
+# Batch mark multiple tests as passing
+agentpm pass-batch A1_1_1 A1_1_2 A1_1_3
+
+# Batch mark multiple tests as failing
+agentpm fail-batch A1_1_1 A1_1_2 A1_1_3
+
+# Mixed scenarios - all or nothing
+agentpm pass-batch A1_1_1 A1_1_2 INVALID_ID  # Fails entirely, no changes made
+agentpm pass-batch A1_1_1 A2_1_1              # Fails if A2_1_1 not in active phase
+```
+
+
 
 ## Non-Functional Requirements
 
-### NFR-1: Backward Compatibility
-- Migration command handles existing XML files gracefully
-- Old status values are mapped to new values consistently
-- No data loss during migration process
+
 
 ### NFR-2: Performance
 - Status validation adds < 10ms to command execution
@@ -350,10 +391,33 @@ type Test struct {
 - **AND WHEN** I run `agentpm pass test-1`
 - **THEN** the test should transition back to status="done" and result="passing"
 
-### AC-5: Status Migration
-- **GIVEN** an epic file with old status values
-- **WHEN** I run `agentpm migrate-status`
-- **THEN** all status values should be updated to the new unified system
+### AC-7: Batch Pass Command Success
+- **GIVEN** tests A1_1_1, A1_1_2, A1_1_3 exist and belong to tasks in current active phase
+- **WHEN** I run `agentpm pass-batch A1_1_1 A1_1_2 A1_1_3`
+- **THEN** all three tests should have status="done" and result="passing"
+- **AND** I should receive a success message with details of all changes
+
+### AC-8: Batch Pass Command Validation Failure
+- **GIVEN** test A1_1_5 does not exist
+- **WHEN** I run `agentpm pass-batch A1_1_1 A1_1_2 A1_1_5`
+- **THEN** NO tests should be modified
+- **AND** I should receive an error message explaining the invalid test ID
+- **AND** the error should list which tests were valid vs invalid
+
+### AC-9: Batch Fail Command Success  
+- **GIVEN** tests A1_1_1, A1_1_2, A1_1_3 exist and belong to tasks in current active phase
+- **WHEN** I run `agentpm fail-batch A1_1_1 A1_1_2 A1_1_3`
+- **THEN** all three tests should have status="wip" and result="failing"
+- **AND** I should receive a success message with details of all changes
+
+### AC-10: Batch Command Phase Validation
+- **GIVEN** test A2_1_1 belongs to a task in phase "done" (not current active phase)
+- **WHEN** I run `agentpm pass-batch A1_1_1 A2_1_1`
+- **THEN** NO tests should be modified
+- **AND** I should receive an error explaining A2_1_1 is not in the active phase
+- **AND** the error should show which phase A2_1_1 belongs to vs current active phase
+
+
 
 ### AC-6: Validation Error Details
 - **GIVEN** any blocked completion attempt
@@ -370,7 +434,7 @@ type Test struct {
 ### Test Coverage Areas
 - All status transition validations
 - Error message formatting and counts
-- Migration scenarios for existing data
+- Batch command validation and execution
 - Edge cases (empty phases, orphaned tests, etc.)
 
 ## Implementation Phases
@@ -387,10 +451,9 @@ type Test struct {
 - Implement test status rules
 - Add detailed error messaging with counts
 
-### Phase 13C: Migration & Commands (Day 2-3)
-- Create status migration command
+### Phase 13C: Command Updates (Day 2-3)
 - Update existing commands to use new validation
-- Migrate test files and update snapshots
+- Update test files and snapshots for new status system
 - Validate all existing functionality still works
 
 ### Phase 13D: Integration & Testing (Day 3-4)
@@ -404,7 +467,7 @@ type Test struct {
 - [ ] All entity types use unified status enums
 - [ ] Business rules enforced with exact counts in error messages
 - [ ] Failing tests cannot be marked as "done" without cancellation
-- [ ] Migration command successfully converts existing XML files
+
 - [ ] All tests pass with new status system
 - [ ] Performance impact < 10ms per validation
 - [ ] Test coverage > 95% for status validation logic
@@ -418,19 +481,17 @@ type Test struct {
 - All existing commands must be updated to use new validation
 
 ### Risks
-- **High Risk:** Breaking changes to existing XML format
-- **Medium Risk:** Complex migration scenarios with edge cases  
 - **Medium Risk:** Performance impact of additional validation
+- **Medium Risk:** Batch operations complexity with rollback scenarios
 
 ### Mitigation Strategies
-- Comprehensive migration testing with real epic files
 - Performance benchmarking during development
-- Gradual rollout with backward compatibility period
-- Extensive validation of migration logic
+- Comprehensive testing of batch operations
+- Extensive validation of status transition logic
 
 ## Notes
 
 - This epic represents a significant refactoring that touches most of the codebase
 - The unified status system will make future development much more consistent
-- Focus on preserving data integrity throughout the migration process
+- Batch operations provide efficiency for agents managing multiple tests
 - Error messages must be extremely clear since agents rely on them for automation
