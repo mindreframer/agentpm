@@ -334,8 +334,8 @@ func TestCommandXMLOutput(t *testing.T) {
 - [x] Phase 1B: Write Snapshot Framework Tests
 - [x] Phase 1C: XML Output Test Migration Infrastructure
 - [x] Phase 1D: Write Migration Infrastructure Tests
-- [ ] Phase 2A: Message System Architecture Implementation
-- [ ] Phase 2B: Write Message System Tests
+- [x] Phase 2A: Message System Architecture Implementation
+- [x] Phase 2B: Write Message System Tests
 - [ ] Phase 2C: Redundant State Transition Handling
 - [ ] Phase 2D: Write State Transition Tests
 - [ ] Phase 3A: Error Hint Infrastructure Implementation
