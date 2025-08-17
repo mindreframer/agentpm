@@ -44,9 +44,9 @@ func TestCancelCommand_Structure(t *testing.T) {
 		t.Error("expected global flags to be present")
 	}
 
-	// Test that action function exists for auto-detection
-	if cmd.Action == nil {
-		t.Error("expected action function for auto-detection")
+	// Test that no action function exists (commands require subcommands)
+	if cmd.Action != nil {
+		t.Error("cancel command should not have action function - requires subcommands")
 	}
 }
 
@@ -106,15 +106,15 @@ func TestCancelTestSubcommand_Structure(t *testing.T) {
 	}
 }
 
-func TestCancelCommand_AutoDetection(t *testing.T) {
+func TestCancelCommand_ExplicitSubcommands(t *testing.T) {
 	cmd := CancelCommand()
 
-	// Test that the command has auto-detection action
-	if cmd.Action == nil {
-		t.Error("cancel command should have auto-detection action")
+	// Test that the command requires explicit subcommands (no auto-detection)
+	if cmd.Action != nil {
+		t.Error("cancel command should not have action - requires explicit subcommands")
 	}
 
-	// Test that auto-detection supports the expected entity types
+	// Test that command structure supports explicit entity types
 	if cmd.Name != "cancel" {
 		t.Error("command should be named 'cancel'")
 	}
@@ -130,7 +130,7 @@ func TestCancelCommand_Help(t *testing.T) {
 
 	// Check that description mentions key concepts
 	description := cmd.Description
-	expectedConcepts := []string{"task", "test", "auto-detect", "reason"}
+	expectedConcepts := []string{"task", "test", "reason"}
 
 	for _, concept := range expectedConcepts {
 		if !contains(description, concept) {
@@ -174,9 +174,9 @@ func TestCancelCommand_Subcommand_Actions_NotNil(t *testing.T) {
 		}
 	}
 
-	// Test that main command has fallback action
-	if cmd.Action == nil {
-		t.Error("main cancel command missing fallback action")
+	// Test that main command has no fallback action (requires explicit subcommands)
+	if cmd.Action != nil {
+		t.Error("main cancel command should not have fallback action - requires explicit subcommands")
 	}
 }
 
@@ -195,9 +195,9 @@ func TestCancelCommand_ValidIDs_Structure(t *testing.T) {
 
 	cmd := CancelCommand()
 
-	// Validate command supports auto-detection for these IDs
-	if cmd.Action == nil {
-		t.Error("command should support auto-detection")
+	// Validate command requires explicit entity types
+	if cmd.Action != nil {
+		t.Error("command should not support auto-detection - requires explicit entity types")
 	}
 
 	for _, tt := range validIDs {
@@ -234,8 +234,8 @@ func TestCancelCommand_Integration_Structure(t *testing.T) {
 		t.Error("cancel command should have global flags")
 	}
 
-	// Validate it has actions
-	if cmd.Action == nil {
-		t.Error("cancel command should have action function")
+	// Validate it has no action (requires explicit subcommands)
+	if cmd.Action != nil {
+		t.Error("cancel command should not have action function - requires explicit subcommands")
 	}
 }

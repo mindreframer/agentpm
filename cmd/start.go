@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/mindreframer/agentpm/internal/commands"
@@ -20,15 +19,11 @@ Subcommands:
   task <id>      Start working on specific task
   test <id>      Start test execution
 
-You can also use just 'start <id>' and the system will auto-detect the entity type.
-
 Examples:
   agentpm start epic                    # Start current epic
   agentpm start phase 3A                # Start phase 3A
   agentpm start task 3A_1               # Start task 3A_1
-  agentpm start test 3A_T1              # Start test 3A_T1
-  agentpm start 3A                      # Auto-detect (phase 3A)
-  agentpm start 3A_1                    # Auto-detect (task 3A_1)`,
+  agentpm start test 3A_T1              # Start test 3A_T1`,
 		Flags: commands.GlobalFlags(),
 		Commands: []*cli.Command{
 			startEpicSubcommand(),
@@ -36,7 +31,6 @@ Examples:
 			startTaskSubcommand(),
 			startTestSubcommand(),
 		},
-		Action: startWithAutoDetection, // Fallback for auto-detection
 	}
 }
 
@@ -199,21 +193,4 @@ func handleStartTest(ctx commands.RouterContext, testID string) error {
 		}
 	}
 	return nil
-}
-
-// Auto-detection action for when no subcommand is specified
-func startWithAutoDetection(ctx context.Context, c *cli.Command) error {
-	if c.Args().Len() < 1 {
-		return fmt.Errorf("entity ID is required. Use 'agentpm start help' for more information")
-	}
-
-	// Use the router's auto-detection
-	handlers := map[commands.EntityType]func(commands.RouterContext, string) error{
-		commands.EntityTypePhase: handleStartPhase,
-		commands.EntityTypeTask:  handleStartTask,
-		commands.EntityTypeTest:  handleStartTest,
-	}
-
-	autoDetectAction := commands.CreateAutoDetectAction(handlers)
-	return autoDetectAction(ctx, c)
 }

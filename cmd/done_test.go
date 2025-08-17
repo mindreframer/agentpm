@@ -143,15 +143,15 @@ func TestDoneTaskSubcommand_Structure(t *testing.T) {
 	}
 }
 
-func TestDoneCommand_AutoDetection_Structure(t *testing.T) {
+func TestDoneCommand_ExplicitSubcommands_Structure(t *testing.T) {
 	cmd := DoneCommand()
 
-	// Test that the command has auto-detection action
-	if cmd.Action == nil {
-		t.Error("done command should have auto-detection action")
+	// Test that the command requires explicit subcommands (no auto-detection)
+	if cmd.Action != nil {
+		t.Error("done command should not have action - requires explicit subcommands")
 	}
 
-	// Test that auto-detection supports the expected entity types
+	// Test that command structure supports explicit entity types
 	// Note: Actual execution testing requires proper CLI setup
 
 	if cmd.Name != "done" {
@@ -169,7 +169,7 @@ func TestDoneCommand_Help(t *testing.T) {
 
 	// Check that description mentions key concepts
 	description := cmd.Description
-	expectedConcepts := []string{"epic", "phase", "task", "auto-detect"}
+	expectedConcepts := []string{"epic", "phase", "task"}
 
 	for _, concept := range expectedConcepts {
 		if !contains(description, concept) {
@@ -216,9 +216,9 @@ func TestDoneCommand_Subcommand_Actions_NotNil(t *testing.T) {
 		}
 	}
 
-	// Test that main command has fallback action
-	if cmd.Action == nil {
-		t.Error("main done command missing fallback action")
+	// Test that main command has no fallback action (requires explicit subcommands)
+	if cmd.Action != nil {
+		t.Error("main done command should not have fallback action - requires explicit subcommands")
 	}
 }
 
@@ -237,9 +237,9 @@ func TestDoneCommand_ValidIDs_Structure(t *testing.T) {
 
 	cmd := DoneCommand()
 
-	// Validate command supports auto-detection for these IDs
-	if cmd.Action == nil {
-		t.Error("command should support auto-detection")
+	// Validate command requires explicit entity types (no auto-detection)
+	if cmd.Action != nil {
+		t.Error("command should not support auto-detection - requires explicit entity types")
 	}
 
 	for _, tt := range validIDs {
@@ -327,8 +327,8 @@ func TestDoneCommand_Integration_Structure(t *testing.T) {
 		t.Error("done command should have global flags")
 	}
 
-	// Validate it has actions
-	if cmd.Action == nil {
-		t.Error("done command should have action function")
+	// Validate it has no action (requires explicit subcommands)
+	if cmd.Action != nil {
+		t.Error("done command should not have action function - requires explicit subcommands")
 	}
 }

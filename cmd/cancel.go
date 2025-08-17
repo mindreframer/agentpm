@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/mindreframer/agentpm/internal/commands"
@@ -18,19 +17,14 @@ Subcommands:
   task <id> [reason]     Cancel specific task
   test <id> [reason]     Cancel specific test
 
-You can also use just 'cancel <id>' and the system will auto-detect the entity type.
-
 Examples:
   agentpm cancel task 3A_1 "No longer needed"   # Cancel task with reason
-  agentpm cancel test 3A_T1 "Test obsolete"     # Cancel test with reason
-  agentpm cancel 3A_1 "Cancelled"               # Auto-detect (task 3A_1)
-  agentpm cancel 3A_T1                          # Auto-detect (test 3A_T1)`,
+  agentpm cancel test 3A_T1 "Test obsolete"     # Cancel test with reason`,
 		Flags: commands.GlobalFlags(),
 		Commands: []*cli.Command{
 			cancelTaskSubcommand(),
 			cancelTestSubcommand(),
 		},
-		Action: cancelWithAutoDetection, // Fallback for auto-detection
 	}
 }
 
@@ -114,20 +108,4 @@ func handleCancelTest(ctx commands.RouterContext, testID string) error {
 	}
 
 	return nil
-}
-
-// Auto-detection action for when no subcommand is specified
-func cancelWithAutoDetection(ctx context.Context, c *cli.Command) error {
-	if c.Args().Len() < 1 {
-		return fmt.Errorf("entity ID is required. Use 'agentpm cancel help' for more information")
-	}
-
-	// Use the router's auto-detection
-	handlers := map[commands.EntityType]func(commands.RouterContext, string) error{
-		commands.EntityTypeTask: handleCancelTask,
-		commands.EntityTypeTest: handleCancelTest,
-	}
-
-	autoDetectAction := commands.CreateAutoDetectAction(handlers)
-	return autoDetectAction(ctx, c)
 }

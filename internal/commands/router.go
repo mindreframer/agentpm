@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"regexp"
-	"strings"
 
 	"github.com/beevik/etree"
 	"github.com/mindreframer/agentpm/internal/messages"
@@ -43,75 +41,6 @@ func ExtractRouterContext(c *cli.Command) RouterContext {
 		Format:     c.String("format"),
 		Time:       c.String("time"),
 	}
-}
-
-// EntityID represents an entity identifier with its detected type
-type EntityID struct {
-	ID   string
-	Type EntityType
-}
-
-// TypeDetectionResult holds the result of entity type detection
-type TypeDetectionResult struct {
-	EntityID    *EntityID
-	IsAmbiguous bool
-	Suggestions []EntityID
-	Error       error
-}
-
-// DetectEntityType attempts to determine the entity type from an ID
-func DetectEntityType(id string) TypeDetectionResult {
-	if id == "" {
-		return TypeDetectionResult{
-			Error: fmt.Errorf("entity ID cannot be empty"),
-		}
-	}
-
-	// Define patterns for different entity types (order matters - more specific first)
-	patterns := []struct {
-		Type    EntityType
-		Pattern *regexp.Regexp
-	}{
-		{EntityTypeTest, regexp.MustCompile(`^[0-9]+[A-Z]_T[0-9]+$`)}, // e.g., "3A_T1", "1B_T2" (most specific)
-		{EntityTypeTask, regexp.MustCompile(`^[0-9]+[A-Z]_[0-9]+$`)},  // e.g., "3A_1", "1B_2" (no T prefix)
-		{EntityTypePhase, regexp.MustCompile(`^[0-9]+[A-Z]$`)},        // e.g., "3A", "1B", "4C"
-	}
-
-	var matches []EntityID
-	for _, patternDef := range patterns {
-		if patternDef.Pattern.MatchString(id) {
-			matches = append(matches, EntityID{
-				ID:   id,
-				Type: patternDef.Type,
-			})
-		}
-	}
-
-	switch len(matches) {
-	case 0:
-		return TypeDetectionResult{
-			Error: fmt.Errorf("unable to determine entity type for ID '%s': does not match any known patterns", id),
-		}
-	case 1:
-		return TypeDetectionResult{
-			EntityID: &matches[0],
-		}
-	default:
-		return TypeDetectionResult{
-			IsAmbiguous: true,
-			Suggestions: matches,
-			Error:       fmt.Errorf("ambiguous entity ID '%s': could be %s", id, formatEntityTypes(matches)),
-		}
-	}
-}
-
-// formatEntityTypes formats a list of entity types for error messages
-func formatEntityTypes(entities []EntityID) string {
-	var types []string
-	for _, entity := range entities {
-		types = append(types, string(entity.Type))
-	}
-	return strings.Join(types, " or ")
 }
 
 // ValidateSubcommandArgs validates arguments for subcommand-based operations
@@ -277,36 +206,6 @@ func CreateEntityAction(entityType EntityType, handler func(RouterContext, strin
 
 		entityID := c.Args().First()
 		routerCtx := ExtractRouterContext(c)
-		return handler(routerCtx, entityID)
-	}
-}
-
-// CreateAutoDetectAction creates an action that auto-detects entity type
-func CreateAutoDetectAction(handlers map[EntityType]func(RouterContext, string) error) cli.ActionFunc {
-	return func(ctx context.Context, c *cli.Command) error {
-		if c.Args().Len() < 1 {
-			return fmt.Errorf("entity ID is required")
-		}
-
-		entityID := c.Args().First()
-		routerCtx := ExtractRouterContext(c)
-
-		// Attempt type detection
-		result := DetectEntityType(entityID)
-		if result.Error != nil {
-			return OutputError(c, routerCtx.Format, result.Error)
-		}
-
-		if result.IsAmbiguous {
-			return OutputError(c, routerCtx.Format, result.Error)
-		}
-
-		// Find appropriate handler
-		handler, exists := handlers[result.EntityID.Type]
-		if !exists {
-			return OutputError(c, routerCtx.Format, fmt.Errorf("no handler available for entity type: %s", result.EntityID.Type))
-		}
-
 		return handler(routerCtx, entityID)
 	}
 }

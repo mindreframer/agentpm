@@ -174,15 +174,15 @@ func TestStartCommand_AutoDetection_NoArgs(t *testing.T) {
 	cmd := StartCommand()
 
 	// Test that the action function exists
-	if cmd.Action == nil {
-		t.Error("start command should have auto-detection action")
+	if cmd.Action != nil {
+		t.Error("start command should not have action - requires explicit subcommands")
 	}
 
 	// Note: Testing actual execution requires complex CLI setup with proper Args()
 	// For now, we validate the structure. Full execution testing will be done in integration tests.
 
 	// Validate that the action function is the expected one
-	// This ensures the auto-detection is wired up correctly
+	// This ensures the explicit entity typeion is wired up correctly
 	// We can't directly compare function pointers, but we can ensure it's not nil
 	// and that the command structure is correct
 
@@ -194,9 +194,9 @@ func TestStartCommand_AutoDetection_NoArgs(t *testing.T) {
 func TestStartCommand_AutoDetection_InvalidID(t *testing.T) {
 	cmd := StartCommand()
 
-	// Test that the command structure supports auto-detection
-	if cmd.Action == nil {
-		t.Error("start command should have auto-detection action")
+	// Test that the command structure supports explicit entity typeion
+	if cmd.Action != nil {
+		t.Error("start command should not have action - requires explicit subcommands")
 	}
 
 	// Test that the command supports the expected workflow
@@ -226,9 +226,9 @@ func TestStartCommand_AutoDetection_ValidIDs(t *testing.T) {
 
 	cmd := StartCommand()
 
-	// Validate that the command has the auto-detection action
-	if cmd.Action == nil {
-		t.Error("start command should have auto-detection action")
+	// Validate that the command has the explicit entity typeion action
+	if cmd.Action != nil {
+		t.Error("start command should not have action - requires explicit subcommands")
 	}
 
 	// Validate that the structure supports the test cases
@@ -265,7 +265,7 @@ func TestStartCommand_Help(t *testing.T) {
 
 	// Check that description mentions key concepts
 	description := cmd.Description
-	expectedConcepts := []string{"epic", "phase", "task", "test", "auto-detect"}
+	expectedConcepts := []string{"epic", "phase", "task", "test"}
 
 	for _, concept := range expectedConcepts {
 		if !contains(description, concept) {
@@ -312,9 +312,9 @@ func TestStartCommand_Subcommand_Actions_NotNil(t *testing.T) {
 		}
 	}
 
-	// Test that main command has fallback action
-	if cmd.Action == nil {
-		t.Error("main start command missing fallback action")
+	// Test that main command has no fallback action (requires explicit subcommands)
+	if cmd.Action != nil {
+		t.Error("main start command should not have fallback action - requires explicit subcommands")
 	}
 }
 

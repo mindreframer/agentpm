@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/mindreframer/agentpm/internal/commands"
@@ -19,21 +18,16 @@ Subcommands:
   phase <id>     Complete specific phase
   task <id>      Complete specific task
 
-You can also use just 'done <id>' and the system will auto-detect the entity type.
-
 Examples:
   agentpm done epic                     # Complete current epic
   agentpm done phase 3A                 # Complete phase 3A
-  agentpm done task 3A_1                # Complete task 3A_1
-  agentpm done 3A                       # Auto-detect (phase 3A)
-  agentpm done 3A_1                     # Auto-detect (task 3A_1)`,
+  agentpm done task 3A_1                # Complete task 3A_1`,
 		Flags: commands.GlobalFlags(),
 		Commands: []*cli.Command{
 			doneEpicSubcommand(),
 			donePhaseSubcommand(),
 			doneTaskSubcommand(),
 		},
-		Action: doneWithAutoDetection, // Fallback for auto-detection
 	}
 }
 
@@ -166,20 +160,4 @@ func handleDoneTask(ctx commands.RouterContext, taskID string) error {
 	// Output success message
 	fmt.Printf("Task %s completed.\n", taskID)
 	return nil
-}
-
-// Auto-detection action for when no subcommand is specified
-func doneWithAutoDetection(ctx context.Context, c *cli.Command) error {
-	if c.Args().Len() < 1 {
-		return fmt.Errorf("entity ID is required. Use 'agentpm done help' for more information")
-	}
-
-	// Use the router's auto-detection
-	handlers := map[commands.EntityType]func(commands.RouterContext, string) error{
-		commands.EntityTypePhase: handleDonePhase,
-		commands.EntityTypeTask:  handleDoneTask,
-	}
-
-	autoDetectAction := commands.CreateAutoDetectAction(handlers)
-	return autoDetectAction(ctx, c)
 }
