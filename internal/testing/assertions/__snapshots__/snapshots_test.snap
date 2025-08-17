@@ -1,0 +1,203 @@
+
+[TestSnapshotIntegration_CapturesFullStateCorrectly - 1]
+full_state_test
+map[string]interface {}{
+    "Assignee":     "",
+    "CreatedAt":    "NORMALIZED_TIMESTAMP",
+    "CurrentState": map[string]interface {}{
+        "ActivePhase": "",
+        "ActiveTask":  "",
+        "NextAction":  "Start next phase",
+    },
+    "Dependencies": "",
+    "Description":  "",
+    "Events":       []interface {}{
+        map[string]interface {}{
+            "Data":      "Epic snapshot-test started",
+            "ID":        "epic_started_NORMALIZED_TIMESTAMP",
+            "Timestamp": "NORMALIZED_TIMESTAMP",
+            "Type":      "epic_started",
+        },
+        map[string]interface {}{
+            "Data":      "Phase 1A (Setup) started",
+            "ID":        "phase_started_NORMALIZED_TIMESTAMP",
+            "Timestamp": "NORMALIZED_TIMESTAMP",
+            "Type":      "phase_started",
+        },
+        map[string]interface {}{
+            "Data":      "Task 1A_1 (Initialize) started",
+            "ID":        "task_started_NORMALIZED_TIMESTAMP",
+            "Timestamp": "NORMALIZED_TIMESTAMP",
+            "Type":      "task_started",
+        },
+        map[string]interface {}{
+            "Data":      "Test T1A_1 passed",
+            "ID":        "test_passed_T1A_1_NORMALIZED_TIMESTAMP",
+            "Timestamp": "NORMALIZED_TIMESTAMP",
+            "Type":      "test_passed",
+        },
+        map[string]interface {}{
+            "Data":      "Task 1A_1 (Initialize) completed",
+            "ID":        "task_completed_NORMALIZED_TIMESTAMP",
+            "Timestamp": "NORMALIZED_TIMESTAMP",
+            "Type":      "task_completed",
+        },
+        map[string]interface {}{
+            "Data":      "Phase 1A (Setup) completed",
+            "ID":        "phase_completed_NORMALIZED_TIMESTAMP",
+            "Timestamp": "NORMALIZED_TIMESTAMP",
+            "Type":      "phase_completed",
+        },
+    },
+    "ID":       "snapshot-test",
+    "Metadata": map[string]interface {}{
+        "Assignee":        "",
+        "Created":         "NORMALIZED_TIMESTAMP",
+        "EstimatedEffort": "",
+    },
+    "Name":   "snapshot-test",
+    "Phases": []interface {}{
+        map[string]interface {}{
+            "CompletedAt":  "NORMALIZED_TIMESTAMP",
+            "Deliverables": "",
+            "Description":  "",
+            "ID":           "1A",
+            "Name":         "Setup",
+            "StartedAt":    "NORMALIZED_TIMESTAMP",
+            "Status":       "completed",
+        },
+    },
+    "Requirements": "",
+    "Status":       "active",
+    "Tasks":        []interface {}{
+        map[string]interface {}{
+            "AcceptanceCriteria": "",
+            "Assignee":           "",
+            "CancelledAt":        nil,
+            "CompletedAt":        "NORMALIZED_TIMESTAMP",
+            "Description":        "",
+            "ID":                 "1A_1",
+            "Name":               "Initialize",
+            "PhaseID":            "1A",
+            "StartedAt":          "NORMALIZED_TIMESTAMP",
+            "Status":             "completed",
+        },
+    },
+    "Tests": []interface {}{
+        map[string]interface {}{
+            "CancellationReason": "",
+            "CancelledAt":        nil,
+            "Description":        "",
+            "FailedAt":           nil,
+            "FailureNote":        "",
+            "ID":                 "T1A_1",
+            "Name":               "Test Init",
+            "PassedAt":           "NORMALIZED_TIMESTAMP",
+            "PhaseID":            "1A",
+            "StartedAt":          nil,
+            "Status":             "completed",
+            "TaskID":             "1A_1",
+            "TestResult":         "passing",
+            "TestStatus":         "done",
+        },
+    },
+    "Workflow": "",
+}
+---
+
+[TestSnapshotIntegration_XMLSnapshotsShowMeaningfulDiffs - 1]
+xml_diff_test
+<epic status="active"><phase id="1A" status="completed"/></epic>
+---
+
+[TestSnapshotIntegration_XMLSnapshotsShowMeaningfulDiffs - 2]
+xml_diff_test_2
+<epic status="pending"><phase id="1A" status="active"/></epic>
+---
+
+[TestSnapshotIntegration_SnapshotUpdatesWorkDuringDevelopment - 1]
+update_test
+map[string]interface {}{
+    "epic_id":     "update-test",
+    "epic_status": "active",
+    "phases":      float64(2),
+    "tasks":       float64(4),
+    "tests":       float64(4),
+}
+---
+
+[TestSnapshotIntegration_SelectiveSnapshotsFocusOnRelevantElements - 1]
+selective_test
+map[string]interface {}{
+    "epic_id":     "selective-test",
+    "epic_status": "active",
+    "phases":      float64(3),
+    "tasks":       float64(6),
+    "tests":       float64(8),
+}
+---
+
+[TestSnapshotIntegration_CrossPlatformSnapshotsAreConsistent - 1]
+cross_platform_test
+map[string]interface {}{
+    "config":      "./config/settings.json",
+    "epic_id":     "cross-platform-test",
+    "epic_status": "active",
+    "file_path":   "/Users/test/file.xml",
+    "work_dir":    "C:\\Projects\\AgentPM",
+}
+---
+
+[TestSnapshotIntegration_ConfigurationOptions/default - 1]
+default
+map[string]interface {}{
+    "status":  "active",
+    "test_id": "config-test",
+}
+---
+
+[TestSnapshotIntegration_ConfigurationOptions/cross_platform_only - 1]
+cross_platform_only
+map[string]interface {}{
+    "status":  "active",
+    "test_id": "config-test",
+}
+---
+
+[TestSnapshotIntegration_ConfigurationOptions/update_mode_only - 1]
+update_mode_only
+map[string]interface {}{
+    "status":  "active",
+    "test_id": "config-test",
+}
+---
+
+[TestSnapshotIntegration_ConfigurationOptions/both_enabled - 1]
+both_enabled
+map[string]interface {}{
+    "status":  "active",
+    "test_id": "config-test",
+}
+---
+
+[TestSnapshotIntegration_XMLNormalization - 1]
+xml_norm_0
+<epic status="active"><phase id="1A"/></epic>
+---
+
+[TestSnapshotIntegration_XMLNormalization - 2]
+xml_norm_1
+<epic   status="active"  ><phase   id="1A"   /></epic>
+---
+
+[TestSnapshotIntegration_XMLNormalization - 3]
+xml_norm_2
+<epic status='active'><phase id='1A'/></epic>
+---
+
+[TestSnapshotIntegration_XMLNormalization - 4]
+xml_norm_3
+<epic status="active">
+            <phase id="1A"/>
+        </epic>
+---

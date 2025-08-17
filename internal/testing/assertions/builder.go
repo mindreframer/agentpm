@@ -370,25 +370,29 @@ func (ab *AssertionBuilder) MatchSnapshot(name string) *AssertionBuilder {
 // MatchXMLSnapshot compares specific XML elements against a snapshot
 func (ab *AssertionBuilder) MatchXMLSnapshot(name string, element interface{}) *AssertionBuilder {
 	// Get XML representation of the element
-	var xmlData []byte
+	var xmlData string
 
 	if xmlStr, ok := element.(string); ok {
-		xmlData = []byte(xmlStr)
+		xmlData = xmlStr
 	} else {
 		// For structured data, would need XML marshaling
-		xmlData = []byte(fmt.Sprintf("<%T>%+v</%T>", element, element, element))
+		xmlData = fmt.Sprintf("<%T>%+v</%T>", element, element, element)
 	}
 
-	// Basic XML normalization without external dependencies
-	normalized := ab.basicXMLNormalize(string(xmlData))
+	// Use the new XML snapshot integration
+	snapshotAssertion := NewSnapshotAssertion(nil) // nil testing.T for now
 
-	snapshotData := map[string]interface{}{
-		"xml_content":  normalized,
-		"element_type": fmt.Sprintf("%T", element),
+	err := snapshotAssertion.MatchXMLSnapshot(name, xmlData)
+	if err != nil {
+		ab.addError("match_xml_snapshot",
+			fmt.Sprintf("XML snapshot comparison '%s' failed: %v", name, err),
+			"snapshot match", err.Error(),
+			map[string]interface{}{
+				"snapshot_name": name,
+				"xml_content":   xmlData,
+				"element_type":  fmt.Sprintf("%T", element),
+			})
 	}
-
-	// This would integrate with actual snapshot comparison
-	_ = snapshotData
 
 	return ab
 }
@@ -745,15 +749,19 @@ func (ab *AssertionBuilder) generateXMLSnapshotData(element interface{}) map[str
 
 // addSnapshotComparison adds snapshot comparison data for later verification
 func (ab *AssertionBuilder) addSnapshotComparison(name string, data map[string]interface{}) {
-	// For now, store the snapshot data in the context of an assertion
-	// In a full implementation, this would integrate with the existing snapshot testing framework
-	ab.addError("snapshot_comparison",
-		fmt.Sprintf("Snapshot comparison '%s' - implementation pending", name),
-		"snapshot match", "not implemented",
-		map[string]interface{}{
-			"snapshot_name": name,
-			"snapshot_data": data,
-		})
+	// Use the new snapshot integration
+	snapshotAssertion := NewSnapshotAssertion(nil) // nil testing.T for now
+
+	err := snapshotAssertion.MatchSnapshot(name, data)
+	if err != nil {
+		ab.addError("snapshot_comparison",
+			fmt.Sprintf("Snapshot comparison '%s' failed: %v", name, err),
+			"snapshot match", err.Error(),
+			map[string]interface{}{
+				"snapshot_name": name,
+				"snapshot_data": data,
+			})
+	}
 }
 
 // isSubsequence checks if expected sequence is a subsequence of actual sequence
@@ -777,4 +785,78 @@ func (ab *AssertionBuilder) basicXMLNormalize(xml string) string {
 	// Simple normalization: trim whitespace and basic formatting
 	normalized := fmt.Sprintf("%s", xml)
 	return normalized
+}
+
+// MatchSelectiveSnapshot compares specific fields of the state against a snapshot
+func (ab *AssertionBuilder) MatchSelectiveSnapshot(name string, fields []string) *AssertionBuilder {
+	if ab.result.FinalState == nil {
+		ab.addError("match_selective_snapshot",
+			"Cannot create selective snapshot - final state is nil",
+			"valid final state", nil,
+			map[string]interface{}{
+				"snapshot_name": name,
+				"fields":        fields,
+			})
+		return ab
+	}
+
+	// Use the new selective snapshot integration
+	snapshotAssertion := NewSnapshotAssertion(nil) // nil testing.T for now
+
+	err := snapshotAssertion.MatchSelectiveSnapshot(name, ab.result.FinalState, fields)
+	if err != nil {
+		ab.addError("match_selective_snapshot",
+			fmt.Sprintf("Selective snapshot comparison '%s' failed: %v", name, err),
+			"snapshot match", err.Error(),
+			map[string]interface{}{
+				"snapshot_name": name,
+				"fields":        fields,
+			})
+	}
+
+	return ab
+}
+
+// MatchSnapshotWithConfig compares state against a snapshot with custom configuration
+func (ab *AssertionBuilder) MatchSnapshotWithConfig(name string, config map[string]interface{}) *AssertionBuilder {
+	if ab.result.FinalState == nil {
+		ab.addError("match_snapshot_config",
+			"Cannot create snapshot - final state is nil",
+			"valid final state", nil,
+			map[string]interface{}{
+				"snapshot_name": name,
+				"config":        config,
+			})
+		return ab
+	}
+
+	// Generate snapshot data
+	data := ab.generateSnapshotData(ab.result.FinalState)
+
+	// Apply configuration to the data
+	if normalize, ok := config["normalize"]; ok && normalize.(bool) {
+		// Apply normalization if requested
+		data["normalized"] = true
+	}
+
+	if crossPlatform, ok := config["cross_platform"]; ok && crossPlatform.(bool) {
+		// Apply cross-platform normalization
+		data["cross_platform"] = true
+	}
+
+	// Use the snapshot assertion
+	snapshotAssertion := NewSnapshotAssertion(nil)
+
+	err := snapshotAssertion.MatchSnapshot(name, data)
+	if err != nil {
+		ab.addError("match_snapshot_config",
+			fmt.Sprintf("Configured snapshot comparison '%s' failed: %v", name, err),
+			"snapshot match", err.Error(),
+			map[string]interface{}{
+				"snapshot_name": name,
+				"config":        config,
+			})
+	}
+
+	return ab
 }

@@ -315,10 +315,10 @@ func TestAssertionBuilder_MatchSnapshot_Basic(t *testing.T) {
 		Check()
 
 	if err == nil {
-		t.Error("Expected snapshot assertion to fail (not implemented)")
+		t.Error("Expected error for snapshot testing without testing.T")
 	}
 
-	expectedMsg := "implementation pending"
+	expectedMsg := "no testing.T instance available"
 	if !strings.Contains(err.Error(), expectedMsg) {
 		t.Errorf("Expected error message to contain '%s', got: %s", expectedMsg, err.Error())
 	}
@@ -553,11 +553,11 @@ func TestAssertionBuilder_SnapshotRegressionDetection(t *testing.T) {
 		MatchSnapshot("regression_test").
 		Check()
 
-	// Since snapshot implementation is pending, check for expected error
+	// Since snapshot needs testing.T instance, check for expected error
 	if err == nil {
-		t.Error("Expected snapshot to show pending implementation")
-	} else if !contains(err.Error(), "implementation pending") {
-		t.Errorf("Expected 'implementation pending' error, got: %v", err)
+		t.Error("Expected snapshot to show testing.T error")
+	} else if !contains(err.Error(), "no testing.T instance available") {
+		t.Errorf("Expected 'no testing.T instance available' error, got: %v", err)
 	}
 }
 
