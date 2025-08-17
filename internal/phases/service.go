@@ -52,7 +52,7 @@ func (s *PhaseService) StartPhase(epicData *epic.Epic, phaseID string, timestamp
 	phase.StartedAt = &timestamp
 
 	// Create automatic event for phase start
-	service.CreateEvent(epicData, service.EventPhaseStarted, phaseID, "", timestamp)
+	service.CreateEvent(epicData, service.EventPhaseStarted, phaseID, "", "", "", timestamp)
 
 	return nil
 }
@@ -75,7 +75,7 @@ func (s *PhaseService) CompletePhase(epicData *epic.Epic, phaseID string, timest
 	phase.CompletedAt = &timestamp
 
 	// Create automatic event for phase completion
-	service.CreateEvent(epicData, service.EventPhaseCompleted, phaseID, "", timestamp)
+	service.CreateEvent(epicData, service.EventPhaseCompleted, phaseID, "", "", "", timestamp)
 
 	return nil
 }

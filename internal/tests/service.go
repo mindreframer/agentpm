@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mindreframer/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/service"
 	"github.com/mindreframer/agentpm/internal/storage"
 )
 
@@ -84,6 +85,9 @@ func (s *TestService) StartTest(epicFile, testID string, timestamp *time.Time) (
 	}
 	test.StartedAt = timestamp
 
+	// Create event for test start
+	service.CreateEvent(e, service.EventTestStarted, test.PhaseID, test.TaskID, testID, "", *timestamp)
+
 	// Save epic
 	if err := s.storage.SaveEpic(e, epicFile); err != nil {
 		return nil, &TestError{
@@ -138,6 +142,9 @@ func (s *TestService) PassTest(epicFile, testID string, timestamp *time.Time) (*
 	// Clear any previous failure note
 	test.FailureNote = ""
 
+	// Create event for test pass
+	service.CreateEvent(e, service.EventTestPassed, test.PhaseID, test.TaskID, testID, "", *timestamp)
+
 	// Save epic
 	if err := s.storage.SaveEpic(e, epicFile); err != nil {
 		return nil, &TestError{
@@ -190,6 +197,9 @@ func (s *TestService) FailTest(epicFile, testID, failureReason string, timestamp
 	}
 	test.FailedAt = timestamp
 	test.FailureNote = failureReason
+
+	// Create event for test failure
+	service.CreateEvent(e, service.EventTestFailed, test.PhaseID, test.TaskID, testID, failureReason, *timestamp)
 
 	// Save epic
 	if err := s.storage.SaveEpic(e, epicFile); err != nil {
@@ -244,6 +254,9 @@ func (s *TestService) CancelTest(epicFile, testID, cancellationReason string, ti
 	}
 	test.CancelledAt = timestamp
 	test.CancellationReason = cancellationReason
+
+	// Create event for test cancellation
+	service.CreateEvent(e, service.EventTestCancelled, test.PhaseID, test.TaskID, testID, cancellationReason, *timestamp)
 
 	// Save epic
 	if err := s.storage.SaveEpic(e, epicFile); err != nil {

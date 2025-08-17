@@ -233,7 +233,7 @@ func TestStartEpicCommand_JSONOutput(t *testing.T) {
 	assert.Equal(t, "epic-1", epicStarted["epic_id"])
 	assert.Equal(t, "pending", epicStarted["previous_status"])
 	assert.Equal(t, "wip", epicStarted["new_status"])
-	assert.False(t, epicStarted["event_created"].(bool))
+	assert.True(t, epicStarted["event_created"].(bool))
 }
 
 func TestStartEpicCommand_XMLOutput(t *testing.T) {

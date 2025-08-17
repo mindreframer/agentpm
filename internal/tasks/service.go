@@ -46,7 +46,7 @@ func (s *TaskService) StartTask(epicData *epic.Epic, taskID string, timestamp ti
 	task.StartedAt = &timestamp
 
 	// Create automatic event for task start
-	service.CreateEvent(epicData, service.EventTaskStarted, task.PhaseID, taskID, timestamp)
+	service.CreateEvent(epicData, service.EventTaskStarted, task.PhaseID, taskID, "", "", timestamp)
 
 	return nil
 }
@@ -69,7 +69,7 @@ func (s *TaskService) CompleteTask(epicData *epic.Epic, taskID string, timestamp
 	task.CompletedAt = &timestamp
 
 	// Create automatic event for task completion
-	service.CreateEvent(epicData, service.EventTaskCompleted, task.PhaseID, taskID, timestamp)
+	service.CreateEvent(epicData, service.EventTaskCompleted, task.PhaseID, taskID, "", "", timestamp)
 
 	return nil
 }
@@ -92,7 +92,7 @@ func (s *TaskService) CancelTask(epicData *epic.Epic, taskID string, timestamp t
 	task.CancelledAt = &timestamp
 
 	// Create automatic event for task cancellation
-	service.CreateEvent(epicData, service.EventTaskCancelled, task.PhaseID, taskID, timestamp)
+	service.CreateEvent(epicData, service.EventTaskCancelled, task.PhaseID, taskID, "", "", timestamp)
 
 	return nil
 }

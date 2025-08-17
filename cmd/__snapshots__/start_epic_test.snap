@@ -5,7 +5,7 @@ start_epic_xml_output
     <previous_status>pending</previous_status>
     <new_status>wip</new_status>
     <started_at>[TIMESTAMP]</started_at>
-    <event_created>false</event_created>
+    <event_created>true</event_created>
     <message>Epic epic-1 started. Status changed to wip.</message>
 </epic_started>
 ---

@@ -202,8 +202,8 @@ func TestLifecycleService_StartEpic_Success(t *testing.T) {
 		t.Errorf("Expected started at %v, got %v", testTime, result.StartedAt)
 	}
 
-	if result.EventCreated {
-		t.Error("Expected event NOT to be created (events will be implemented in later epic)")
+	if !result.EventCreated {
+		t.Error("Expected event to be created")
 	}
 
 	// Verify epic was updated in storage
@@ -441,8 +441,8 @@ func TestLifecycleService_CompleteEpic_Success(t *testing.T) {
 		t.Errorf("Expected completed at %v, got %v", testTime, result.CompletedAt)
 	}
 
-	if result.EventCreated {
-		t.Error("Expected event NOT to be created (events will be implemented in later epic)")
+	if !result.EventCreated {
+		t.Error("Expected event to be created")
 	}
 
 	// Verify summary
@@ -709,6 +709,190 @@ func TestLifecycleService_ValidateEpicCompletion(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestLifecycleService_EpicEventCreation(t *testing.T) {
+	factory := storage.NewFactory(true)
+	storageImpl := factory.CreateStorage()
+	queryService := query.NewQueryService(storageImpl)
+	lifecycleService := NewLifecycleService(storageImpl, queryService)
+
+	testTime := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+	lifecycleService = lifecycleService.WithTimeSource(func() time.Time { return testTime })
+
+	// Create a test epic
+	testEpic := &epic.Epic{
+		ID:     "test-epic",
+		Name:   "Test Epic for Events",
+		Status: epic.StatusPlanning,
+		Phases: []epic.Phase{
+			{ID: "phase1", Name: "Phase 1", Status: epic.StatusCompleted},
+		},
+		Tasks: []epic.Task{
+			{ID: "task1", PhaseID: "phase1", Name: "Task 1", Status: epic.StatusCompleted},
+		},
+		Tests: []epic.Test{
+			{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+		},
+	}
+
+	epicFile := "test-epic.xml"
+	err := storageImpl.SaveEpic(testEpic, epicFile)
+	if err != nil {
+		t.Fatalf("Failed to save test epic: %v", err)
+	}
+
+	t.Run("StartEpic creates epic_started event", func(t *testing.T) {
+		request := StartEpicRequest{
+			EpicFile:  epicFile,
+			Timestamp: &testTime,
+		}
+
+		result, err := lifecycleService.StartEpic(request)
+		if err != nil {
+			t.Fatalf("StartEpic failed: %v", err)
+		}
+
+		if !result.EventCreated {
+			t.Error("Expected event to be created for epic start")
+		}
+
+		// Load epic and verify event was created
+		updatedEpic, err := storageImpl.LoadEpic(epicFile)
+		if err != nil {
+			t.Fatalf("Failed to load updated epic: %v", err)
+		}
+
+		if len(updatedEpic.Events) != 1 {
+			t.Errorf("Expected 1 event, got %d", len(updatedEpic.Events))
+		}
+
+		event := updatedEpic.Events[0]
+		if event.Type != "epic_started" {
+			t.Errorf("Expected event type epic_started, got %s", event.Type)
+		}
+
+		expectedData := "Epic Test Epic for Events started"
+		if event.Data != expectedData {
+			t.Errorf("Expected event data '%s', got '%s'", expectedData, event.Data)
+		}
+
+		if !event.Timestamp.Equal(testTime) {
+			t.Errorf("Expected event timestamp %v, got %v", testTime, event.Timestamp)
+		}
+	})
+
+	t.Run("DoneEpic creates epic_completed event", func(t *testing.T) {
+		// Prepare epic in WIP status and clear previous events
+		wipEpic := &epic.Epic{
+			ID:     "test-epic",
+			Name:   "Test Epic for Events",
+			Status: epic.StatusActive, // WIP state
+			Phases: []epic.Phase{
+				{ID: "phase1", Name: "Phase 1", Status: epic.StatusCompleted},
+			},
+			Tasks: []epic.Task{
+				{ID: "task1", PhaseID: "phase1", Name: "Task 1", Status: epic.StatusCompleted},
+			},
+			Tests: []epic.Test{
+				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+			},
+			Events: []epic.Event{}, // Clear events for this test
+		}
+
+		err := storageImpl.SaveEpic(wipEpic, epicFile)
+		if err != nil {
+			t.Fatalf("Failed to save WIP epic: %v", err)
+		}
+
+		request := DoneEpicRequest{
+			EpicFile:  epicFile,
+			Timestamp: &testTime,
+		}
+
+		result, err := lifecycleService.DoneEpic(request)
+		if err != nil {
+			t.Fatalf("DoneEpic failed: %v", err)
+		}
+
+		if !result.EventCreated {
+			t.Error("Expected event to be created for epic completion")
+		}
+
+		// Load epic and verify event was created
+		updatedEpic, err := storageImpl.LoadEpic(epicFile)
+		if err != nil {
+			t.Fatalf("Failed to load updated epic: %v", err)
+		}
+
+		if len(updatedEpic.Events) != 1 {
+			t.Errorf("Expected 1 event, got %d", len(updatedEpic.Events))
+		}
+
+		event := updatedEpic.Events[0]
+		if event.Type != "epic_completed" {
+			t.Errorf("Expected event type epic_completed, got %s", event.Type)
+		}
+
+		expectedData := "Epic Test Epic for Events completed"
+		if event.Data != expectedData {
+			t.Errorf("Expected event data '%s', got '%s'", expectedData, event.Data)
+		}
+
+		if !event.Timestamp.Equal(testTime) {
+			t.Errorf("Expected event timestamp %v, got %v", testTime, event.Timestamp)
+		}
+	})
+
+	t.Run("Epic events work with empty name", func(t *testing.T) {
+		// Create epic without name
+		noNameEpic := &epic.Epic{
+			ID:     "no-name-epic",
+			Name:   "",
+			Status: epic.StatusPlanning,
+			Phases: []epic.Phase{
+				{ID: "phase1", Name: "Phase 1", Status: epic.StatusCompleted},
+			},
+			Tasks: []epic.Task{
+				{ID: "task1", PhaseID: "phase1", Name: "Task 1", Status: epic.StatusCompleted},
+			},
+			Tests: []epic.Test{
+				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", Status: epic.StatusCompleted, TestStatus: epic.TestStatusPassed},
+			},
+		}
+
+		noNameFile := "no-name-epic.xml"
+		err := storageImpl.SaveEpic(noNameEpic, noNameFile)
+		if err != nil {
+			t.Fatalf("Failed to save no-name epic: %v", err)
+		}
+
+		request := StartEpicRequest{
+			EpicFile:  noNameFile,
+			Timestamp: &testTime,
+		}
+
+		_, err = lifecycleService.StartEpic(request)
+		if err != nil {
+			t.Fatalf("StartEpic failed: %v", err)
+		}
+
+		// Load epic and verify event uses ID when name is empty
+		updatedEpic, err := storageImpl.LoadEpic(noNameFile)
+		if err != nil {
+			t.Fatalf("Failed to load updated epic: %v", err)
+		}
+
+		if len(updatedEpic.Events) != 1 {
+			t.Errorf("Expected 1 event, got %d", len(updatedEpic.Events))
+		}
+
+		event := updatedEpic.Events[0]
+		expectedData := "Epic no-name-epic started"
+		if event.Data != expectedData {
+			t.Errorf("Expected event data '%s', got '%s'", expectedData, event.Data)
+		}
+	})
 }
 
 func TestLifecycleService_CalculateValidationSummary(t *testing.T) {

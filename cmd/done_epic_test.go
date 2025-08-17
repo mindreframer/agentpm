@@ -217,7 +217,7 @@ func TestDoneEpicCommand_JSONOutput(t *testing.T) {
 	assert.Equal(t, "epic-json", completed["epic_id"])
 	assert.Equal(t, "wip", completed["previous_status"])
 	assert.Equal(t, "done", completed["new_status"])
-	assert.Equal(t, false, completed["event_created"])
+	assert.Equal(t, true, completed["event_created"])
 }
 
 func TestDoneEpicCommand_XMLOutput(t *testing.T) {
@@ -266,7 +266,7 @@ func TestDoneEpicCommand_XMLOutput(t *testing.T) {
 	assert.Contains(t, output, `<epic_completed epic="epic-xml">`)
 	assert.Contains(t, output, "<previous_status>wip</previous_status>")
 	assert.Contains(t, output, "<new_status>done</new_status>")
-	assert.Contains(t, output, "<event_created>false</event_created>")
+	assert.Contains(t, output, "<event_created>true</event_created>")
 }
 
 func TestDoneEpicCommand_ErrorWrongStatus(t *testing.T) {

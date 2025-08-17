@@ -6,6 +6,7 @@ import (
 
 	"github.com/mindreframer/agentpm/internal/epic"
 	"github.com/mindreframer/agentpm/internal/query"
+	"github.com/mindreframer/agentpm/internal/service"
 	"github.com/mindreframer/agentpm/internal/storage"
 )
 
@@ -144,7 +145,8 @@ func (ls *LifecycleService) StartEpic(request StartEpicRequest) (*StartEpicResul
 	// Update epic status
 	loadedEpic.Status = LifecycleStatusWIP.ToEpicStatus()
 
-	// Event logging will be implemented in a later epic
+	// Create event for epic start
+	service.CreateEvent(loadedEpic, service.EventEpicStarted, "", "", "", "", startTime)
 
 	// Save the updated epic
 	if err := ls.storage.SaveEpic(loadedEpic, request.EpicFile); err != nil {
@@ -157,7 +159,7 @@ func (ls *LifecycleService) StartEpic(request StartEpicRequest) (*StartEpicResul
 		NewStatus:      LifecycleStatusWIP,
 		StartedAt:      startTime,
 		Message:        fmt.Sprintf("Epic %s started. Status changed to %s.", loadedEpic.ID, LifecycleStatusWIP),
-		EventCreated:   false, // Event logging will be implemented in a later epic
+		EventCreated:   true,
 	}, nil
 }
 
@@ -207,7 +209,8 @@ func (ls *LifecycleService) DoneEpic(request DoneEpicRequest) (*DoneEpicResult, 
 	summary := fmt.Sprintf("Epic completed with %d phases, %d tasks, and %d tests (%d total items)",
 		totalPhases, totalTasks, totalTests, totalItems)
 
-	// Event logging will be implemented in a later epic
+	// Create event for epic completion
+	service.CreateEvent(loadedEpic, service.EventEpicCompleted, "", "", "", "", completedTime)
 
 	// Save the updated epic
 	if err := ls.storage.SaveEpic(loadedEpic, request.EpicFile); err != nil {
@@ -222,7 +225,7 @@ func (ls *LifecycleService) DoneEpic(request DoneEpicRequest) (*DoneEpicResult, 
 		Duration:       duration,
 		Summary:        summary,
 		Message:        fmt.Sprintf("Epic %s completed successfully. All phases and tests complete.", loadedEpic.ID),
-		EventCreated:   false, // Event logging will be implemented in a later epic
+		EventCreated:   true,
 	}, nil
 }
 
@@ -339,7 +342,8 @@ func (ls *LifecycleService) CompleteEpic(request CompleteEpicRequest) (*Complete
 		Duration:    duration,
 	}
 
-	// Event logging will be implemented in a later epic
+	// Create event for epic completion
+	service.CreateEvent(loadedEpic, service.EventEpicCompleted, "", "", "", "", completedTime)
 
 	// Save the updated epic
 	if err := ls.storage.SaveEpic(loadedEpic, request.EpicFile); err != nil {
@@ -353,7 +357,7 @@ func (ls *LifecycleService) CompleteEpic(request CompleteEpicRequest) (*Complete
 		CompletedAt:    completedTime,
 		Summary:        summary,
 		Message:        fmt.Sprintf("Epic %s completed successfully. All phases and tests complete.", loadedEpic.ID),
-		EventCreated:   false, // Event logging will be implemented in a later epic
+		EventCreated:   true,
 	}, nil
 }
 

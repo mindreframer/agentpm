@@ -873,3 +873,218 @@ func TestStatusTransitionValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestTestServiceEventCreation(t *testing.T) {
+	// Fixed timestamp for deterministic testing
+	fixedTime := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+	timeSource := func() time.Time { return fixedTime }
+
+	service := NewTestService(ServiceConfig{
+		UseMemory:  true,
+		TimeSource: timeSource,
+	})
+
+	// Create a test epic with phases, tasks, and tests
+	epicData := &epic.Epic{
+		ID: "test-epic",
+		Phases: []epic.Phase{
+			{ID: "phase1", Name: "Test Phase", Status: epic.StatusActive},
+		},
+		Tasks: []epic.Task{
+			{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusActive},
+		},
+		Tests: []epic.Test{
+			{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", TestStatus: epic.TestStatusPending},
+		},
+	}
+
+	epicFile := "test-epic.xml"
+	service.storage.SaveEpic(epicData, epicFile)
+
+	t.Run("StartTest creates event", func(t *testing.T) {
+		result, err := service.StartTest(epicFile, "test1", nil)
+		if err != nil {
+			t.Fatalf("StartTest failed: %v", err)
+		}
+
+		if result.Status != string(epic.TestStatusWIP) {
+			t.Errorf("Expected test status WIP, got %s", result.Status)
+		}
+
+		// Load epic and verify event was created
+		updatedEpic, _ := service.storage.LoadEpic(epicFile)
+		if len(updatedEpic.Events) != 1 {
+			t.Errorf("Expected 1 event, got %d", len(updatedEpic.Events))
+		}
+
+		event := updatedEpic.Events[0]
+		if event.Type != "test_started" {
+			t.Errorf("Expected event type test_started, got %s", event.Type)
+		}
+
+		if event.Data != "Test test1 (Test 1) started" {
+			t.Errorf("Expected event data 'Test test1 (Test 1) started', got %s", event.Data)
+		}
+	})
+
+	t.Run("PassTest creates event", func(t *testing.T) {
+		// Restart the test to clear events
+		service.storage.SaveEpic(&epic.Epic{
+			ID: "test-epic",
+			Phases: []epic.Phase{
+				{ID: "phase1", Name: "Test Phase", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusActive},
+			},
+			Tests: []epic.Test{
+				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", TestStatus: epic.TestStatusWIP},
+			},
+		}, epicFile)
+
+		result, err := service.PassTest(epicFile, "test1", nil)
+		if err != nil {
+			t.Fatalf("PassTest failed: %v", err)
+		}
+
+		if result.Status != string(epic.TestStatusPassed) {
+			t.Errorf("Expected test status passed, got %s", result.Status)
+		}
+
+		// Load epic and verify event was created
+		updatedEpic, _ := service.storage.LoadEpic(epicFile)
+		if len(updatedEpic.Events) != 1 {
+			t.Errorf("Expected 1 event, got %d", len(updatedEpic.Events))
+		}
+
+		event := updatedEpic.Events[0]
+		if event.Type != "test_passed" {
+			t.Errorf("Expected event type test_passed, got %s", event.Type)
+		}
+
+		if event.Data != "Test test1 (Test 1) passed" {
+			t.Errorf("Expected event data 'Test test1 (Test 1) passed', got %s", event.Data)
+		}
+	})
+
+	t.Run("FailTest creates event with reason", func(t *testing.T) {
+		// Restart the test to clear events
+		service.storage.SaveEpic(&epic.Epic{
+			ID: "test-epic",
+			Phases: []epic.Phase{
+				{ID: "phase1", Name: "Test Phase", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusActive},
+			},
+			Tests: []epic.Test{
+				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", TestStatus: epic.TestStatusWIP},
+			},
+		}, epicFile)
+
+		failureReason := "Connection timeout"
+		result, err := service.FailTest(epicFile, "test1", failureReason, nil)
+		if err != nil {
+			t.Fatalf("FailTest failed: %v", err)
+		}
+
+		if result.Status != string(epic.TestStatusFailed) {
+			t.Errorf("Expected test status failed, got %s", result.Status)
+		}
+
+		// Load epic and verify event was created
+		updatedEpic, _ := service.storage.LoadEpic(epicFile)
+		if len(updatedEpic.Events) != 1 {
+			t.Errorf("Expected 1 event, got %d", len(updatedEpic.Events))
+		}
+
+		event := updatedEpic.Events[0]
+		if event.Type != "test_failed" {
+			t.Errorf("Expected event type test_failed, got %s", event.Type)
+		}
+
+		expectedData := "Test test1 (Test 1) failed: Connection timeout"
+		if event.Data != expectedData {
+			t.Errorf("Expected event data '%s', got %s", expectedData, event.Data)
+		}
+	})
+
+	t.Run("CancelTest creates event with reason", func(t *testing.T) {
+		// Restart the test to clear events
+		service.storage.SaveEpic(&epic.Epic{
+			ID: "test-epic",
+			Phases: []epic.Phase{
+				{ID: "phase1", Name: "Test Phase", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusActive},
+			},
+			Tests: []epic.Test{
+				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", TestStatus: epic.TestStatusWIP},
+			},
+		}, epicFile)
+
+		cancellationReason := "Requirements changed"
+		result, err := service.CancelTest(epicFile, "test1", cancellationReason, nil)
+		if err != nil {
+			t.Fatalf("CancelTest failed: %v", err)
+		}
+
+		if result.Status != string(epic.TestStatusCancelled) {
+			t.Errorf("Expected test status cancelled, got %s", result.Status)
+		}
+
+		// Load epic and verify event was created
+		updatedEpic, _ := service.storage.LoadEpic(epicFile)
+		if len(updatedEpic.Events) != 1 {
+			t.Errorf("Expected 1 event, got %d", len(updatedEpic.Events))
+		}
+
+		event := updatedEpic.Events[0]
+		if event.Type != "test_cancelled" {
+			t.Errorf("Expected event type test_cancelled, got %s", event.Type)
+		}
+
+		expectedData := "Test test1 (Test 1) cancelled: Requirements changed"
+		if event.Data != expectedData {
+			t.Errorf("Expected event data '%s', got %s", expectedData, event.Data)
+		}
+	})
+
+	t.Run("Event timestamps match operation timestamps", func(t *testing.T) {
+		// Restart the test to clear events
+		service.storage.SaveEpic(&epic.Epic{
+			ID: "test-epic",
+			Phases: []epic.Phase{
+				{ID: "phase1", Name: "Test Phase", Status: epic.StatusActive},
+			},
+			Tasks: []epic.Task{
+				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusActive},
+			},
+			Tests: []epic.Test{
+				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", TestStatus: epic.TestStatusPending},
+			},
+		}, epicFile)
+
+		customTime := time.Date(2023, 6, 15, 14, 30, 0, 0, time.UTC)
+		result, err := service.StartTest(epicFile, "test1", &customTime)
+		if err != nil {
+			t.Fatalf("StartTest failed: %v", err)
+		}
+
+		if !result.Timestamp.Equal(customTime) {
+			t.Errorf("Expected result timestamp %v, got %v", customTime, result.Timestamp)
+		}
+
+		// Load epic and verify event timestamp matches
+		updatedEpic, _ := service.storage.LoadEpic(epicFile)
+		if len(updatedEpic.Events) != 1 {
+			t.Errorf("Expected 1 event, got %d", len(updatedEpic.Events))
+		}
+
+		event := updatedEpic.Events[0]
+		if !event.Timestamp.Equal(customTime) {
+			t.Errorf("Expected event timestamp %v, got %v", customTime, event.Timestamp)
+		}
+	})
+}
