@@ -1,0 +1,29 @@
+
+[TestStartNextCommand/start_next_task_in_current_phase - 1]
+start_next_task_in_current_phase
+<task_started epic="epic-id" task="task-2">
+    <task_description>Task 2</task_description>
+    <phase_id>phase-1</phase_id>
+    <previous_status>pending</previous_status>
+    <new_status>wip</new_status>
+    <started_at>[TIMESTAMP]</started_at>
+    <auto_selected>true</auto_selected>
+    <message>Started Task task-2: Task 2 (auto-selected)</message>
+</task_started>
+---
+
+[TestStartNextCommand/start_next_phase_and_task - 1]
+start_next_phase_and_task
+<phase_started epic="epic-1" phase="phase-2">
+    <phase_name>Phase 2</phase_name>
+    <previous_status>pending</previous_status>
+    <new_status>wip</new_status>
+    <started_at>[TIMESTAMP]</started_at>
+    <tasks>
+        <task id="task-2" status="active">Task 2</task>
+        <task id="task-3" status="planning">Task 3</task>
+    </tasks>
+    <started_task>task-2</started_task>
+    <message>Started Phase phase-2 and Task task-2 (auto-selected)</message>
+</phase_started>
+---

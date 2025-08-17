@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	apmtesting "github.com/mindreframer/agentpm/internal/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v3"
@@ -88,9 +89,9 @@ func TestVersionCommand(t *testing.T) {
 
 		output := stdout.String()
 
-		assert.Contains(t, output, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-		assert.Contains(t, output, "<version_info>")
-		assert.Contains(t, output, "</version_info>")
+		// Check XML output using snapshots
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "version_command_xml_output")
 
 		lines := strings.Split(output, "\n")
 		xmlContent := ""

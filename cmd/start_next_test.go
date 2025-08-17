@@ -8,6 +8,7 @@ import (
 
 	"github.com/mindreframer/agentpm/internal/epic"
 	"github.com/mindreframer/agentpm/internal/storage"
+	apmtesting "github.com/mindreframer/agentpm/internal/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -46,15 +47,10 @@ func TestStartNextCommand(t *testing.T) {
 
 		require.NoError(t, err)
 
-		// Verify XML output for task selection
+		// Check XML output using snapshots
 		output := stdout.String()
-		assert.Contains(t, output, "<task_started")
-		assert.Contains(t, output, `task="task-2"`)
-		assert.Contains(t, output, `<task_description>Task 2</task_description>`)
-		assert.Contains(t, output, `<phase_id>phase-1</phase_id>`)
-		assert.Contains(t, output, `<previous_status>pending</previous_status>`)
-		assert.Contains(t, output, `<new_status>wip</new_status>`)
-		assert.Contains(t, output, `<auto_selected>true</auto_selected>`)
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "start_next_task_in_current_phase")
 
 		// Verify task was started
 		updatedEpic, err := storage.LoadEpic(epicFile)
@@ -107,14 +103,10 @@ func TestStartNextCommand(t *testing.T) {
 
 		require.NoError(t, err)
 
-		// Verify XML output for phase activation
+		// Check XML output using snapshots
 		output := stdout.String()
-		assert.Contains(t, output, "<phase_started")
-		assert.Contains(t, output, `phase="phase-2"`)
-		assert.Contains(t, output, `<phase_name>Phase 2</phase_name>`)
-		assert.Contains(t, output, `<started_task>task-2</started_task>`)
-		assert.Contains(t, output, `<task id="task-2" status="active">`)
-		assert.Contains(t, output, `<task id="task-3" status="planning">`)
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "start_next_phase_and_task")
 
 		// Verify phase and task were started
 		updatedEpic, err := storage.LoadEpic(epicFile)

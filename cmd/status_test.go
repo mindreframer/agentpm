@@ -11,6 +11,7 @@ import (
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/epic"
 	"github.com/mindreframer/agentpm/internal/storage"
+	apmtesting "github.com/mindreframer/agentpm/internal/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -270,16 +271,10 @@ func TestStatusCommand(t *testing.T) {
 		require.NoError(t, err)
 
 		output := stdout.String()
-		assert.Contains(t, output, `<status epic="status-test-epic">`)
-		assert.Contains(t, output, `<name>Status Test Epic</name>`)
-		assert.Contains(t, output, `<status>active</status>`)
-		assert.Contains(t, output, `<completion_percentage>30</completion_percentage>`)
-		assert.Contains(t, output, `<completed_phases>1</completed_phases>`)
-		assert.Contains(t, output, `<total_phases>3</total_phases>`)
-		assert.Contains(t, output, `<passing_tests>1</passing_tests>`)
-		assert.Contains(t, output, `<failing_tests>2</failing_tests>`)
-		assert.Contains(t, output, `<current_phase>P2</current_phase>`)
-		assert.Contains(t, output, `<current_task>T2</current_task>`)
+
+		// Check XML output using snapshots instead of fragile string assertions
+		snapshotTester := apmtesting.NewSnapshotTester()
+		snapshotTester.MatchXMLSnapshot(t, output, "status_command_xml_format")
 	})
 
 	t.Run("status command error handling", func(t *testing.T) {

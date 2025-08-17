@@ -1,0 +1,17 @@
+
+[TestStatusCommand/status_with_XML_format - 1]
+status_command_xml_format
+<status epic="status-test-epic">
+    <name>Status Test Epic</name>
+    <status>active</status>
+    <progress>
+        <completed_phases>1</completed_phases>
+        <total_phases>3</total_phases>
+        <passing_tests>1</passing_tests>
+        <failing_tests>2</failing_tests>
+        <completion_percentage>30</completion_percentage>
+    </progress>
+    <current_phase>P2</current_phase>
+    <current_task>T2</current_task>
+</status>
+---

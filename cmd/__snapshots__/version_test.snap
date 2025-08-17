@@ -1,0 +1,13 @@
+
+[TestVersionCommand/version_command_with_format=xml_outputs_valid_XML - 1]
+version_command_xml_output
+<?xml version="1.0" encoding="UTF-8"?>
+<version_info>
+<VersionInfo>
+  <version>1.0.0</version>
+  <git_commit>abc123de</git_commit>
+  <build_date>[TIMESTAMP]</build_date>
+  <go_version>go1.24.1</go_version>
+</VersionInfo>
+</version_info>
+---
