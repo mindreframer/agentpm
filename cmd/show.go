@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/mindreframer/agentpm/internal/config"
+	contextpkg "github.com/mindreframer/agentpm/internal/context"
 	"github.com/mindreframer/agentpm/internal/epic"
 	"github.com/mindreframer/agentpm/internal/query"
 	"github.com/mindreframer/agentpm/internal/storage"
@@ -28,12 +29,18 @@ Entity types:
 
 Output formats: text (default), json, xml
 
+The --full flag provides comprehensive context with complete details for all related entities:
+- For tasks: Shows parent phase, sibling tasks, and child tests with full details
+- For phases: Shows all tasks and tests in the phase with complete information
+- For tests: Shows parent task, parent phase, and sibling tests with full details
+
 Examples:
   agentpm show epic                          # Show complete epic
   agentpm show phase 1A                     # Show phase 1A details
-  agentpm show task 2B_T1                   # Show task 2B_T1 details
-  agentpm show test 3A_T1                   # Show test 3A_T1 details
-  agentpm show phase 1A --format json       # Show phase in JSON format`,
+  agentpm show task 2B_T1 --full            # Show task with full context
+  agentpm show test 3A_T1 --full            # Show test with full context
+  agentpm show phase 1A --format json       # Show phase in JSON format
+  agentpm show task 1A_1 --full --format xml # Show task context in XML format`,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "file",
@@ -45,6 +52,10 @@ Examples:
 				Aliases: []string{"F"},
 				Usage:   "Output format: text (default), json, xml",
 				Value:   "text",
+			},
+			&cli.BoolFlag{
+				Name:  "full",
+				Usage: "Display full context with complete details for all related entities",
 			},
 		},
 		Action: showAction,
@@ -104,19 +115,20 @@ func showAction(ctx context.Context, c *cli.Command) error {
 		return fmt.Errorf("failed to load epic: %w", err)
 	}
 
-	// Get output format
+	// Get output format and full flag
 	outputFormat := c.String("format")
+	useFullContext := c.Bool("full")
 
 	// Handle entity display
 	switch entityType {
 	case "epic":
 		return showEpic(c, queryService, outputFormat)
 	case "phase":
-		return showPhase(c, queryService, entityID, outputFormat)
+		return showPhase(c, queryService, entityID, outputFormat, useFullContext)
 	case "task":
-		return showTask(c, queryService, entityID, outputFormat)
+		return showTask(c, queryService, entityID, outputFormat, useFullContext)
 	case "test":
-		return showTest(c, queryService, entityID, outputFormat)
+		return showTest(c, queryService, entityID, outputFormat, useFullContext)
 	}
 
 	return nil
@@ -138,7 +150,20 @@ func showEpic(c *cli.Command, qs *query.QueryService, format string) error {
 	}
 }
 
-func showPhase(c *cli.Command, qs *query.QueryService, phaseID, format string) error {
+func showPhase(c *cli.Command, qs *query.QueryService, phaseID, format string, useFullContext bool) error {
+	if useFullContext {
+		// Use context engine for full context display
+		engine := contextpkg.NewEngine(qs)
+		ctx, err := engine.GetPhaseContext(phaseID, true)
+		if err != nil {
+			return fmt.Errorf("failed to get phase context: %w", err)
+		}
+
+		formatter := contextpkg.NewFormatter(format)
+		return formatter.FormatPhaseContext(ctx, c.Root().Writer)
+	}
+
+	// Use original implementation for backward compatibility
 	phase, err := qs.GetPhase(phaseID)
 	if err != nil {
 		return err
@@ -160,7 +185,20 @@ func showPhase(c *cli.Command, qs *query.QueryService, phaseID, format string) e
 	}
 }
 
-func showTask(c *cli.Command, qs *query.QueryService, taskID, format string) error {
+func showTask(c *cli.Command, qs *query.QueryService, taskID, format string, useFullContext bool) error {
+	if useFullContext {
+		// Use context engine for full context display
+		engine := contextpkg.NewEngine(qs)
+		ctx, err := engine.GetTaskContext(taskID, true)
+		if err != nil {
+			return fmt.Errorf("failed to get task context: %w", err)
+		}
+
+		formatter := contextpkg.NewFormatter(format)
+		return formatter.FormatTaskContext(ctx, c.Root().Writer)
+	}
+
+	// Use original implementation for backward compatibility
 	task, err := qs.GetTask(taskID)
 	if err != nil {
 		return err
@@ -182,7 +220,20 @@ func showTask(c *cli.Command, qs *query.QueryService, taskID, format string) err
 	}
 }
 
-func showTest(c *cli.Command, qs *query.QueryService, testID, format string) error {
+func showTest(c *cli.Command, qs *query.QueryService, testID, format string, useFullContext bool) error {
+	if useFullContext {
+		// Use context engine for full context display
+		engine := contextpkg.NewEngine(qs)
+		ctx, err := engine.GetTestContext(testID, true)
+		if err != nil {
+			return fmt.Errorf("failed to get test context: %w", err)
+		}
+
+		formatter := contextpkg.NewFormatter(format)
+		return formatter.FormatTestContext(ctx, c.Root().Writer)
+	}
+
+	// Use original implementation for backward compatibility
 	test, err := qs.GetTest(testID)
 	if err != nil {
 		return err
