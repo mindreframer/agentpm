@@ -9,5 +9,4 @@ now read @@specs/EPIC_9_SPECIFICATION.md, think hard and create a plan to execut
 read @@specs/EPIC_1_SPECIFICATION.md and @@@specs/EPIC_1_IMPLEMENTATION_PLAN.md . 
 Think hard, plan your tasks and start working on them. 
 Update your progress in the "Progress Tracking" section of the plan after each step. make
-sure code compiles and tests are working.
-
+sure code compiles and tests are working. NO need for backwards compatibility!
