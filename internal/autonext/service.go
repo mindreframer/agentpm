@@ -193,7 +193,7 @@ func (s *AutoNextService) handleNoActivePhase(epicData *epic.Epic, timestamp tim
 // findNextPendingPhase returns the first phase in pending status
 func (s *AutoNextService) findNextPendingPhase(epicData *epic.Epic) *epic.Phase {
 	for i := range epicData.Phases {
-		if epicData.Phases[i].Status == epic.StatusPlanning {
+		if epicData.Phases[i].Status == epic.StatusPlanning || epicData.Phases[i].Status == epic.StatusPending {
 			return &epicData.Phases[i]
 		}
 	}
@@ -219,7 +219,7 @@ func (s *AutoNextService) areAllTasksCompletedOrCancelled(epicData *epic.Epic, p
 func filterPendingOnly(tasks []epic.Task) []epic.Task {
 	var pendingTasks []epic.Task
 	for _, task := range tasks {
-		if task.Status == epic.StatusPlanning {
+		if task.Status == epic.StatusPlanning || task.Status == epic.StatusPending {
 			pendingTasks = append(pendingTasks, task)
 		}
 	}
