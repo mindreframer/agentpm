@@ -10,8 +10,11 @@ import (
 
 // AssertionBuilder provides a fluent API for asserting on TransitionChain results
 type AssertionBuilder struct {
-	result *executor.TransitionChainResult
-	errors []AssertionError
+	result     *executor.TransitionChainResult
+	errors     []AssertionError
+	debugCtx   *DebugContext
+	recovery   *RecoveryStrategy
+	visualizer *StateVisualization
 }
 
 // AssertionError represents a failed assertion with context
@@ -31,8 +34,10 @@ func (e AssertionError) Error() string {
 // NewAssertionBuilder creates a new assertion builder for the given result
 func NewAssertionBuilder(result *executor.TransitionChainResult) *AssertionBuilder {
 	return &AssertionBuilder{
-		result: result,
-		errors: make([]AssertionError, 0),
+		result:   result,
+		errors:   make([]AssertionError, 0),
+		debugCtx: NewDebugContext(DebugOff),
+		recovery: DefaultRecoveryStrategy(),
 	}
 }
 
@@ -661,13 +666,30 @@ func (e *CompositeAssertionError) GetErrors() []AssertionError {
 // Helper methods
 
 func (ab *AssertionBuilder) addError(errorType, message string, expected, actual interface{}, context map[string]interface{}) {
-	ab.errors = append(ab.errors, AssertionError{
+	// Add debug trace
+	if ab.debugCtx != nil {
+		ab.debugCtx.Trace("ERROR", message, map[string]interface{}{
+			"type":     errorType,
+			"expected": expected,
+			"actual":   actual,
+		})
+	}
+
+	// Create base error
+	err := AssertionError{
 		Type:     errorType,
 		Message:  message,
 		Expected: expected,
 		Actual:   actual,
 		Context:  context,
-	})
+	}
+
+	// Generate enhanced error context for suggestions
+	baseErr := fmt.Errorf("%s", message)
+	errorCtx := CreateErrorContext(baseErr, "assertion", -1, ab.result.FinalState, ab.debugCtx)
+	err.Suggestions = errorCtx.Suggestions
+
+	ab.errors = append(ab.errors, err)
 }
 
 func (ab *AssertionBuilder) findPhase(phaseID string) *epic.Phase {
@@ -859,4 +881,168 @@ func (ab *AssertionBuilder) MatchSnapshotWithConfig(name string, config map[stri
 	}
 
 	return ab
+}
+
+// === DEBUGGING AND ERROR HANDLING METHODS ===
+
+// WithDebugMode enables debugging with the specified level
+func (ab *AssertionBuilder) WithDebugMode(mode DebugMode) *AssertionBuilder {
+	ab.debugCtx = NewDebugContext(mode)
+	return ab
+}
+
+// WithRecoveryStrategy sets a custom error recovery strategy
+func (ab *AssertionBuilder) WithRecoveryStrategy(strategy *RecoveryStrategy) *AssertionBuilder {
+	ab.recovery = strategy
+	return ab
+}
+
+// EnableStateVisualization creates a visualization of the state transitions
+func (ab *AssertionBuilder) EnableStateVisualization() *AssertionBuilder {
+	if ab.result != nil {
+		// Extract states and commands from the result
+		states := make([]interface{}, 0)
+		commands := make([]string, 0)
+
+		// Add initial state
+		if ab.result.InitialState != nil {
+			states = append(states, ab.result.InitialState)
+		}
+
+		// Add intermediate states
+		for _, snapshot := range ab.result.IntermediateStates {
+			states = append(states, snapshot.EpicState)
+		}
+
+		// Add final state
+		if ab.result.FinalState != nil {
+			states = append(states, ab.result.FinalState)
+		}
+
+		// Extract commands from executed commands
+		for _, cmd := range ab.result.ExecutedCommands {
+			commands = append(commands, cmd.Command.Type+" "+cmd.Command.Target)
+		}
+
+		ab.visualizer = CreateStateVisualization(states, commands)
+	}
+	return ab
+}
+
+// GetDebugTrace returns the debug trace log
+func (ab *AssertionBuilder) GetDebugTrace() []TraceEntry {
+	if ab.debugCtx != nil {
+		return ab.debugCtx.GetTraceLog()
+	}
+	return nil
+}
+
+// GetErrors returns the list of assertion errors
+func (ab *AssertionBuilder) GetErrors() []AssertionError {
+	return ab.errors
+}
+
+// GetStateVisualization returns the state visualization if enabled
+func (ab *AssertionBuilder) GetStateVisualization() *StateVisualization {
+	return ab.visualizer
+}
+
+// PrintDebugInfo prints debugging information to stdout
+func (ab *AssertionBuilder) PrintDebugInfo() *AssertionBuilder {
+	if ab.debugCtx != nil {
+		fmt.Println("=== DEBUG TRACE ===")
+		for _, entry := range ab.debugCtx.GetTraceLog() {
+			fmt.Printf("[%s] %s: %s (at %s)\n",
+				entry.Timestamp.Format("15:04:05.000"),
+				entry.Level,
+				entry.Message,
+				entry.Location)
+		}
+	}
+
+	if ab.visualizer != nil {
+		fmt.Println("\n=== STATE VISUALIZATION ===")
+		fmt.Println(ab.visualizer.GetGraphVisualization())
+		fmt.Println("\n" + ab.visualizer.GetTimelineVisualization())
+	}
+
+	if len(ab.errors) > 0 {
+		fmt.Println("\n=== ASSERTION ERRORS ===")
+		for i, err := range ab.errors {
+			fmt.Printf("Error %d: %s\n", i+1, err.Message)
+			if len(err.Suggestions) > 0 {
+				fmt.Println("  Suggestions:")
+				for _, suggestion := range err.Suggestions {
+					fmt.Printf("    - %s\n", suggestion)
+				}
+			}
+		}
+	}
+
+	return ab
+}
+
+// RecoverFromErrors attempts to recover from assertion failures
+func (ab *AssertionBuilder) RecoverFromErrors() *AssertionBuilder {
+	if ab.recovery == nil {
+		return ab
+	}
+
+	recoveredErrors := make([]AssertionError, 0)
+
+	for _, assertionErr := range ab.errors {
+		// Create an error context for the assertion error
+		err := fmt.Errorf("%s", assertionErr.Message)
+		errorCtx := CreateErrorContext(err, "assertion", -1, ab.result.FinalState, ab.debugCtx)
+
+		// Check if this error can be recovered
+		if ab.recovery.CanRecover(err) {
+			ab.debugCtx.Trace("INFO", fmt.Sprintf("Attempting recovery for error: %s", err.Error()),
+				map[string]interface{}{"error_type": assertionErr.Type})
+
+			recoveryErr := ab.recovery.RecoverFunc(err, errorCtx)
+			if recoveryErr == nil {
+				ab.debugCtx.Trace("INFO", "Recovery successful", nil)
+				continue // Skip adding this error back
+			} else {
+				ab.debugCtx.Trace("WARN", fmt.Sprintf("Recovery failed: %s", recoveryErr.Error()), nil)
+			}
+		}
+
+		// If we can't recover or recovery failed, keep the error
+		recoveredErrors = append(recoveredErrors, assertionErr)
+	}
+
+	ab.errors = recoveredErrors
+	return ab
+}
+
+// addErrorWithContext adds an error with enhanced debugging context
+func (ab *AssertionBuilder) addErrorWithContext(errorType, message string, expected, actual interface{}, context map[string]interface{}, stage string, chainIndex int) {
+	// Create base error
+	err := AssertionError{
+		Type:     errorType,
+		Message:  message,
+		Expected: expected,
+		Actual:   actual,
+		Context:  context,
+	}
+
+	// Add debug trace
+	if ab.debugCtx != nil {
+		ab.debugCtx.Trace("ERROR", message, map[string]interface{}{
+			"type":     errorType,
+			"expected": expected,
+			"actual":   actual,
+			"stage":    stage,
+			"index":    chainIndex,
+		})
+	}
+
+	// Generate enhanced error context
+	baseErr := fmt.Errorf("%s", message)
+	errorCtx := CreateErrorContext(baseErr, stage, chainIndex, ab.result.FinalState, ab.debugCtx)
+	err.Suggestions = errorCtx.Suggestions
+
+	ab.errors = append(ab.errors, err)
 }
