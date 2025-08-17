@@ -1,0 +1,46 @@
+NAME:
+   agentpm - Epic-based development workflow manager
+
+USAGE:
+   agentpm [command] [options]
+
+CORE WORKFLOW:
+   start [epic|phase|task|test]    Start working on something
+   done [epic|phase|task]          Complete work
+   cancel [task|test] <id> [reason] Cancel task or test execution
+   next                           Auto-start next available work
+   
+TESTING:
+   pass <test-id>                 Mark test as passed
+   fail <test-id> [reason]        Mark test as failed
+   
+STATUS:
+   status, s                      Show overview
+   current, c                     Show active work
+   pending, p                     Show pending items
+   failing, f                     Show failed tests
+   
+INSPECTION:
+   show <type> [id]               Inspect specific entities (epic, phase, task, test)
+   
+PROJECT:
+   init                          Initialize new project
+   switch <epic>                 Switch epic files
+   config                        Show configuration
+   validate                      Validate epic XML structure
+   
+REPORTING:
+   events                        Recent activity
+   docs                          Generate documentation  
+   handoff                       Generate handoff report
+   
+SYSTEM:
+   version, v                    Show version information
+   help, h                       Show help for commands
+
+GLOBAL OPTIONS:
+   --file string, -f string       Override epic file from config
+   --config string, -c string     Override config file path (default: "./.agentpm.json")
+   --time string, -t string       Timestamp for current time (testing support)
+   --format string, -F string     Output format - text (default) / json / xml (default: "text")
+   --help, -h                     Show help
