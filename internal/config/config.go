@@ -8,15 +8,39 @@ import (
 )
 
 type Config struct {
-	CurrentEpic     string `json:"current_epic"`
-	PreviousEpic    string `json:"previous_epic,omitempty"`
-	ProjectName     string `json:"project_name,omitempty"`
-	DefaultAssignee string `json:"default_assignee,omitempty"`
+	CurrentEpic     string     `json:"current_epic"`
+	PreviousEpic    string     `json:"previous_epic,omitempty"`
+	ProjectName     string     `json:"project_name,omitempty"`
+	DefaultAssignee string     `json:"default_assignee,omitempty"`
+	Hints           HintConfig `json:"hints,omitempty"`
+}
+
+// HintConfig controls hint generation and display behavior
+type HintConfig struct {
+	Enabled        bool              `json:"enabled"`                  // Whether hints are enabled globally
+	ShowCommands   bool              `json:"show_commands"`            // Whether to show suggested commands in hints
+	ShowReferences bool              `json:"show_references"`          // Whether to show documentation references
+	Priority       string            `json:"priority"`                 // Minimum priority to show: "high", "medium", "low"
+	MaxHints       int               `json:"max_hints"`                // Maximum number of hints per error (0 = unlimited)
+	Customizations map[string]string `json:"customizations,omitempty"` // Custom hint text overrides
 }
 
 func DefaultConfig() *Config {
 	return &Config{
 		DefaultAssignee: "agent",
+		Hints:           DefaultHintConfig(),
+	}
+}
+
+// DefaultHintConfig returns default hint configuration
+func DefaultHintConfig() HintConfig {
+	return HintConfig{
+		Enabled:        true,
+		ShowCommands:   true,
+		ShowReferences: false,
+		Priority:       "medium", // Show medium and high priority hints
+		MaxHints:       3,        // Limit to 3 hints per error to avoid overwhelming users
+		Customizations: make(map[string]string),
 	}
 }
 

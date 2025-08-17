@@ -12,6 +12,7 @@ type PhaseStateError struct {
 	CurrentStatus epic.Status
 	TargetStatus  epic.Status
 	Message       string
+	Hint          string // Actionable hint for resolving the error
 }
 
 func (e *PhaseStateError) Error() string {
@@ -25,6 +26,17 @@ func NewPhaseStateError(phaseID string, current, target epic.Status, message str
 		CurrentStatus: current,
 		TargetStatus:  target,
 		Message:       message,
+		Hint:          "", // Will be populated by hint generator
+	}
+}
+
+func NewPhaseStateErrorWithHint(phaseID string, current, target epic.Status, message, hint string) *PhaseStateError {
+	return &PhaseStateError{
+		PhaseID:       phaseID,
+		CurrentStatus: current,
+		TargetStatus:  target,
+		Message:       message,
+		Hint:          hint,
 	}
 }
 
@@ -33,6 +45,7 @@ type PhaseConstraintError struct {
 	PhaseID       string
 	ActivePhaseID string
 	Message       string
+	Hint          string // Actionable hint for resolving the constraint violation
 }
 
 func (e *PhaseConstraintError) Error() string {
@@ -45,6 +58,16 @@ func NewPhaseConstraintError(phaseID, activePhaseID, message string) *PhaseConst
 		PhaseID:       phaseID,
 		ActivePhaseID: activePhaseID,
 		Message:       message,
+		Hint:          "", // Will be populated by hint generator
+	}
+}
+
+func NewPhaseConstraintErrorWithHint(phaseID, activePhaseID, message, hint string) *PhaseConstraintError {
+	return &PhaseConstraintError{
+		PhaseID:       phaseID,
+		ActivePhaseID: activePhaseID,
+		Message:       message,
+		Hint:          hint,
 	}
 }
 
@@ -52,6 +75,7 @@ func NewPhaseConstraintError(phaseID, activePhaseID, message string) *PhaseConst
 type PhaseIncompleteError struct {
 	PhaseID      string
 	PendingTasks []epic.Task
+	Hint         string // Actionable hint for resolving pending tasks
 }
 
 func (e *PhaseIncompleteError) Error() string {
@@ -63,6 +87,15 @@ func NewPhaseIncompleteError(phaseID string, pendingTasks []epic.Task) *PhaseInc
 	return &PhaseIncompleteError{
 		PhaseID:      phaseID,
 		PendingTasks: pendingTasks,
+		Hint:         "", // Will be populated by hint generator
+	}
+}
+
+func NewPhaseIncompleteErrorWithHint(phaseID string, pendingTasks []epic.Task, hint string) *PhaseIncompleteError {
+	return &PhaseIncompleteError{
+		PhaseID:      phaseID,
+		PendingTasks: pendingTasks,
+		Hint:         hint,
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/hints"
 	"github.com/mindreframer/agentpm/internal/messages"
 	"github.com/mindreframer/agentpm/internal/query"
 	"github.com/mindreframer/agentpm/internal/storage"
@@ -85,35 +86,97 @@ func StartTaskCommand() *cli.Command {
 				}
 
 				if phaseErr, ok := err.(*tasks.TaskPhaseError); ok {
-					return outputXMLError(cmd, "task_phase_violation",
+					// Generate context-aware hint for task phase violations
+					hintCtx := &hints.HintContext{
+						ErrorType:     "TaskPhaseError",
+						OperationType: "start",
+						EntityType:    "task",
+						EntityID:      taskID,
+						AdditionalData: map[string]interface{}{
+							"phase_id":     phaseErr.PhaseID,
+							"phase_status": phaseErr.PhaseStatus,
+						},
+					}
+
+					hintRegistry := hints.DefaultHintRegistry()
+					hint := hintRegistry.GenerateHint(hintCtx)
+
+					var hintText string
+					if hint != nil {
+						hintText = hint.Content
+					}
+
+					return outputXMLErrorWithHint(cmd, "task_phase_violation",
 						fmt.Sprintf("Cannot start task %s: phase %s is not active", taskID, phaseErr.PhaseID),
 						map[string]interface{}{
 							"task_id":      taskID,
 							"phase_id":     phaseErr.PhaseID,
 							"phase_status": string(phaseErr.PhaseStatus),
 							"suggestion":   fmt.Sprintf("Start phase %s first or use 'agentpm current' to see active work", phaseErr.PhaseID),
-						})
+						}, hintText)
 				}
 
 				if constraintErr, ok := err.(*tasks.TaskConstraintError); ok {
-					return outputXMLError(cmd, "task_constraint_violation",
+					// Generate context-aware hint for task constraint violations
+					hintCtx := &hints.HintContext{
+						ErrorType:     "TaskConstraintError",
+						OperationType: "start",
+						EntityType:    "task",
+						EntityID:      taskID,
+						AdditionalData: map[string]interface{}{
+							"active_task_id": constraintErr.ActiveTaskID,
+							"phase_id":       constraintErr.PhaseID,
+						},
+					}
+
+					hintRegistry := hints.DefaultHintRegistry()
+					hint := hintRegistry.GenerateHint(hintCtx)
+
+					var hintText string
+					if hint != nil {
+						hintText = hint.Content
+					}
+
+					return outputXMLErrorWithHint(cmd, "task_constraint_violation",
 						fmt.Sprintf("Cannot start task %s: task %s is already active in phase %s", taskID, constraintErr.ActiveTaskID, constraintErr.PhaseID),
 						map[string]interface{}{
 							"task_id":        taskID,
 							"active_task_id": constraintErr.ActiveTaskID,
 							"phase_id":       constraintErr.PhaseID,
 							"suggestion":     fmt.Sprintf("Complete task %s first or use 'agentpm current' to see active work", constraintErr.ActiveTaskID),
-						})
+						}, hintText)
 				}
 
 				if stateErr, ok := err.(*tasks.TaskStateError); ok {
-					return outputXMLError(cmd, "invalid_task_state",
+					// Generate context-aware hint for task state errors
+					hintCtx := &hints.HintContext{
+						ErrorType:     "TaskStateError",
+						OperationType: "start",
+						EntityType:    "task",
+						EntityID:      taskID,
+						CurrentStatus: string(stateErr.CurrentStatus),
+						TargetStatus:  string(stateErr.TargetStatus),
+						AdditionalData: map[string]interface{}{
+							"current_status": stateErr.CurrentStatus,
+							"target_status":  stateErr.TargetStatus,
+						},
+					}
+
+					hintRegistry := hints.DefaultHintRegistry()
+					hint := hintRegistry.GenerateHint(hintCtx)
+
+					var hintText string
+					if hint != nil {
+						hintText = hint.Content
+					}
+
+					return outputXMLErrorWithHint(cmd, "invalid_task_state",
 						fmt.Sprintf("Cannot start task %s: %s", taskID, stateErr.Message),
 						map[string]interface{}{
 							"task_id":        taskID,
 							"current_status": string(stateErr.CurrentStatus),
 							"target_status":  string(stateErr.TargetStatus),
-						})
+						}, hintText)
 				}
 
 				return fmt.Errorf("failed to start task: %w", err)

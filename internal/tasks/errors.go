@@ -12,6 +12,7 @@ type TaskStateError struct {
 	CurrentStatus epic.Status
 	TargetStatus  epic.Status
 	Message       string
+	Hint          string // Actionable hint for resolving the error
 }
 
 func (e *TaskStateError) Error() string {
@@ -25,6 +26,17 @@ func NewTaskStateError(taskID string, current, target epic.Status, message strin
 		CurrentStatus: current,
 		TargetStatus:  target,
 		Message:       message,
+		Hint:          "", // Will be populated by hint generator
+	}
+}
+
+func NewTaskStateErrorWithHint(taskID string, current, target epic.Status, message, hint string) *TaskStateError {
+	return &TaskStateError{
+		TaskID:        taskID,
+		CurrentStatus: current,
+		TargetStatus:  target,
+		Message:       message,
+		Hint:          hint,
 	}
 }
 
@@ -34,6 +46,7 @@ type TaskPhaseError struct {
 	PhaseID     string
 	PhaseStatus epic.Status
 	Message     string
+	Hint        string // Actionable hint for resolving the phase issue
 }
 
 func (e *TaskPhaseError) Error() string {
@@ -47,6 +60,17 @@ func NewTaskPhaseError(taskID, phaseID string, phaseStatus epic.Status, message 
 		PhaseID:     phaseID,
 		PhaseStatus: phaseStatus,
 		Message:     message,
+		Hint:        "", // Will be populated by hint generator
+	}
+}
+
+func NewTaskPhaseErrorWithHint(taskID, phaseID string, phaseStatus epic.Status, message, hint string) *TaskPhaseError {
+	return &TaskPhaseError{
+		TaskID:      taskID,
+		PhaseID:     phaseID,
+		PhaseStatus: phaseStatus,
+		Message:     message,
+		Hint:        hint,
 	}
 }
 
@@ -56,6 +80,7 @@ type TaskConstraintError struct {
 	ActiveTaskID string
 	PhaseID      string
 	Message      string
+	Hint         string // Actionable hint for resolving the constraint violation
 }
 
 func (e *TaskConstraintError) Error() string {
@@ -69,6 +94,17 @@ func NewTaskConstraintError(taskID, activeTaskID, phaseID, message string) *Task
 		ActiveTaskID: activeTaskID,
 		PhaseID:      phaseID,
 		Message:      message,
+		Hint:         "", // Will be populated by hint generator
+	}
+}
+
+func NewTaskConstraintErrorWithHint(taskID, activeTaskID, phaseID, message, hint string) *TaskConstraintError {
+	return &TaskConstraintError{
+		TaskID:       taskID,
+		ActiveTaskID: activeTaskID,
+		PhaseID:      phaseID,
+		Message:      message,
+		Hint:         hint,
 	}
 }
 

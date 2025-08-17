@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mindreframer/agentpm/internal/config"
+	"github.com/mindreframer/agentpm/internal/hints"
 	"github.com/mindreframer/agentpm/internal/messages"
 	"github.com/mindreframer/agentpm/internal/phases"
 	"github.com/mindreframer/agentpm/internal/query"
@@ -84,22 +85,63 @@ func StartPhaseCommand() *cli.Command {
 				}
 
 				if phaseErr, ok := err.(*phases.PhaseConstraintError); ok {
-					return outputXMLError(cmd, "phase_constraint_violation",
+					// Generate context-aware hint for phase constraint violations
+					hintCtx := &hints.HintContext{
+						ErrorType:     "PhaseConstraintError",
+						OperationType: "start",
+						EntityType:    "phase",
+						EntityID:      phaseID,
+						AdditionalData: map[string]interface{}{
+							"active_phase": phaseErr.ActivePhaseID,
+						},
+					}
+
+					hintRegistry := hints.DefaultHintRegistry()
+					hint := hintRegistry.GenerateHint(hintCtx)
+
+					var hintText string
+					if hint != nil {
+						hintText = hint.Content
+					}
+
+					return outputXMLErrorWithHint(cmd, "phase_constraint_violation",
 						fmt.Sprintf("Cannot start phase %s: phase %s is still active", phaseID, phaseErr.ActivePhaseID),
 						map[string]interface{}{
 							"active_phase": phaseErr.ActivePhaseID,
 							"suggestion":   fmt.Sprintf("Complete phase %s first or use 'agentpm current' to see active work", phaseErr.ActivePhaseID),
-						})
+						}, hintText)
 				}
 
 				if stateErr, ok := err.(*phases.PhaseStateError); ok {
-					return outputXMLError(cmd, "invalid_phase_state",
+					// Generate context-aware hint for phase state errors
+					hintCtx := &hints.HintContext{
+						ErrorType:     "PhaseStateError",
+						OperationType: "start",
+						EntityType:    "phase",
+						EntityID:      phaseID,
+						CurrentStatus: string(stateErr.CurrentStatus),
+						TargetStatus:  string(stateErr.TargetStatus),
+						AdditionalData: map[string]interface{}{
+							"current_status": stateErr.CurrentStatus,
+							"target_status":  stateErr.TargetStatus,
+						},
+					}
+
+					hintRegistry := hints.DefaultHintRegistry()
+					hint := hintRegistry.GenerateHint(hintCtx)
+
+					var hintText string
+					if hint != nil {
+						hintText = hint.Content
+					}
+
+					return outputXMLErrorWithHint(cmd, "invalid_phase_state",
 						fmt.Sprintf("Cannot start phase %s: %s", phaseID, stateErr.Message),
 						map[string]interface{}{
 							"phase_id":       phaseID,
 							"current_status": string(stateErr.CurrentStatus),
 							"target_status":  string(stateErr.TargetStatus),
-						})
+						}, hintText)
 				}
 
 				return fmt.Errorf("failed to start phase: %w", err)
@@ -120,10 +162,19 @@ func StartPhaseCommand() *cli.Command {
 
 // outputXMLError outputs structured XML error messages
 func outputXMLError(cmd *cli.Command, errorType, message string, details map[string]interface{}) error {
-	// Write XML error to stderr for structured error handling
+	return outputXMLErrorWithHint(cmd, errorType, message, details, "")
+}
+
+// outputXMLErrorWithHint outputs structured XML error messages with optional hint
+// Maintains backwards compatibility with legacy XML format
+func outputXMLErrorWithHint(cmd *cli.Command, errorType, message string, details map[string]interface{}, hint string) error {
+	// Use legacy XML format for backwards compatibility with existing tests
 	fmt.Fprintf(cmd.ErrWriter, "<error>\n")
 	fmt.Fprintf(cmd.ErrWriter, "    <type>%s</type>\n", errorType)
 	fmt.Fprintf(cmd.ErrWriter, "    <message>%s</message>\n", message)
+	if hint != "" {
+		fmt.Fprintf(cmd.ErrWriter, "    <hint>%s</hint>\n", hint)
+	}
 	if len(details) > 0 {
 		fmt.Fprintf(cmd.ErrWriter, "    <details>\n")
 		for key, value := range details {
