@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/mindreframer/agentpm/internal/config"
+	"github.com/mindreframer/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/storage"
 	"github.com/mindreframer/agentpm/internal/tests"
 )
 
@@ -101,6 +103,53 @@ func PassTestService(request TestRequest) (*TestResult, error) {
 		UseMemory: false,
 	})
 
+	// Load epic for validation
+	storageService := storage.NewFileStorage()
+	epicData, err := storageService.LoadEpic(epicFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load epic: %w", err)
+	}
+
+	// Find the test
+	var test *epic.Test
+	for i := range epicData.Tests {
+		if epicData.Tests[i].ID == request.TestID {
+			test = &epicData.Tests[i]
+			break
+		}
+	}
+
+	if test == nil {
+		return &TestResult{
+			Error: &TestError{
+				Type:    "test_not_found",
+				TestID:  request.TestID,
+				Message: fmt.Sprintf("Test %s not found", request.TestID),
+			},
+		}, nil
+	}
+
+	// Epic 13 validation - check if test can be passed
+	validationService := tests.NewTestValidationService()
+	if err := validationService.CanPassTest(epicData, test); err != nil {
+		if statusErr, ok := err.(*epic.StatusValidationError); ok {
+			return &TestResult{
+				Error: &TestError{
+					Type:    "validation_failed",
+					TestID:  request.TestID,
+					Message: statusErr.Message,
+				},
+			}, nil
+		}
+		return &TestResult{
+			Error: &TestError{
+				Type:    "validation_failed",
+				TestID:  request.TestID,
+				Message: err.Error(),
+			},
+		}, nil
+	}
+
 	// Execute operation
 	result, err := service.PassTest(epicFile, request.TestID, timestamp)
 	if err != nil {
@@ -122,8 +171,8 @@ func PassTestService(request TestRequest) (*TestResult, error) {
 }
 
 func FailTestService(request TestRequest) (*TestResult, error) {
-	if request.TestID == "" || request.FailureReason == "" {
-		return nil, fmt.Errorf("fail-test requires exactly two arguments: test-id \"failure-reason\"")
+	if request.TestID == "" {
+		return nil, fmt.Errorf("fail-test requires test-id argument")
 	}
 
 	// Load configuration and determine epic file
@@ -146,6 +195,53 @@ func FailTestService(request TestRequest) (*TestResult, error) {
 	service := tests.NewTestService(tests.ServiceConfig{
 		UseMemory: false,
 	})
+
+	// Load epic for validation
+	storageService := storage.NewFileStorage()
+	epicData, err := storageService.LoadEpic(epicFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load epic: %w", err)
+	}
+
+	// Find the test
+	var test *epic.Test
+	for i := range epicData.Tests {
+		if epicData.Tests[i].ID == request.TestID {
+			test = &epicData.Tests[i]
+			break
+		}
+	}
+
+	if test == nil {
+		return &TestResult{
+			Error: &TestError{
+				Type:    "test_not_found",
+				TestID:  request.TestID,
+				Message: fmt.Sprintf("Test %s not found", request.TestID),
+			},
+		}, nil
+	}
+
+	// Epic 13 validation - check if test can be failed
+	validationService := tests.NewTestValidationService()
+	if err := validationService.CanFailTest(epicData, test); err != nil {
+		if statusErr, ok := err.(*epic.StatusValidationError); ok {
+			return &TestResult{
+				Error: &TestError{
+					Type:    "validation_failed",
+					TestID:  request.TestID,
+					Message: statusErr.Message,
+				},
+			}, nil
+		}
+		return &TestResult{
+			Error: &TestError{
+				Type:    "validation_failed",
+				TestID:  request.TestID,
+				Message: err.Error(),
+			},
+		}, nil
+	}
 
 	// Execute operation
 	result, err := service.FailTest(epicFile, request.TestID, request.FailureReason, timestamp)
@@ -192,6 +288,53 @@ func CancelTestService(request TestRequest) (*TestResult, error) {
 	service := tests.NewTestService(tests.ServiceConfig{
 		UseMemory: false,
 	})
+
+	// Load epic for validation
+	storageService := storage.NewFileStorage()
+	epicData, err := storageService.LoadEpic(epicFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load epic: %w", err)
+	}
+
+	// Find the test
+	var test *epic.Test
+	for i := range epicData.Tests {
+		if epicData.Tests[i].ID == request.TestID {
+			test = &epicData.Tests[i]
+			break
+		}
+	}
+
+	if test == nil {
+		return &TestResult{
+			Error: &TestError{
+				Type:    "test_not_found",
+				TestID:  request.TestID,
+				Message: fmt.Sprintf("Test %s not found", request.TestID),
+			},
+		}, nil
+	}
+
+	// Epic 13 validation - check if test can be cancelled
+	validationService := tests.NewTestValidationService()
+	if err := validationService.CanCancelTest(epicData, test, request.CancellationReason); err != nil {
+		if statusErr, ok := err.(*epic.StatusValidationError); ok {
+			return &TestResult{
+				Error: &TestError{
+					Type:    "validation_failed",
+					TestID:  request.TestID,
+					Message: statusErr.Message,
+				},
+			}, nil
+		}
+		return &TestResult{
+			Error: &TestError{
+				Type:    "validation_failed",
+				TestID:  request.TestID,
+				Message: err.Error(),
+			},
+		}, nil
+	}
 
 	// Execute operation
 	result, err := service.CancelTest(epicFile, request.TestID, request.CancellationReason, timestamp)
