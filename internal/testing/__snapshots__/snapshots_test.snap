@@ -1,0 +1,19 @@
+
+[TestMatchXMLSnapshot_Integration - 1]
+test_xml_output
+
+---
+
+[TestMatchSnapshot_Integration - 1]
+test_data_output
+map[string]interface {}{
+    "epic":   "test-epic",
+    "phases": []string{"P1", "P2", "P3"},
+    "status": "active",
+}
+---
+
+[TestRealisticXMLOutput - 1]
+realistic_status_output
+
+---
