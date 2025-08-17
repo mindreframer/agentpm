@@ -9,6 +9,7 @@ import (
 	"github.com/beevik/etree"
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/lifecycle"
+	"github.com/mindreframer/agentpm/internal/messages"
 	"github.com/mindreframer/agentpm/internal/query"
 	"github.com/mindreframer/agentpm/internal/storage"
 	"github.com/urfave/cli/v3"
@@ -94,6 +95,19 @@ func startEpicAction(ctx context.Context, c *cli.Command) error {
 	// Start the epic
 	result, err := lifecycleService.StartEpic(request)
 	if err != nil {
+		// Check if it's an "already started/completed" scenario and handle with friendly message
+		if transitionErr, ok := err.(*lifecycle.TransitionError); ok {
+			templates := messages.NewMessageTemplates()
+			if transitionErr.CurrentStatus == lifecycle.LifecycleStatusWIP {
+				// Epic is already started - return friendly success message
+				message := templates.EpicAlreadyStarted(transitionErr.EpicID)
+				return outputFriendlyMessage(c, message, format)
+			} else if transitionErr.CurrentStatus == lifecycle.LifecycleStatusDone {
+				// Epic is already completed - return friendly success message
+				message := templates.EpicAlreadyCompleted(transitionErr.EpicID)
+				return outputFriendlyMessage(c, message, format)
+			}
+		}
 		return outputStartEpicError(c, err, format)
 	}
 
@@ -249,4 +263,26 @@ func outputTransitionErrorXML(c *cli.Command, err *lifecycle.TransitionError) er
 	doc.WriteTo(c.Root().ErrWriter)
 	fmt.Fprintf(c.Root().ErrWriter, "\n") // Add newline
 	return err
+}
+
+func outputFriendlyMessage(c *cli.Command, message *messages.Message, format string) error {
+	formatter := messages.NewMessageFormatter()
+	switch format {
+	case "json":
+		output, err := formatter.FormatJSON(message)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(c.Root().Writer, "%s\n", output)
+	case "xml":
+		output, err := formatter.FormatXML(message)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(c.Root().Writer, "%s\n", output)
+	default:
+		output := formatter.FormatText(message)
+		fmt.Fprintf(c.Root().Writer, "%s\n", output)
+	}
+	return nil // Success - this is a friendly "already started" message, not an error
 }

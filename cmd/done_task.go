@@ -7,6 +7,7 @@ import (
 
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/messages"
 	"github.com/mindreframer/agentpm/internal/query"
 	"github.com/mindreframer/agentpm/internal/storage"
 	"github.com/mindreframer/agentpm/internal/tasks"
@@ -77,6 +78,13 @@ func DoneTaskCommand() *cli.Command {
 			if err != nil {
 				// Handle different error types for better error output
 				if stateErr, ok := err.(*tasks.TaskStateError); ok {
+					// Check if it's an "already completed" scenario
+					if stateErr.CurrentStatus == epic.StatusCompleted {
+						// Task is already completed - return friendly success message
+						templates := messages.NewMessageTemplates()
+						message := templates.TaskAlreadyCompleted(taskID)
+						return outputFriendlyMessage(cmd, message, cmd.String("format"))
+					}
 					return outputXMLError(cmd, "invalid_task_state",
 						fmt.Sprintf("Cannot complete task %s: %s", taskID, stateErr.Message),
 						map[string]interface{}{

@@ -9,6 +9,7 @@ import (
 	"github.com/beevik/etree"
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/lifecycle"
+	"github.com/mindreframer/agentpm/internal/messages"
 	"github.com/mindreframer/agentpm/internal/query"
 	"github.com/mindreframer/agentpm/internal/storage"
 	"github.com/urfave/cli/v3"
@@ -95,6 +96,15 @@ func doneEpicAction(ctx context.Context, c *cli.Command) error {
 	// Complete the epic
 	result, err := lifecycleService.DoneEpic(request)
 	if err != nil {
+		// Check if it's an "already completed" scenario and handle with friendly message
+		if transitionErr, ok := err.(*lifecycle.TransitionError); ok {
+			if transitionErr.CurrentStatus == lifecycle.LifecycleStatusDone {
+				// Epic is already completed - return friendly success message
+				templates := messages.NewMessageTemplates()
+				message := templates.EpicAlreadyCompleted(transitionErr.EpicID)
+				return outputFriendlyMessage(c, message, format)
+			}
+		}
 		return outputDoneEpicError(c, err, format)
 	}
 

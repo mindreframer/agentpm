@@ -7,6 +7,7 @@ import (
 
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/messages"
 	"github.com/mindreframer/agentpm/internal/query"
 	"github.com/mindreframer/agentpm/internal/storage"
 	"github.com/mindreframer/agentpm/internal/tasks"
@@ -77,9 +78,10 @@ func StartTaskCommand() *cli.Command {
 			if err != nil {
 				// Handle different error types for better error output
 				if _, ok := err.(*tasks.TaskAlreadyActiveError); ok {
-					// Task is already active - this is not an error, just a friendly message
-					fmt.Fprintf(cmd.Writer, "Task %s is already started.\n", taskID)
-					return nil
+					// Task is already active - return friendly success message
+					templates := messages.NewMessageTemplates()
+					message := templates.TaskAlreadyActive(taskID)
+					return outputFriendlyMessage(cmd, message, cmd.String("format"))
 				}
 
 				if phaseErr, ok := err.(*tasks.TaskPhaseError); ok {

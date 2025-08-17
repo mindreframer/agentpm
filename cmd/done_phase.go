@@ -7,6 +7,7 @@ import (
 
 	"github.com/mindreframer/agentpm/internal/config"
 	"github.com/mindreframer/agentpm/internal/epic"
+	"github.com/mindreframer/agentpm/internal/messages"
 	"github.com/mindreframer/agentpm/internal/phases"
 	"github.com/mindreframer/agentpm/internal/query"
 	"github.com/mindreframer/agentpm/internal/storage"
@@ -81,6 +82,13 @@ func DonePhaseCommand() *cli.Command {
 				}
 
 				if stateErr, ok := err.(*phases.PhaseStateError); ok {
+					// Check if it's an "already completed" scenario
+					if stateErr.CurrentStatus == epic.StatusCompleted {
+						// Phase is already completed - return friendly success message
+						templates := messages.NewMessageTemplates()
+						message := templates.PhaseAlreadyCompleted(phaseID)
+						return outputFriendlyMessage(cmd, message, cmd.String("format"))
+					}
 					return outputXMLError(cmd, "invalid_phase_state",
 						fmt.Sprintf("Cannot complete phase %s: %s", phaseID, stateErr.Message),
 						map[string]interface{}{

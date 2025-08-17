@@ -148,22 +148,25 @@ func TestEpic3LifecycleIntegration(t *testing.T) {
 		formats := []string{"text", "json", "xml"}
 
 		for _, format := range formats {
-			t.Run(fmt.Sprintf("error_format_%s", format), func(t *testing.T) {
-				// Try to start epic again (should fail)
+			t.Run(fmt.Sprintf("friendly_message_format_%s", format), func(t *testing.T) {
+				// Try to start epic again (should return friendly success message)
 				stdout.Reset()
 				stderr.Reset()
 				err = app.Run(context.Background(), []string{"agentpm", "--format", format, "start-epic", "--time", "2025-08-16T10:05:00Z"})
-				require.Error(t, err)
+				require.NoError(t, err) // Should succeed with friendly message
 
-				errorOutput := stderr.String()
+				// Check that friendly message appears in stdout (not stderr)
+				friendlyOutput := stdout.String()
 				if format == "json" {
-					assert.Contains(t, errorOutput, `"error"`)
-					assert.Contains(t, errorOutput, `"type"`)
+					assert.Contains(t, friendlyOutput, `"type": "info"`)
+					assert.Contains(t, friendlyOutput, `"content"`)
+					assert.Contains(t, friendlyOutput, "already started")
 				} else if format == "xml" {
-					assert.Contains(t, errorOutput, "<error>")
-					assert.Contains(t, errorOutput, "<type>")
+					assert.Contains(t, friendlyOutput, `type="info"`)
+					assert.Contains(t, friendlyOutput, "already started")
 				} else {
-					assert.Contains(t, errorOutput, "Error:")
+					assert.Contains(t, friendlyOutput, "already started")
+					assert.Contains(t, friendlyOutput, "No action needed")
 				}
 			})
 		}

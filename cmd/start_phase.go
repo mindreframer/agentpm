@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mindreframer/agentpm/internal/config"
+	"github.com/mindreframer/agentpm/internal/messages"
 	"github.com/mindreframer/agentpm/internal/phases"
 	"github.com/mindreframer/agentpm/internal/query"
 	"github.com/mindreframer/agentpm/internal/storage"
@@ -76,9 +77,10 @@ func StartPhaseCommand() *cli.Command {
 			if err != nil {
 				// Handle different error types for better error output
 				if _, ok := err.(*phases.PhaseAlreadyActiveError); ok {
-					// Phase is already active - this is not an error, just a friendly message
-					fmt.Fprintf(cmd.Writer, "Phase %s is already started.\n", phaseID)
-					return nil
+					// Phase is already active - return friendly success message
+					templates := messages.NewMessageTemplates()
+					message := templates.PhaseAlreadyActive(phaseID)
+					return outputFriendlyMessage(cmd, message, cmd.String("format"))
 				}
 
 				if phaseErr, ok := err.(*phases.PhaseConstraintError); ok {

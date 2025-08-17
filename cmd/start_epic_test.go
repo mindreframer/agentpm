@@ -182,11 +182,11 @@ func TestStartEpicCommand_AlreadyStarted(t *testing.T) {
 	args := []string{"agentpm", "start-epic", "--file", epicFile}
 	err := app.Run(context.Background(), args)
 
-	// Should fail with transition error
-	assert.Error(t, err)
-	output := stderr.String()
-	assert.Contains(t, output, "Error: Epic is already started")
-	assert.Contains(t, output, "Current status: wip")
+	// Should succeed with friendly message
+	assert.NoError(t, err)
+	output := stdout.String() // Friendly message goes to stdout, not stderr
+	assert.Contains(t, output, "already started")
+	assert.Contains(t, output, "No action needed")
 }
 
 func TestStartEpicCommand_JSONOutput(t *testing.T) {
@@ -275,7 +275,7 @@ func TestStartEpicCommand_XMLOutput(t *testing.T) {
 	assert.Contains(t, output, `<event_created>false</event_created>`)
 }
 
-func TestStartEpicCommand_ErrorOutput_JSON(t *testing.T) {
+func TestStartEpicCommand_FriendlyOutput_JSON(t *testing.T) {
 	tempDir := t.TempDir()
 	epicFile := filepath.Join(tempDir, "test-epic.xml")
 
@@ -283,7 +283,7 @@ func TestStartEpicCommand_ErrorOutput_JSON(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusCompleted, // cannot start from completed
+		Status: epic.StatusCompleted, // already completed - should return friendly message
 	}
 	writeTestEpicXML(t, epicFile, testEpic)
 
@@ -298,27 +298,32 @@ func TestStartEpicCommand_ErrorOutput_JSON(t *testing.T) {
 		},
 	}
 
-	var stderr bytes.Buffer
-	app.ErrWriter = &stderr
+	var stdout bytes.Buffer
+	app.Writer = &stdout
 
 	// Run start-epic command
 	args := []string{"agentpm", "start-epic", "--file", epicFile}
 	err := app.Run(context.Background(), args)
 
-	assert.Error(t, err)
+	assert.NoError(t, err) // Should succeed with friendly message
 
-	// Parse JSON error output
+	// Parse JSON friendly output
 	var result map[string]interface{}
-	err = json.Unmarshal(stderr.Bytes(), &result)
+	err = json.Unmarshal(stdout.Bytes(), &result)
 	require.NoError(t, err)
 
-	// Verify JSON error structure
-	errorObj, ok := result["error"].(map[string]interface{})
+	// Verify JSON friendly message structure
+	assert.Equal(t, "info", result["type"])
+	content, ok := result["content"].(string)
 	require.True(t, ok)
-	assert.Equal(t, "invalid_transition", errorObj["type"])
-	assert.Equal(t, "epic-1", errorObj["epic_id"])
-	assert.Equal(t, "done", errorObj["current_status"])
-	assert.Equal(t, "wip", errorObj["target_status"])
+	assert.Contains(t, content, "epic-1")
+	assert.Contains(t, content, "already completed")
+	assert.Contains(t, content, "No action needed")
+
+	// Verify hint is present
+	hint, ok := result["hint"].(string)
+	require.True(t, ok)
+	assert.Contains(t, hint, "agentpm status")
 }
 
 func TestStartEpicCommand_NoEpicFile(t *testing.T) {
