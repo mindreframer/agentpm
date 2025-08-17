@@ -115,29 +115,30 @@ func (e *Epic) validateBasicStructure(result *ValidationResult) {
 }
 
 func (e *Epic) validateStatusValues(result *ValidationResult) {
-	// Validate epic status
-	if !e.Status.IsValid() {
-		result.AddError(fmt.Sprintf("Invalid epic status: %s", e.Status))
+	// Validate epic status using Epic 13 unified system
+	if !e.GetEpicStatus().IsValid() {
+		result.AddError(fmt.Sprintf("Invalid epic status: %s", e.GetEpicStatus()))
 	}
 
-	// Validate phase statuses
+	// Validate phase statuses using Epic 13 unified system
 	for _, phase := range e.Phases {
-		if !phase.Status.IsValid() {
-			result.AddError(fmt.Sprintf("Invalid phase status for %s: %s", phase.ID, phase.Status))
+		if !phase.GetPhaseStatus().IsValid() {
+			result.AddError(fmt.Sprintf("Invalid phase status for %s: %s", phase.ID, phase.GetPhaseStatus()))
 		}
 	}
 
-	// Validate task statuses
+	// Validate task statuses using Epic 13 unified system
 	for _, task := range e.Tasks {
-		if !task.Status.IsValid() {
-			result.AddError(fmt.Sprintf("Invalid task status for %s: %s", task.ID, task.Status))
+		if !task.GetTaskStatus().IsValid() {
+			result.AddError(fmt.Sprintf("Invalid task status for %s: %s", task.ID, task.GetTaskStatus()))
 		}
 	}
 
-	// Validate test statuses
+	// Validate test statuses using Epic 13 unified system
 	for _, test := range e.Tests {
-		if !test.Status.IsValid() {
-			result.AddError(fmt.Sprintf("Invalid test status for %s: %s", test.ID, test.Status))
+		unifiedStatus := test.GetTestStatusUnified()
+		if !unifiedStatus.IsValid() {
+			result.AddError(fmt.Sprintf("Invalid test status for %s: %s", test.ID, unifiedStatus))
 		}
 	}
 

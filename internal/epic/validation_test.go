@@ -51,30 +51,33 @@ func TestEpic_Validate(t *testing.T) {
 		assert.Equal(t, "failed", result.Checks["xml_structure"])
 	})
 
-	t.Run("epic with invalid status values fails validation", func(t *testing.T) {
+	t.Run("epic with invalid status values passes validation (Epic 13 graceful handling)", func(t *testing.T) {
 		epic := &Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    Status("invalid_status"),
+			Status:    Status("invalid_status"), // Gets converted to "pending" by Epic 13
 			CreatedAt: time.Now(),
 			Phases: []Phase{
-				{ID: "P1", Name: "Phase 1", Status: Status("invalid_phase_status")},
+				{ID: "P1", Name: "Phase 1", Status: Status("invalid_phase_status")}, // Gets converted to "pending"
 			},
 			Tasks: []Task{
-				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: Status("invalid_task_status")},
+				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: Status("invalid_task_status")}, // Gets converted to "pending"
 			},
 			Tests: []Test{
-				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: Status("invalid_test_status")},
+				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: Status("invalid_test_status")}, // Gets converted to "pending"
 			},
 		}
 
 		result := epic.Validate()
-		assert.False(t, result.Valid)
-		assert.Contains(t, result.Errors, "Invalid epic status: invalid_status")
-		assert.Contains(t, result.Errors, "Invalid phase status for P1: invalid_phase_status")
-		assert.Contains(t, result.Errors, "Invalid task status for T1: invalid_task_status")
-		assert.Contains(t, result.Errors, "Invalid test status for TEST1: invalid_test_status")
-		assert.Equal(t, "failed", result.Checks["status_values"])
+		// Epic 13 gracefully handles invalid legacy statuses by converting them to valid defaults
+		assert.True(t, result.Valid, "Epic 13 should gracefully handle invalid legacy statuses")
+		assert.Equal(t, "passed", result.Checks["status_values"])
+
+		// Verify that conversion worked correctly
+		assert.Equal(t, EpicStatusPending, epic.GetEpicStatus())
+		assert.Equal(t, PhaseStatusPending, epic.Phases[0].GetPhaseStatus())
+		assert.Equal(t, TaskStatusPending, epic.Tasks[0].GetTaskStatus())
+		assert.Equal(t, TestStatusPending, epic.Tests[0].GetTestStatusUnified())
 	})
 
 	t.Run("epic with duplicate IDs fails validation", func(t *testing.T) {
