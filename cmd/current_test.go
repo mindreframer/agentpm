@@ -278,7 +278,7 @@ func TestCurrentCommand(t *testing.T) {
 	t.Run("current command aliases", func(t *testing.T) {
 		cmd := CurrentCommand()
 		assert.Equal(t, "current", cmd.Name)
-		assert.Contains(t, cmd.Aliases, "cur")
+		assert.Contains(t, cmd.Aliases, "c")
 	})
 }
 

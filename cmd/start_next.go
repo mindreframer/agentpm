@@ -16,8 +16,9 @@ import (
 
 func StartNextCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "start-next",
-		Usage: "Automatically select and start the next task or phase",
+		Name:    "next",
+		Usage:   "Auto-start next available work",
+		Aliases: []string{"start-next"},
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "file",

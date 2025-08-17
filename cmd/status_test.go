@@ -436,7 +436,7 @@ func TestStatusCommandAliases(t *testing.T) {
 	t.Run("status command has correct aliases", func(t *testing.T) {
 		cmd := StatusCommand()
 		assert.Equal(t, "status", cmd.Name)
-		assert.Contains(t, cmd.Aliases, "st")
+		assert.Contains(t, cmd.Aliases, "s")
 	})
 
 	t.Run("status alias works", func(t *testing.T) {
@@ -467,7 +467,7 @@ func TestStatusCommandAliases(t *testing.T) {
 		cmd.Root().Writer = &stdout
 		cmd.Root().ErrWriter = &stderr
 
-		err = cmd.Run(context.Background(), []string{"st", "--file", epicPath})
+		err = cmd.Run(context.Background(), []string{"s", "--file", epicPath})
 		require.NoError(t, err)
 
 		output := stdout.String()

@@ -5,10 +5,10 @@ start_task_phase_violation_error
     <type>task_phase_violation</type>
     <message>Cannot start task task-2: phase phase-2 is not active</message>
     <details>
+        <suggestion>Start phase phase-2 first or use 'agentpm current' to see active work</suggestion>
         <task_id>task-2</task_id>
         <phase_id>phase-2</phase_id>
         <phase_status>planning</phase_status>
-        <suggestion>Start phase phase-2 first or use 'agentpm current' to see active work</suggestion>
     </details>
 </error>
 ---
@@ -20,10 +20,10 @@ start_task_constraint_violation_error
     <message>Cannot start task task-2: task task-1 is already active in phase phase-1</message>
     <hint>Complete task 'task-1' in phase 'phase-1' before starting 'task-2'</hint>
     <details>
-        <phase_id>phase-1</phase_id>
-        <suggestion>Complete task task-1 first or use 'agentpm current' to see active work</suggestion>
         <task_id>task-2</task_id>
         <active_task_id>task-1</active_task_id>
+        <phase_id>phase-1</phase_id>
+        <suggestion>Complete task task-1 first or use 'agentpm current' to see active work</suggestion>
     </details>
 </error>
 ---

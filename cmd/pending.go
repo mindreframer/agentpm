@@ -15,7 +15,7 @@ func PendingCommand() *cli.Command {
 	return &cli.Command{
 		Name:    "pending",
 		Usage:   "Display pending work across all phases",
-		Aliases: []string{"pend"},
+		Aliases: []string{"p"},
 		Action:  pendingAction,
 		Flags: []cli.Flag{
 			&cli.StringFlag{

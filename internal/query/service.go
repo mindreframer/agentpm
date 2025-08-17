@@ -947,3 +947,53 @@ func (qs *QueryService) getPendingTasksInPhase(phaseID string) []epic.Task {
 	}
 	return pendingTasks
 }
+
+// GetEpic returns the full epic data for show command
+func (qs *QueryService) GetEpic() (*epic.Epic, error) {
+	if qs.epic == nil {
+		return nil, fmt.Errorf("no epic loaded")
+	}
+	return qs.epic, nil
+}
+
+// GetPhase returns a specific phase by ID
+func (qs *QueryService) GetPhase(phaseID string) (*epic.Phase, error) {
+	if qs.epic == nil {
+		return nil, fmt.Errorf("no epic loaded")
+	}
+
+	for i := range qs.epic.Phases {
+		if qs.epic.Phases[i].ID == phaseID {
+			return &qs.epic.Phases[i], nil
+		}
+	}
+	return nil, fmt.Errorf("phase %s not found", phaseID)
+}
+
+// GetTask returns a specific task by ID
+func (qs *QueryService) GetTask(taskID string) (*epic.Task, error) {
+	if qs.epic == nil {
+		return nil, fmt.Errorf("no epic loaded")
+	}
+
+	for i := range qs.epic.Tasks {
+		if qs.epic.Tasks[i].ID == taskID {
+			return &qs.epic.Tasks[i], nil
+		}
+	}
+	return nil, fmt.Errorf("task %s not found", taskID)
+}
+
+// GetTest returns a specific test by ID
+func (qs *QueryService) GetTest(testID string) (*epic.Test, error) {
+	if qs.epic == nil {
+		return nil, fmt.Errorf("no epic loaded")
+	}
+
+	for i := range qs.epic.Tests {
+		if qs.epic.Tests[i].ID == testID {
+			return &qs.epic.Tests[i], nil
+		}
+	}
+	return nil, fmt.Errorf("test %s not found", testID)
+}

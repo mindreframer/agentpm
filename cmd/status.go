@@ -15,7 +15,7 @@ func StatusCommand() *cli.Command {
 	return &cli.Command{
 		Name:    "status",
 		Usage:   "Display epic status and progress overview",
-		Aliases: []string{"st"},
+		Aliases: []string{"s"},
 		Action:  statusAction,
 		Flags: []cli.Flag{
 			&cli.StringFlag{

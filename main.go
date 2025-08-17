@@ -9,6 +9,12 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+// addCategory adds a category to a command for grouped help output
+func addCategory(command *cli.Command, category string) *cli.Command {
+	command.Category = category
+	return command
+}
+
 func main() {
 	app := &cli.Command{
 		Name:  "agentpm",
@@ -38,31 +44,39 @@ func main() {
 			},
 		},
 		Commands: []*cli.Command{
-			cmd.VersionCommand(),
-			cmd.InitCommand(),
-			cmd.ConfigCommand(),
-			cmd.ValidateCommand(),
-			cmd.StatusCommand(),
-			cmd.CurrentCommand(),
-			cmd.PendingCommand(),
-			cmd.FailingCommand(),
-			cmd.EventsCommand(),
-			cmd.LogCommand(),
-			cmd.StartEpicCommand(),
-			cmd.DoneEpicCommand(),
-			cmd.SwitchCommand(),
-			cmd.StartPhaseCommand(),
-			cmd.DonePhaseCommand(),
-			cmd.StartTaskCommand(),
-			cmd.DoneTaskCommand(),
-			cmd.CancelTaskCommand(),
-			cmd.StartNextCommand(),
-			cmd.StartTestCommand(),
-			cmd.PassTestCommand(),
-			cmd.FailTestCommand(),
-			cmd.CancelTestCommand(),
-			cmd.HandoffCommand(),
-			cmd.DocsCommand(),
+			// CORE WORKFLOW - Most frequently used commands
+			addCategory(cmd.StartCommand(), "CORE WORKFLOW"),
+			addCategory(cmd.DoneCommand(), "CORE WORKFLOW"),
+			addCategory(cmd.CancelCommand(), "CORE WORKFLOW"),
+			addCategory(cmd.StartNextCommand(), "CORE WORKFLOW"),
+
+			// TESTING - Test management commands
+			addCategory(cmd.PassCommand(), "TESTING"),
+			addCategory(cmd.FailCommand(), "TESTING"),
+
+			// STATUS - Information and monitoring commands
+			addCategory(cmd.StatusCommand(), "STATUS"),
+			addCategory(cmd.CurrentCommand(), "STATUS"),
+			addCategory(cmd.PendingCommand(), "STATUS"),
+			addCategory(cmd.FailingCommand(), "STATUS"),
+
+			// INSPECTION - Detailed entity examination
+			addCategory(cmd.ShowCommand(), "INSPECTION"),
+
+			// PROJECT - Project setup and management
+			addCategory(cmd.InitCommand(), "PROJECT"),
+			addCategory(cmd.SwitchCommand(), "PROJECT"),
+			addCategory(cmd.ConfigCommand(), "PROJECT"),
+			addCategory(cmd.ValidateCommand(), "PROJECT"),
+
+			// REPORTING - Documentation and handoff
+			addCategory(cmd.LogCommand(), "REPORTING"),
+			addCategory(cmd.EventsCommand(), "REPORTING"),
+			addCategory(cmd.DocsCommand(), "REPORTING"),
+			addCategory(cmd.HandoffCommand(), "REPORTING"),
+
+			// SYSTEM - Version and help
+			addCategory(cmd.VersionCommand(), "SYSTEM"),
 		},
 	}
 

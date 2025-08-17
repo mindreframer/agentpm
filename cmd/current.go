@@ -15,7 +15,7 @@ func CurrentCommand() *cli.Command {
 	return &cli.Command{
 		Name:    "current",
 		Usage:   "Display current active work state",
-		Aliases: []string{"cur"},
+		Aliases: []string{"c"},
 		Action:  currentAction,
 		Flags: []cli.Flag{
 			&cli.StringFlag{

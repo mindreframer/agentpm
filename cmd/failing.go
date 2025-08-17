@@ -15,7 +15,7 @@ func FailingCommand() *cli.Command {
 	return &cli.Command{
 		Name:    "failing",
 		Usage:   "Display failing tests with details",
-		Aliases: []string{"fail"},
+		Aliases: []string{"f"},
 		Action:  failingAction,
 		Flags: []cli.Flag{
 			&cli.StringFlag{

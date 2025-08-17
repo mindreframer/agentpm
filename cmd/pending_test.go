@@ -299,7 +299,7 @@ func TestPendingCommand(t *testing.T) {
 	t.Run("pending command aliases", func(t *testing.T) {
 		cmd := PendingCommand()
 		assert.Equal(t, "pending", cmd.Name)
-		assert.Contains(t, cmd.Aliases, "pend")
+		assert.Contains(t, cmd.Aliases, "p")
 	})
 }
 
