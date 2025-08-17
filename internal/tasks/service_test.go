@@ -508,7 +508,7 @@ func TestTaskService_AutomaticEventCreation(t *testing.T) {
 		event := epicData.Events[0]
 
 		assert.Equal(t, "task_started", event.Type)
-		assert.Equal(t, "Task 'Task 1' started", event.Data)
+		assert.Equal(t, "Task task-1 (Task 1) started", event.Data)
 		assert.Equal(t, testTime, event.Timestamp)
 		assert.NotEmpty(t, event.ID)
 	})
@@ -537,7 +537,7 @@ func TestTaskService_AutomaticEventCreation(t *testing.T) {
 		event := epicData.Events[0]
 
 		assert.Equal(t, "task_completed", event.Type)
-		assert.Equal(t, "Task 'Task 1' completed", event.Data)
+		assert.Equal(t, "Task task-1 (Task 1) completed", event.Data)
 		assert.Equal(t, completedTime, event.Timestamp)
 		assert.NotEmpty(t, event.ID)
 	})
@@ -566,7 +566,7 @@ func TestTaskService_AutomaticEventCreation(t *testing.T) {
 		event := epicData.Events[0]
 
 		assert.Equal(t, "task_cancelled", event.Type)
-		assert.Equal(t, "Task 'Task 1' cancelled", event.Data)
+		assert.Equal(t, "Task task-1 (Task 1) cancelled", event.Data)
 		assert.Equal(t, cancelledTime, event.Timestamp)
 		assert.NotEmpty(t, event.ID)
 	})
@@ -600,13 +600,13 @@ func TestTaskService_AutomaticEventCreation(t *testing.T) {
 		// Verify start event
 		startEvent := epicData.Events[0]
 		assert.Equal(t, "task_started", startEvent.Type)
-		assert.Equal(t, "Task 'Task 1' started", startEvent.Data)
+		assert.Equal(t, "Task task-1 (Task 1) started", startEvent.Data)
 		assert.Equal(t, testTime, startEvent.Timestamp)
 
 		// Verify completion event
 		completeEvent := epicData.Events[1]
 		assert.Equal(t, "task_completed", completeEvent.Type)
-		assert.Equal(t, "Task 'Task 1' completed", completeEvent.Data)
+		assert.Equal(t, "Task task-1 (Task 1) completed", completeEvent.Data)
 		assert.Equal(t, completedTime, completeEvent.Timestamp)
 
 		// Verify events have different IDs

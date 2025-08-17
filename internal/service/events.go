@@ -19,51 +19,76 @@ const (
 )
 
 // CreateEvent creates a new event and appends it to the epic's events
+// Only creates an event if the referenced entity (phase or task) exists
 func CreateEvent(epicData *epic.Epic, eventType EventType, phaseID, taskID string, timestamp time.Time) {
-	// Generate a simple event ID based on timestamp and type
-	eventID := fmt.Sprintf("%s_%d", string(eventType), timestamp.Unix())
-
 	// Create the event data string based on the event type
 	var data string
+	var entityExists bool
+
 	switch eventType {
 	case EventPhaseStarted:
 		phase := findPhaseByID(epicData, phaseID)
 		if phase != nil {
-			data = fmt.Sprintf("Phase '%s' started", phase.Name)
-		} else {
-			data = fmt.Sprintf("Phase '%s' started", phaseID)
+			entityExists = true
+			if phase.Name != "" {
+				data = fmt.Sprintf("Phase %s (%s) started", phase.ID, phase.Name)
+			} else {
+				data = fmt.Sprintf("Phase %s started", phase.ID)
+			}
 		}
 	case EventPhaseCompleted:
 		phase := findPhaseByID(epicData, phaseID)
 		if phase != nil {
-			data = fmt.Sprintf("Phase '%s' completed", phase.Name)
-		} else {
-			data = fmt.Sprintf("Phase '%s' completed", phaseID)
+			entityExists = true
+			if phase.Name != "" {
+				data = fmt.Sprintf("Phase %s (%s) completed", phase.ID, phase.Name)
+			} else {
+				data = fmt.Sprintf("Phase %s completed", phase.ID)
+			}
 		}
 	case EventTaskStarted:
 		task := findTaskByID(epicData, taskID)
 		if task != nil {
-			data = fmt.Sprintf("Task '%s' started", task.Name)
-		} else {
-			data = fmt.Sprintf("Task '%s' started", taskID)
+			entityExists = true
+			if task.Name != "" {
+				data = fmt.Sprintf("Task %s (%s) started", task.ID, task.Name)
+			} else {
+				data = fmt.Sprintf("Task %s started", task.ID)
+			}
 		}
 	case EventTaskCompleted:
 		task := findTaskByID(epicData, taskID)
 		if task != nil {
-			data = fmt.Sprintf("Task '%s' completed", task.Name)
-		} else {
-			data = fmt.Sprintf("Task '%s' completed", taskID)
+			entityExists = true
+			if task.Name != "" {
+				data = fmt.Sprintf("Task %s (%s) completed", task.ID, task.Name)
+			} else {
+				data = fmt.Sprintf("Task %s completed", task.ID)
+			}
 		}
 	case EventTaskCancelled:
 		task := findTaskByID(epicData, taskID)
 		if task != nil {
-			data = fmt.Sprintf("Task '%s' cancelled", task.Name)
-		} else {
-			data = fmt.Sprintf("Task '%s' cancelled", taskID)
+			entityExists = true
+			if task.Name != "" {
+				data = fmt.Sprintf("Task %s (%s) cancelled", task.ID, task.Name)
+			} else {
+				data = fmt.Sprintf("Task %s cancelled", task.ID)
+			}
 		}
 	default:
+		// For unknown event types, we don't validate entity existence
+		entityExists = true
 		data = fmt.Sprintf("Event of type %s occurred", string(eventType))
 	}
+
+	// Only create event if the entity exists
+	if !entityExists {
+		return
+	}
+
+	// Generate a simple event ID based on timestamp and type
+	eventID := fmt.Sprintf("%s_%d", string(eventType), timestamp.Unix())
 
 	// Create and append the event
 	event := epic.Event{

@@ -345,7 +345,7 @@ func TestPhaseService_AutomaticEventCreation(t *testing.T) {
 		event := epicData.Events[0]
 
 		assert.Equal(t, "phase_started", event.Type)
-		assert.Equal(t, "Phase 'Phase 1' started", event.Data)
+		assert.Equal(t, "Phase phase-1 (Phase 1) started", event.Data)
 		assert.Equal(t, testTime, event.Timestamp)
 		assert.NotEmpty(t, event.ID)
 	})
@@ -374,7 +374,7 @@ func TestPhaseService_AutomaticEventCreation(t *testing.T) {
 		event := epicData.Events[0]
 
 		assert.Equal(t, "phase_completed", event.Type)
-		assert.Equal(t, "Phase 'Phase 1' completed", event.Data)
+		assert.Equal(t, "Phase phase-1 (Phase 1) completed", event.Data)
 		assert.Equal(t, completedTime, event.Timestamp)
 		assert.NotEmpty(t, event.ID)
 	})
@@ -408,13 +408,13 @@ func TestPhaseService_AutomaticEventCreation(t *testing.T) {
 		// Verify start event
 		startEvent := epicData.Events[0]
 		assert.Equal(t, "phase_started", startEvent.Type)
-		assert.Equal(t, "Phase 'Phase 1' started", startEvent.Data)
+		assert.Equal(t, "Phase phase-1 (Phase 1) started", startEvent.Data)
 		assert.Equal(t, testTime, startEvent.Timestamp)
 
 		// Verify completion event
 		completeEvent := epicData.Events[1]
 		assert.Equal(t, "phase_completed", completeEvent.Type)
-		assert.Equal(t, "Phase 'Phase 1' completed", completeEvent.Data)
+		assert.Equal(t, "Phase phase-1 (Phase 1) completed", completeEvent.Data)
 		assert.Equal(t, completedTime, completeEvent.Timestamp)
 
 		// Verify events have different IDs

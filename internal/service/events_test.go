@@ -22,7 +22,7 @@ func TestCreateEvent(t *testing.T) {
 			phaseID:   "phase1",
 			taskID:    "",
 			wantType:  "phase_started",
-			wantData:  "Phase 'Phase 1' started",
+			wantData:  "Phase phase1 (Phase 1) started",
 		},
 		{
 			name:      "phase completed event",
@@ -30,7 +30,7 @@ func TestCreateEvent(t *testing.T) {
 			phaseID:   "phase1",
 			taskID:    "",
 			wantType:  "phase_completed",
-			wantData:  "Phase 'Phase 1' completed",
+			wantData:  "Phase phase1 (Phase 1) completed",
 		},
 		{
 			name:      "task started event",
@@ -38,7 +38,7 @@ func TestCreateEvent(t *testing.T) {
 			phaseID:   "phase1",
 			taskID:    "task1",
 			wantType:  "task_started",
-			wantData:  "Task 'Task 1' started",
+			wantData:  "Task task1 (Task 1) started",
 		},
 		{
 			name:      "task completed event",
@@ -46,7 +46,7 @@ func TestCreateEvent(t *testing.T) {
 			phaseID:   "phase1",
 			taskID:    "task1",
 			wantType:  "task_completed",
-			wantData:  "Task 'Task 1' completed",
+			wantData:  "Task task1 (Task 1) completed",
 		},
 		{
 			name:      "task cancelled event",
@@ -54,7 +54,7 @@ func TestCreateEvent(t *testing.T) {
 			phaseID:   "phase1",
 			taskID:    "task1",
 			wantType:  "task_cancelled",
-			wantData:  "Task 'Task 1' cancelled",
+			wantData:  "Task task1 (Task 1) cancelled",
 		},
 	}
 
@@ -123,16 +123,9 @@ func TestCreateEvent_PhaseNotFound(t *testing.T) {
 	// Create event for non-existent phase
 	CreateEvent(epicData, EventPhaseStarted, "nonexistent", "", timestamp)
 
-	// Should still create event with fallback data
-	if len(epicData.Events) != 1 {
-		t.Errorf("Expected 1 event, got %d", len(epicData.Events))
-		return
-	}
-
-	event := epicData.Events[0]
-	expectedData := "Phase 'nonexistent' started"
-	if event.Data != expectedData {
-		t.Errorf("Expected event data %s, got %s", expectedData, event.Data)
+	// Should NOT create event when entity doesn't exist
+	if len(epicData.Events) != 0 {
+		t.Errorf("Expected 0 events, got %d", len(epicData.Events))
 	}
 }
 
@@ -150,16 +143,9 @@ func TestCreateEvent_TaskNotFound(t *testing.T) {
 	// Create event for non-existent task
 	CreateEvent(epicData, EventTaskStarted, "phase1", "nonexistent", timestamp)
 
-	// Should still create event with fallback data
-	if len(epicData.Events) != 1 {
-		t.Errorf("Expected 1 event, got %d", len(epicData.Events))
-		return
-	}
-
-	event := epicData.Events[0]
-	expectedData := "Task 'nonexistent' started"
-	if event.Data != expectedData {
-		t.Errorf("Expected event data %s, got %s", expectedData, event.Data)
+	// Should NOT create event when entity doesn't exist
+	if len(epicData.Events) != 0 {
+		t.Errorf("Expected 0 events, got %d", len(epicData.Events))
 	}
 }
 
@@ -210,5 +196,65 @@ func TestCreateEvent_MultipleEvents(t *testing.T) {
 	// Verify events have different IDs
 	if event1.ID == event2.ID {
 		t.Error("Expected events to have different IDs")
+	}
+}
+
+func TestCreateEvent_EntityWithoutName(t *testing.T) {
+	tests := []struct {
+		name      string
+		eventType EventType
+		phaseID   string
+		taskID    string
+		wantData  string
+	}{
+		{
+			name:      "phase with empty name",
+			eventType: EventPhaseStarted,
+			phaseID:   "phase1",
+			taskID:    "",
+			wantData:  "Phase phase1 started",
+		},
+		{
+			name:      "task with empty name",
+			eventType: EventTaskStarted,
+			phaseID:   "phase1",
+			taskID:    "task1",
+			wantData:  "Task task1 started",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create test epic with entities that have empty names
+			epicData := &epic.Epic{
+				ID:   "test-epic",
+				Name: "Test Epic",
+				Phases: []epic.Phase{
+					{ID: "phase1", Name: ""}, // Empty name
+				},
+				Tasks: []epic.Task{
+					{ID: "task1", Name: "", PhaseID: "phase1"}, // Empty name
+				},
+				Events: []epic.Event{},
+			}
+
+			timestamp := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
+
+			// Create event
+			CreateEvent(epicData, tt.eventType, tt.phaseID, tt.taskID, timestamp)
+
+			// Verify event was created
+			if len(epicData.Events) != 1 {
+				t.Errorf("Expected 1 event, got %d", len(epicData.Events))
+				return
+			}
+
+			event := epicData.Events[0]
+
+			// Verify event data uses ID-only format when name is empty
+			if event.Data != tt.wantData {
+				t.Errorf("Expected event data %s, got %s", tt.wantData, event.Data)
+			}
+		})
 	}
 }
