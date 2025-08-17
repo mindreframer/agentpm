@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<epic id="8" name="Epic Name" status="active" created_at="2025-08-16T09:00:00Z">
+    <assignee>agent_claude</assignee>
+    <description>Epic description</description>
+    <phases>
+        <phase id="1A" name="Setup" status="planning">
+            <description>Initial setup phase</description>
+        </phase>
+        <phase id="1B" name="Development" status="planning">
+            <description>Main development phase</description>
+        </phase>
+    </phases>
+    <tasks>
+        <task id="1A_1" phase_id="1A" name="Initialize Project" status="planning" assignee="agent_claude">
+            <description>Set up the project structure</description>
+        </task>
+        <task id="1A_2" phase_id="1A" name="Configure Tools" status="planning">
+            <description>Configure development tools</description>
+        </task>
+    </tasks>
+    <tests>
+        <test id="T1A_1" task_id="1A_1" name="Test Project Init" status="planning">Test that project initializes correctly</test>
+    </tests>
+    <events>
+        <event id="E1" type="created" timestamp="2025-08-16T09:00:00Z">Epic created by agent_claude</event>
+    </events>
+</epic>

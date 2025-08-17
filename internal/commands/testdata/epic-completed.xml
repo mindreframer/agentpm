@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<epic id="8" name="Epic Name" status="completed" created_at="2025-08-16T09:00:00Z" started_at="2025-08-16T10:00:00Z" completed_at="2025-08-16T18:00:00Z">
+    <assignee>agent_claude</assignee>
+    <description>Epic description</description>
+    <phases>
+        <phase id="1A" name="Setup" status="completed" started_at="2025-08-16T10:00:00Z" completed_at="2025-08-16T14:00:00Z">
+            <description>Initial setup phase</description>
+        </phase>
+        <phase id="1B" name="Development" status="completed" started_at="2025-08-16T14:00:00Z" completed_at="2025-08-16T18:00:00Z">
+            <description>Main development phase</description>
+        </phase>
+    </phases>
+    <tasks>
+        <task id="1A_1" phase_id="1A" name="Initialize Project" status="completed" assignee="agent_claude" started_at="2025-08-16T10:00:00Z" completed_at="2025-08-16T12:00:00Z">
+            <description>Set up the project structure</description>
+        </task>
+        <task id="1A_2" phase_id="1A" name="Configure Tools" status="completed" started_at="2025-08-16T12:00:00Z" completed_at="2025-08-16T14:00:00Z">
+            <description>Configure development tools</description>
+        </task>
+    </tasks>
+    <tests>
+        <test id="T1A_1" task_id="1A_1" name="Test Project Init" status="passed">
+            <description>Test that project initializes correctly</description>
+        </test>
+    </tests>
+    <events>
+        <event id="E1" type="created" timestamp="2025-08-16T09:00:00Z">
+            <data>Epic created by agent_claude</data>
+        </event>
+        <event id="E2" type="started" timestamp="2025-08-16T10:00:00Z">
+            <data>Epic started by agent_claude</data>
+        </event>
+        <event id="E3" type="completed" timestamp="2025-08-16T18:00:00Z">
+            <data>Epic completed by agent_claude</data>
+        </event>
+    </events>
+</epic>

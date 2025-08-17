@@ -312,7 +312,7 @@ func TestStartEpicCommand_FriendlyOutput_JSON(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify JSON friendly message structure
-	assert.Equal(t, "info", result["type"])
+	assert.Equal(t, "success", result["type"])
 	content, ok := result["content"].(string)
 	require.True(t, ok)
 	assert.Contains(t, content, "epic-1")

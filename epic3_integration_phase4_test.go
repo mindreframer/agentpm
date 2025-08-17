@@ -158,11 +158,11 @@ func TestEpic3LifecycleIntegration(t *testing.T) {
 				// Check that friendly message appears in stdout (not stderr)
 				friendlyOutput := stdout.String()
 				if format == "json" {
-					assert.Contains(t, friendlyOutput, `"type": "info"`)
+					assert.Contains(t, friendlyOutput, `"type": "success"`)
 					assert.Contains(t, friendlyOutput, `"content"`)
 					assert.Contains(t, friendlyOutput, "already started")
 				} else if format == "xml" {
-					assert.Contains(t, friendlyOutput, `type="info"`)
+					assert.Contains(t, friendlyOutput, `type="success"`)
 					assert.Contains(t, friendlyOutput, "already started")
 				} else {
 					assert.Contains(t, friendlyOutput, "already started")

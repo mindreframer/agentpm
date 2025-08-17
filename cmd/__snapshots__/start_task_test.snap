@@ -20,10 +20,10 @@ start_task_constraint_violation_error
     <message>Cannot start task task-2: task task-1 is already active in phase phase-1</message>
     <hint>Complete task 'task-1' in phase 'phase-1' before starting 'task-2'</hint>
     <details>
-        <task_id>task-2</task_id>
-        <active_task_id>task-1</active_task_id>
         <phase_id>phase-1</phase_id>
         <suggestion>Complete task task-1 first or use 'agentpm current' to see active work</suggestion>
+        <task_id>task-2</task_id>
+        <active_task_id>task-1</active_task_id>
     </details>
 </error>
 ---
@@ -35,9 +35,9 @@ start_task_invalid_state_error
     <message>Cannot start task task-1: Task is not in pending state</message>
     <hint>task 'task-1' is already completed. Use 'agentpm status' to see available work</hint>
     <details>
+        <task_id>task-1</task_id>
         <current_status>completed</current_status>
         <target_status>active</target_status>
-        <task_id>task-1</task_id>
     </details>
 </error>
 ---

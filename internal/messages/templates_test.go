@@ -29,7 +29,7 @@ func TestPhaseTemplates(t *testing.T) {
 	t.Run("PhaseAlreadyActive", func(t *testing.T) {
 		msg := templates.PhaseAlreadyActive("implementation")
 
-		assert.Equal(t, MessageInfo, msg.Type)
+		assert.Equal(t, MessageSuccess, msg.Type)
 		assert.Contains(t, msg.Content, "Phase 'implementation' is already active")
 		assert.Contains(t, msg.Hint, "agentpm status")
 	})
@@ -37,7 +37,7 @@ func TestPhaseTemplates(t *testing.T) {
 	t.Run("PhaseAlreadyCompleted", func(t *testing.T) {
 		msg := templates.PhaseAlreadyCompleted("testing")
 
-		assert.Equal(t, MessageInfo, msg.Type)
+		assert.Equal(t, MessageSuccess, msg.Type)
 		assert.Contains(t, msg.Content, "Phase 'testing' is already completed")
 		assert.Contains(t, msg.Hint, "agentpm status")
 	})
@@ -99,7 +99,7 @@ func TestTaskTemplates(t *testing.T) {
 	t.Run("TaskAlreadyActive", func(t *testing.T) {
 		msg := templates.TaskAlreadyActive("setup-database")
 
-		assert.Equal(t, MessageInfo, msg.Type)
+		assert.Equal(t, MessageSuccess, msg.Type)
 		assert.Contains(t, msg.Content, "Task 'setup-database' is already active")
 		assert.Contains(t, msg.Hint, "agentpm status")
 	})
@@ -107,7 +107,7 @@ func TestTaskTemplates(t *testing.T) {
 	t.Run("TaskAlreadyCompleted", func(t *testing.T) {
 		msg := templates.TaskAlreadyCompleted("create-api")
 
-		assert.Equal(t, MessageInfo, msg.Type)
+		assert.Equal(t, MessageSuccess, msg.Type)
 		assert.Contains(t, msg.Content, "Task 'create-api' is already completed")
 		assert.Contains(t, msg.Hint, "agentpm status")
 	})
@@ -133,7 +133,7 @@ func TestTestTemplates(t *testing.T) {
 	t.Run("TestAlreadyActive", func(t *testing.T) {
 		msg := templates.TestAlreadyActive("integration-test-1")
 
-		assert.Equal(t, MessageInfo, msg.Type)
+		assert.Equal(t, MessageSuccess, msg.Type)
 		assert.Contains(t, msg.Content, "Test 'integration-test-1' is already started")
 		assert.Contains(t, msg.Hint, "agentpm status")
 	})
@@ -141,7 +141,7 @@ func TestTestTemplates(t *testing.T) {
 	t.Run("TestAlreadyPassed", func(t *testing.T) {
 		msg := templates.TestAlreadyPassed("unit-test-auth")
 
-		assert.Equal(t, MessageInfo, msg.Type)
+		assert.Equal(t, MessageSuccess, msg.Type)
 		assert.Contains(t, msg.Content, "Test 'unit-test-auth' has already passed")
 		assert.Contains(t, msg.Hint, "agentpm status")
 	})
@@ -181,7 +181,7 @@ func TestEpicTemplates(t *testing.T) {
 	t.Run("EpicAlreadyStarted", func(t *testing.T) {
 		msg := templates.EpicAlreadyStarted("user-authentication")
 
-		assert.Equal(t, MessageInfo, msg.Type)
+		assert.Equal(t, MessageSuccess, msg.Type)
 		assert.Contains(t, msg.Content, "Epic 'user-authentication' is already started")
 		assert.Contains(t, msg.Hint, "agentpm status")
 	})
@@ -189,7 +189,7 @@ func TestEpicTemplates(t *testing.T) {
 	t.Run("EpicAlreadyCompleted", func(t *testing.T) {
 		msg := templates.EpicAlreadyCompleted("payment-system")
 
-		assert.Equal(t, MessageInfo, msg.Type)
+		assert.Equal(t, MessageSuccess, msg.Type)
 		assert.Contains(t, msg.Content, "Epic 'payment-system' is already completed")
 		assert.Contains(t, msg.Hint, "agentpm status")
 	})
@@ -327,9 +327,9 @@ func TestTemplateIntegration(t *testing.T) {
 
 		assert.Len(t, messages, 4)
 
-		// All should be info messages with helpful hints
+		// All should be success messages with helpful hints
 		for _, msg := range messages {
-			assert.Equal(t, MessageInfo, msg.Type)
+			assert.Equal(t, MessageSuccess, msg.Type)
 			assert.Contains(t, msg.Content, "already")
 			assert.Contains(t, msg.Content, "No action needed")
 			assert.NotEmpty(t, msg.Hint)

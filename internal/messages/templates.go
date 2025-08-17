@@ -30,14 +30,14 @@ func NewMessageTemplatesWithFormatter(formatter MessageFormatter) *MessageTempla
 func (mt *MessageTemplates) PhaseAlreadyActive(phaseID string) *Message {
 	content := fmt.Sprintf("Phase '%s' is already active. No action needed.", phaseID)
 	hint := "You can check the current phase with: agentpm status"
-	return InfoMessageWithHint(content, hint)
+	return SuccessMessageWithHint(content, hint)
 }
 
 // PhaseAlreadyCompleted returns a friendly message when trying to complete an already completed phase
 func (mt *MessageTemplates) PhaseAlreadyCompleted(phaseID string) *Message {
 	content := fmt.Sprintf("Phase '%s' is already completed. No action needed.", phaseID)
 	hint := "You can view completed phases with: agentpm status"
-	return InfoMessageWithHint(content, hint)
+	return SuccessMessageWithHint(content, hint)
 }
 
 // PhaseStarted returns a success message for phase start
@@ -87,14 +87,14 @@ func (mt *MessageTemplates) PhaseIncompleteDependencies(phaseID string, incomple
 func (mt *MessageTemplates) TaskAlreadyActive(taskID string) *Message {
 	content := fmt.Sprintf("Task '%s' is already active. No action needed.", taskID)
 	hint := "You can check the current task with: agentpm status"
-	return InfoMessageWithHint(content, hint)
+	return SuccessMessageWithHint(content, hint)
 }
 
 // TaskAlreadyCompleted returns a friendly message when trying to complete an already completed task
 func (mt *MessageTemplates) TaskAlreadyCompleted(taskID string) *Message {
 	content := fmt.Sprintf("Task '%s' is already completed. No action needed.", taskID)
 	hint := "You can view completed tasks with: agentpm status"
-	return InfoMessageWithHint(content, hint)
+	return SuccessMessageWithHint(content, hint)
 }
 
 // TaskStarted returns a success message for task start
@@ -115,14 +115,14 @@ func (mt *MessageTemplates) TaskCompleted(taskID string) *Message {
 func (mt *MessageTemplates) TestAlreadyActive(testID string) *Message {
 	content := fmt.Sprintf("Test '%s' is already started. No action needed.", testID)
 	hint := "You can check the current test status with: agentpm status"
-	return InfoMessageWithHint(content, hint)
+	return SuccessMessageWithHint(content, hint)
 }
 
 // TestAlreadyPassed returns a friendly message when a test is already passed
 func (mt *MessageTemplates) TestAlreadyPassed(testID string) *Message {
 	content := fmt.Sprintf("Test '%s' has already passed. No action needed.", testID)
 	hint := "You can view test results with: agentpm status"
-	return InfoMessageWithHint(content, hint)
+	return SuccessMessageWithHint(content, hint)
 }
 
 // TestStarted returns a success message for test start
@@ -156,14 +156,14 @@ func (mt *MessageTemplates) TestCancelled(testID, reason string) *Message {
 func (mt *MessageTemplates) EpicAlreadyStarted(epicID string) *Message {
 	content := fmt.Sprintf("Epic '%s' is already started. No action needed.", epicID)
 	hint := "You can check the epic status with: agentpm status"
-	return InfoMessageWithHint(content, hint)
+	return SuccessMessageWithHint(content, hint)
 }
 
 // EpicAlreadyCompleted returns a friendly message when trying to complete an already completed epic
 func (mt *MessageTemplates) EpicAlreadyCompleted(epicID string) *Message {
 	content := fmt.Sprintf("Epic '%s' is already completed. No action needed.", epicID)
 	hint := "You can view epic summary with: agentpm status"
-	return InfoMessageWithHint(content, hint)
+	return SuccessMessageWithHint(content, hint)
 }
 
 // EpicStarted returns a success message for epic start
