@@ -46,24 +46,26 @@ type CurrentState struct {
 }
 
 type Phase struct {
-	ID          string     `xml:"id,attr"`
-	Name        string     `xml:"name,attr"`
-	Description string     `xml:"description"`
-	Status      Status     `xml:"status,attr"`
-	StartedAt   *time.Time `xml:"started_at,omitempty"`
-	CompletedAt *time.Time `xml:"completed_at,omitempty"`
+	ID           string     `xml:"id,attr"`
+	Name         string     `xml:"name,attr"`
+	Description  string     `xml:"description"`
+	Deliverables string     `xml:"deliverables"`
+	Status       Status     `xml:"status,attr"`
+	StartedAt    *time.Time `xml:"started_at,omitempty"`
+	CompletedAt  *time.Time `xml:"completed_at,omitempty"`
 }
 
 type Task struct {
-	ID          string     `xml:"id,attr"`
-	PhaseID     string     `xml:"phase_id,attr"`
-	Name        string     `xml:"name,attr"`
-	Description string     `xml:"description"`
-	Status      Status     `xml:"status,attr"`
-	Assignee    string     `xml:"assignee,attr,omitempty"`
-	StartedAt   *time.Time `xml:"started_at,omitempty"`
-	CompletedAt *time.Time `xml:"completed_at,omitempty"`
-	CancelledAt *time.Time `xml:"cancelled_at,omitempty"`
+	ID                 string     `xml:"id,attr"`
+	PhaseID            string     `xml:"phase_id,attr"`
+	Name               string     `xml:"name,attr"`
+	Description        string     `xml:"description"`
+	AcceptanceCriteria string     `xml:"acceptance_criteria"`
+	Status             Status     `xml:"status,attr"`
+	Assignee           string     `xml:"assignee,attr,omitempty"`
+	StartedAt          *time.Time `xml:"started_at,omitempty"`
+	CompletedAt        *time.Time `xml:"completed_at,omitempty"`
+	CancelledAt        *time.Time `xml:"cancelled_at,omitempty"`
 }
 
 type TestStatus string

@@ -116,6 +116,9 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 			if descElem := phaseElem.SelectElement("description"); descElem != nil {
 				phase.Description = getInnerXML(descElem)
 			}
+			if deliverablesElem := phaseElem.SelectElement("deliverables"); deliverablesElem != nil {
+				phase.Deliverables = getInnerXML(deliverablesElem)
+			}
 			// Load timestamps
 			if startedElem := phaseElem.SelectElement("started_at"); startedElem != nil {
 				if t, err := time.Parse(time.RFC3339, startedElem.Text()); err == nil {
@@ -142,6 +145,9 @@ func (fs *FileStorage) LoadEpic(filePath string) (*epic.Epic, error) {
 			}
 			if descElem := taskElem.SelectElement("description"); descElem != nil {
 				task.Description = getInnerXML(descElem)
+			}
+			if acceptanceCriteriaElem := taskElem.SelectElement("acceptance_criteria"); acceptanceCriteriaElem != nil {
+				task.AcceptanceCriteria = getInnerXML(acceptanceCriteriaElem)
 			}
 			// Load timestamps
 			if startedElem := taskElem.SelectElement("started_at"); startedElem != nil {
@@ -343,6 +349,10 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 				descElem := phaseElem.CreateElement("description")
 				setInnerXML(descElem, phase.Description)
 			}
+			if phase.Deliverables != "" {
+				deliverablesElem := phaseElem.CreateElement("deliverables")
+				setInnerXML(deliverablesElem, phase.Deliverables)
+			}
 			// Add timestamp elements
 			if phase.StartedAt != nil {
 				startedElem := phaseElem.CreateElement("started_at")
@@ -369,6 +379,10 @@ func (fs *FileStorage) SaveEpic(epicData *epic.Epic, filePath string) error {
 			if task.Description != "" {
 				descElem := taskElem.CreateElement("description")
 				setInnerXML(descElem, task.Description)
+			}
+			if task.AcceptanceCriteria != "" {
+				acceptanceCriteriaElem := taskElem.CreateElement("acceptance_criteria")
+				setInnerXML(acceptanceCriteriaElem, task.AcceptanceCriteria)
 			}
 			// Add timestamp elements
 			if task.StartedAt != nil {
