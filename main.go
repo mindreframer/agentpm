@@ -69,6 +69,7 @@ func main() {
 			addCategory(cmd.SwitchCommand(), "PROJECT"),
 			addCategory(cmd.ConfigCommand(), "PROJECT"),
 			addCategory(cmd.ValidateCommand(), "PROJECT"),
+			addCategory(cmd.FixXMLCommand(), "PROJECT"),
 
 			// REPORTING - Documentation and handoff
 			addCategory(cmd.LogCommand(), "REPORTING"),
