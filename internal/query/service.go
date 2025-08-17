@@ -62,7 +62,7 @@ func (qs *QueryService) GetEpicStatus() (*EpicStatus, error) {
 	// Calculate phase completion
 	status.TotalPhases = len(qs.epic.Phases)
 	for _, phase := range qs.epic.Phases {
-		if qs.getPhaseStatus(phase.ID) == epic.StatusCompleted {
+		if phase.Status == epic.StatusCompleted {
 			status.CompletedPhases++
 		}
 	}
