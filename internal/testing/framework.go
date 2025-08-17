@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"github.com/mindreframer/agentpm/internal/testing/assertions"
 	"github.com/mindreframer/agentpm/internal/testing/builders"
 	"github.com/mindreframer/agentpm/internal/testing/executor"
 )
@@ -21,6 +22,11 @@ func NewTestEnvironment(epicFile string) *executor.TestExecutionEnvironment {
 // TransitionChain creates a new transition chain for the given environment
 func TransitionChain(env *executor.TestExecutionEnvironment) *executor.TransitionChain {
 	return executor.CreateTransitionChain(env)
+}
+
+// Assert creates a new assertion builder for the given transition chain result
+func Assert(result *executor.TransitionChainResult) *assertions.AssertionBuilder {
+	return assertions.Assert(result)
 }
 
 // TestFramework provides access to all testing components
