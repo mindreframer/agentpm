@@ -41,7 +41,7 @@ func TestSwitchCommand_Success(t *testing.T) {
 	targetEpic := &epic.Epic{
 		ID:     "target-epic",
 		Name:   "Target Epic",
-		Status: epic.StatusPlanning,
+		Status: epic.StatusPending,
 	}
 	writeTestEpicXML(t, targetEpicFile, targetEpic)
 
@@ -97,7 +97,7 @@ func TestSwitchCommand_WithAbsolutePath(t *testing.T) {
 	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusActive}
 	writeTestEpicXML(t, currentEpicFile, currentEpic)
 
-	targetEpic := &epic.Epic{ID: "target-epic", Name: "Target Epic", Status: epic.StatusPlanning}
+	targetEpic := &epic.Epic{ID: "target-epic", Name: "Target Epic", Status: epic.StatusPending}
 	writeTestEpicXML(t, targetEpicFile, targetEpic)
 
 	// Create CLI app
@@ -142,7 +142,7 @@ func TestSwitchCommand_SwitchBack(t *testing.T) {
 	epic1 := &epic.Epic{ID: "epic-1", Name: "Epic 1", Status: epic.StatusActive}
 	writeTestEpicXML(t, epic1File, epic1)
 
-	epic2 := &epic.Epic{ID: "epic-2", Name: "Epic 2", Status: epic.StatusPlanning}
+	epic2 := &epic.Epic{ID: "epic-2", Name: "Epic 2", Status: epic.StatusPending}
 	writeTestEpicXML(t, epic2File, epic2)
 
 	// Create CLI app
@@ -191,7 +191,7 @@ func TestSwitchCommand_JSONOutput(t *testing.T) {
 	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusActive}
 	writeTestEpicXML(t, currentEpicFile, currentEpic)
 
-	targetEpic := &epic.Epic{ID: "target-epic", Name: "Target Epic", Status: epic.StatusPlanning}
+	targetEpic := &epic.Epic{ID: "target-epic", Name: "Target Epic", Status: epic.StatusPending}
 	writeTestEpicXML(t, targetEpicFile, targetEpic)
 
 	// Create CLI app
@@ -244,7 +244,7 @@ func TestSwitchCommand_XMLOutput(t *testing.T) {
 	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusActive}
 	writeTestEpicXML(t, currentEpicFile, currentEpic)
 
-	targetEpic := &epic.Epic{ID: "target-epic", Name: "Target Epic", Status: epic.StatusPlanning}
+	targetEpic := &epic.Epic{ID: "target-epic", Name: "Target Epic", Status: epic.StatusPending}
 	writeTestEpicXML(t, targetEpicFile, targetEpic)
 
 	// Create CLI app

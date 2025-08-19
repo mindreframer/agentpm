@@ -34,15 +34,15 @@ func TestStartEpicCommand_Success(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusPlanning, // pending state
+		Status: epic.StatusPending, // pending state
 		Phases: []epic.Phase{
-			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
+			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
-			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
-			{ID: "test-1", TaskID: "task-1", Name: "Test 1", Status: epic.StatusPlanning},
+			{ID: "test-1", TaskID: "task-1", Name: "Test 1", Status: epic.StatusPending},
 		},
 	}
 	writeTestEpicXML(t, epicFile, testEpic)
@@ -88,7 +88,7 @@ func TestStartEpicCommand_WithFileFlag(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-2",
 		Name:   "Custom Epic",
-		Status: epic.StatusPlanning,
+		Status: epic.StatusPending,
 	}
 	writeTestEpicXML(t, epicFile, testEpic)
 
@@ -123,7 +123,7 @@ func TestStartEpicCommand_WithTimestamp(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusPlanning,
+		Status: epic.StatusPending,
 	}
 	writeTestEpicXML(t, epicFile, testEpic)
 
@@ -198,7 +198,7 @@ func TestStartEpicCommand_JSONOutput(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusPlanning,
+		Status: epic.StatusPending,
 	}
 	writeTestEpicXML(t, epicFile, testEpic)
 
@@ -244,7 +244,7 @@ func TestStartEpicCommand_XMLOutput(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusPlanning,
+		Status: epic.StatusPending,
 	}
 	writeTestEpicXML(t, epicFile, testEpic)
 
@@ -361,7 +361,7 @@ func TestStartEpicCommand_InvalidTimestamp(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusPlanning,
+		Status: epic.StatusPending,
 	}
 	writeTestEpicXML(t, epicFile, testEpic)
 

@@ -142,7 +142,7 @@ func updateCurrentStateAfterTaskComplete(epicData *epic.Epic, taskID string) {
 	if phaseID != "" {
 		// Look for next pending task in the same phase
 		for _, task := range epicData.Tasks {
-			if task.PhaseID == phaseID && task.Status == epic.StatusPlanning {
+			if task.PhaseID == phaseID && task.Status == epic.StatusPending {
 				epicData.CurrentState.NextAction = fmt.Sprintf("Start next task: %s", task.Name)
 				return
 			}

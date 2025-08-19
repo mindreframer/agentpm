@@ -14,7 +14,7 @@ func TestTransitionChain_BasicWorkflow(t *testing.T) {
 
 	// Build test epic
 	testEpic, err := builders.NewEpicBuilder("test-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		WithTask("1A_1", "1A", "Initialize Project", "pending").
 		WithTest("T1A_1", "1A_1", "1A", "Test Project Init", "pending").
@@ -288,7 +288,7 @@ func TestTransitionChain_CompleteWorkflow(t *testing.T) {
 
 	// Build comprehensive test epic
 	testEpic, err := builders.NewEpicBuilder("test-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		WithPhase("1B", "Development", "pending").
 		WithTask("1A_1", "1A", "Initialize Project", "pending").
@@ -396,7 +396,7 @@ func TestTransitionChain_ErrorHandling(t *testing.T) {
 
 	// Build test epic
 	testEpic, err := builders.NewEpicBuilder("test-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		Build()
 
@@ -450,7 +450,7 @@ func TestTransitionChain_TimestampControl(t *testing.T) {
 
 	// Build test epic
 	testEpic, err := builders.NewEpicBuilder("test-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		Build()
 
@@ -501,7 +501,7 @@ func TestTransitionChain_IntermediateAssertions(t *testing.T) {
 
 	// Build test epic
 	testEpic, err := builders.NewEpicBuilder("test-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		Build()
 
@@ -543,7 +543,7 @@ func TestTransitionChain_FailedAssertions(t *testing.T) {
 
 	// Build test epic
 	testEpic, err := builders.NewEpicBuilder("test-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		Build()
 

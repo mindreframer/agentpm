@@ -44,7 +44,7 @@ func createTestEpicForQuery() *epic.Epic {
 			{
 				ID:          "10C",
 				Name:        "CLI Integration",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 				Description: "Integrate query command with CLI",
 			},
 		},
@@ -74,7 +74,7 @@ func createTestEpicForQuery() *epic.Epic {
 				ID:          "10C_1",
 				PhaseID:     "10C",
 				Name:        "Create CLI command",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 				Description: "Integrate with urfave/cli framework",
 			},
 		},

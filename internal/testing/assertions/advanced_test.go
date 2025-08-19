@@ -16,7 +16,7 @@ func createAdvancedTestResult(t *testing.T) *executor.TransitionChainResult {
 	env := executor.NewTestExecutionEnvironment("advanced-epic.xml")
 
 	testEpic, err := builders.NewEpicBuilder("advanced-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		WithPhase("1B", "Development", "pending").
 		WithTask("1A_1", "1A", "Initialize", "pending").

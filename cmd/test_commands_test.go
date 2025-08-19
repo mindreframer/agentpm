@@ -713,7 +713,7 @@ func createTestEpicForCLI() *epic.Epic {
 				TaskID:      "task-1",
 				PhaseID:     "phase-1",
 				Name:        "Test 1",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 				TestStatus:  epic.TestStatusPending,
 				Description: "Test for CLI commands",
 			},

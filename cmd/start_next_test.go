@@ -28,7 +28,7 @@ func TestStartNextCommand(t *testing.T) {
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
 
@@ -79,12 +79,12 @@ func TestStartNextCommand(t *testing.T) {
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
-				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPlanning},
-				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusPlanning},
+				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPending},
+				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusPending},
 			},
 		}
 
@@ -193,7 +193,7 @@ func TestStartNextCommand(t *testing.T) {
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
 
@@ -227,10 +227,10 @@ func TestStartNextCommand(t *testing.T) {
 			Name:   "Test Epic",
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 			},
 		}
 
@@ -291,10 +291,10 @@ func TestStartNextCommand(t *testing.T) {
 			Name:   "Test Epic",
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 			},
 		}
 

@@ -277,7 +277,7 @@ func TestDoneEpicCommand_ErrorWrongStatus(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusPlanning, // pending state
+		Status: epic.StatusPending, // pending state
 	}
 	writeTestEpicXML(t, epicFile, testEpic)
 
@@ -316,7 +316,7 @@ func TestDoneEpicCommand_ErrorPendingPhases(t *testing.T) {
 		Name:   "Test Epic",
 		Status: epic.StatusActive, // wip state
 		Phases: []epic.Phase{
-			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning}, // pending!
+			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending}, // pending!
 		},
 		Tasks: []epic.Task{
 			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
@@ -367,7 +367,7 @@ func TestDoneEpicCommand_ErrorFailingTests(t *testing.T) {
 			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
 		},
 		Tests: []epic.Test{
-			{ID: "test-1", TaskID: "task-1", Name: "Test 1", Status: epic.StatusPlanning}, // failing!
+			{ID: "test-1", TaskID: "task-1", Name: "Test 1", Status: epic.StatusPending}, // failing!
 		},
 	}
 	writeTestEpicXML(t, epicFile, testEpic)
@@ -432,15 +432,15 @@ func TestDoneEpicCommand_EnhancedValidationErrorJSON(t *testing.T) {
 		Name:   "Enhanced Validation Test Epic",
 		Status: epic.StatusActive, // wip state
 		Phases: []epic.Phase{
-			{ID: "phase-1", Name: "Implementation Phase", Status: epic.StatusPlanning}, // pending!
+			{ID: "phase-1", Name: "Implementation Phase", Status: epic.StatusPending}, // pending!
 			{ID: "phase-2", Name: "Testing Phase", Status: epic.StatusCompleted},
 		},
 		Tasks: []epic.Task{
-			{ID: "task-1", PhaseID: "phase-1", Name: "Core Logic", Status: epic.StatusPlanning},
+			{ID: "task-1", PhaseID: "phase-1", Name: "Core Logic", Status: epic.StatusPending},
 			{ID: "task-2", PhaseID: "phase-2", Name: "Unit Tests", Status: epic.StatusCompleted},
 		},
 		Tests: []epic.Test{
-			{ID: "test-1", TaskID: "task-1", Name: "Logic Test", Status: epic.StatusPlanning, Description: "Test core business logic"}, // failing!
+			{ID: "test-1", TaskID: "task-1", Name: "Logic Test", Status: epic.StatusPending, Description: "Test core business logic"}, // failing!
 			{ID: "test-2", TaskID: "task-2", Name: "Coverage Test", Status: epic.StatusCompleted, Description: "Test coverage verification"},
 		},
 	}
@@ -508,13 +508,13 @@ func TestDoneEpicCommand_EnhancedValidationErrorXML(t *testing.T) {
 		Name:   "XML Validation Test Epic",
 		Status: epic.StatusActive, // wip state
 		Phases: []epic.Phase{
-			{ID: "phase-1", Name: "Development Phase", Status: epic.StatusPlanning}, // pending!
+			{ID: "phase-1", Name: "Development Phase", Status: epic.StatusPending}, // pending!
 		},
 		Tasks: []epic.Task{
-			{ID: "task-1", PhaseID: "phase-1", Name: "Implementation", Status: epic.StatusPlanning},
+			{ID: "task-1", PhaseID: "phase-1", Name: "Implementation", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
-			{ID: "test-1", TaskID: "task-1", Name: "Unit Test", Status: epic.StatusPlanning, Description: "Unit test validation"}, // failing!
+			{ID: "test-1", TaskID: "task-1", Name: "Unit Test", Status: epic.StatusPending, Description: "Unit test validation"}, // failing!
 		},
 	}
 	writeTestEpicXML(t, epicFile, testEpic)
@@ -565,19 +565,19 @@ func TestDoneEpicCommand_EnhancedValidationProgress(t *testing.T) {
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 			{ID: "phase-2", Name: "Phase 2", Status: epic.StatusCompleted},
 			{ID: "phase-3", Name: "Phase 3", Status: epic.StatusCompleted},
-			{ID: "phase-4", Name: "Phase 4", Status: epic.StatusPlanning}, // pending!
+			{ID: "phase-4", Name: "Phase 4", Status: epic.StatusPending}, // pending!
 		},
 		Tasks: []epic.Task{
 			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
 			{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusCompleted},
 			{ID: "task-3", PhaseID: "phase-3", Name: "Task 3", Status: epic.StatusCompleted},
-			{ID: "task-4", PhaseID: "phase-4", Name: "Task 4", Status: epic.StatusPlanning},
+			{ID: "task-4", PhaseID: "phase-4", Name: "Task 4", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
 			{ID: "test-1", TaskID: "task-1", Name: "Test 1", Status: epic.StatusCompleted},
 			{ID: "test-2", TaskID: "task-2", Name: "Test 2", Status: epic.StatusCompleted},
 			{ID: "test-3", TaskID: "task-3", Name: "Test 3", Status: epic.StatusCompleted},
-			{ID: "test-4", TaskID: "task-4", Name: "Test 4", Status: epic.StatusPlanning}, // failing!
+			{ID: "test-4", TaskID: "task-4", Name: "Test 4", Status: epic.StatusPending}, // failing!
 		},
 	}
 	writeTestEpicXML(t, epicFile, testEpic)

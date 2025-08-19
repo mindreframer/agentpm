@@ -26,8 +26,8 @@ func TestStartTaskCommand(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
 
@@ -75,11 +75,11 @@ func TestStartTaskCommand(t *testing.T) {
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
-				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
+				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
 
@@ -119,7 +119,7 @@ func TestStartTaskCommand(t *testing.T) {
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
 
@@ -244,7 +244,7 @@ func TestStartTaskCommand(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 			},
 		}
 

@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<epic id="8" name="Epic Name" status="planning" created_at="2025-08-16T09:00:00Z">
+<epic id="8" name="Epic Name" status="pending" created_at="2025-08-16T09:00:00Z">
     <assignee>agent_claude</assignee>
     <description>Epic description</description>
     <phases>
-        <phase id="1A" name="Setup" status="planning">
+        <phase id="1A" name="Setup" status="pending">
             <description>Initial setup phase</description>
         </phase>
-        <phase id="1B" name="Development" status="planning">
+        <phase id="1B" name="Development" status="pending">
             <description>Main development phase</description>
         </phase>
     </phases>
     <tasks>
-        <task id="1A_1" phase_id="1A" name="Initialize Project" status="planning" assignee="agent_claude">
+        <task id="1A_1" phase_id="1A" name="Initialize Project" status="pending" assignee="agent_claude">
             <description>Set up the project structure</description>
         </task>
-        <task id="1A_2" phase_id="1A" name="Configure Tools" status="planning">
+        <task id="1A_2" phase_id="1A" name="Configure Tools" status="pending">
             <description>Configure development tools</description>
         </task>
     </tasks>
     <tests>
-        <test id="T1A_1" task_id="1A_1" name="Test Project Init" status="planning">
+        <test id="T1A_1" task_id="1A_1" name="Test Project Init" status="pending">
             <description>Test that project initializes correctly</description>
         </test>
     </tests>

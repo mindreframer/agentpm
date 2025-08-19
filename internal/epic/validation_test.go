@@ -14,16 +14,16 @@ func TestEpic_Validate(t *testing.T) {
 		epic := &Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    StatusPlanning,
+			Status:    StatusPending,
 			CreatedAt: time.Now(),
 			Phases: []Phase{
-				{ID: "P1", Name: "Phase 1", Status: StatusPlanning},
+				{ID: "P1", Name: "Phase 1", Status: StatusPending},
 			},
 			Tasks: []Task{
-				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: StatusPlanning},
+				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: StatusPending},
 			},
 			Tests: []Test{
-				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: StatusPlanning},
+				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: StatusPending},
 			},
 		}
 
@@ -84,19 +84,19 @@ func TestEpic_Validate(t *testing.T) {
 		epic := &Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    StatusPlanning,
+			Status:    StatusPending,
 			CreatedAt: time.Now(),
 			Phases: []Phase{
-				{ID: "P1", Name: "Phase 1", Status: StatusPlanning},
-				{ID: "P1", Name: "Phase 1 Duplicate", Status: StatusPlanning}, // Duplicate ID
+				{ID: "P1", Name: "Phase 1", Status: StatusPending},
+				{ID: "P1", Name: "Phase 1 Duplicate", Status: StatusPending}, // Duplicate ID
 			},
 			Tasks: []Task{
-				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: StatusPlanning},
-				{ID: "T1", PhaseID: "P1", Name: "Task 1 Duplicate", Status: StatusPlanning}, // Duplicate ID
+				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: StatusPending},
+				{ID: "T1", PhaseID: "P1", Name: "Task 1 Duplicate", Status: StatusPending}, // Duplicate ID
 			},
 			Tests: []Test{
-				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: StatusPlanning},
-				{ID: "TEST1", TaskID: "T1", Name: "Test 1 Duplicate", Status: StatusPlanning}, // Duplicate ID
+				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: StatusPending},
+				{ID: "TEST1", TaskID: "T1", Name: "Test 1 Duplicate", Status: StatusPending}, // Duplicate ID
 			},
 		}
 
@@ -112,14 +112,14 @@ func TestEpic_Validate(t *testing.T) {
 		epic := &Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    StatusPlanning,
+			Status:    StatusPending,
 			CreatedAt: time.Now(),
 			Phases: []Phase{
-				{ID: "P1", Name: "Phase 1", Status: StatusPlanning},
+				{ID: "P1", Name: "Phase 1", Status: StatusPending},
 			},
 			Tasks: []Task{
-				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: StatusPlanning},
-				{ID: "T2", PhaseID: "P999", Name: "Task 2", Status: StatusPlanning}, // Invalid phase
+				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: StatusPending},
+				{ID: "T2", PhaseID: "P999", Name: "Task 2", Status: StatusPending}, // Invalid phase
 			},
 		}
 
@@ -133,14 +133,14 @@ func TestEpic_Validate(t *testing.T) {
 		epic := &Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    StatusPlanning,
+			Status:    StatusPending,
 			CreatedAt: time.Now(),
 			Tasks: []Task{
-				{ID: "T1", Name: "Task 1", Status: StatusPlanning},
+				{ID: "T1", Name: "Task 1", Status: StatusPending},
 			},
 			Tests: []Test{
-				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: StatusPlanning},
-				{ID: "TEST2", TaskID: "T999", Name: "Test 2", Status: StatusPlanning}, // Invalid task
+				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: StatusPending},
+				{ID: "TEST2", TaskID: "T999", Name: "Test 2", Status: StatusPending}, // Invalid task
 			},
 		}
 
@@ -154,14 +154,14 @@ func TestEpic_Validate(t *testing.T) {
 		epic := &Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    StatusPlanning,
+			Status:    StatusPending,
 			CreatedAt: time.Now(),
 			Tasks: []Task{
-				{ID: "T1", Name: "Task 1", Status: StatusPlanning},
-				{ID: "T2", Name: "Task 2", Status: StatusPlanning}, // No tests
+				{ID: "T1", Name: "Task 1", Status: StatusPending},
+				{ID: "T2", Name: "Task 2", Status: StatusPending}, // No tests
 			},
 			Tests: []Test{
-				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: StatusPlanning},
+				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: StatusPending},
 				// No test for T2
 			},
 		}
@@ -176,10 +176,10 @@ func TestEpic_Validate(t *testing.T) {
 		epic := &Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    StatusPlanning,
+			Status:    StatusPending,
 			CreatedAt: time.Now(),
 			Phases: []Phase{
-				{ID: "", Name: "Phase with no ID", Status: StatusPlanning}, // Empty ID
+				{ID: "", Name: "Phase with no ID", Status: StatusPending}, // Empty ID
 			},
 		}
 
@@ -193,10 +193,10 @@ func TestEpic_Validate(t *testing.T) {
 		epic := &Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    StatusPlanning,
+			Status:    StatusPending,
 			CreatedAt: time.Now(),
 			Tasks: []Task{
-				{ID: "", Name: "Task with no ID", Status: StatusPlanning}, // Empty ID
+				{ID: "", Name: "Task with no ID", Status: StatusPending}, // Empty ID
 			},
 		}
 
@@ -210,10 +210,10 @@ func TestEpic_Validate(t *testing.T) {
 		epic := &Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    StatusPlanning,
+			Status:    StatusPending,
 			CreatedAt: time.Now(),
 			Tests: []Test{
-				{ID: "", Name: "Test with no ID", Status: StatusPlanning}, // Empty ID
+				{ID: "", Name: "Test with no ID", Status: StatusPending}, // Empty ID
 			},
 		}
 
@@ -275,7 +275,7 @@ func TestValidationResult_SetCheck(t *testing.T) {
 
 func TestStatus_IsValid(t *testing.T) {
 	validStatuses := []Status{
-		StatusPlanning,
+		StatusPending,
 		StatusActive,
 		StatusCompleted,
 		StatusOnHold,
@@ -348,7 +348,7 @@ func TestValidateFromFile(t *testing.T) {
 		validEpic := &Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    StatusPlanning,
+			Status:    StatusPending,
 			CreatedAt: time.Now(),
 		}
 
@@ -396,6 +396,6 @@ func TestNewEpic(t *testing.T) {
 
 	assert.Equal(t, "test-id", epic.ID)
 	assert.Equal(t, "Test Epic", epic.Name)
-	assert.Equal(t, StatusPlanning, epic.Status)
+	assert.Equal(t, StatusPending, epic.Status)
 	assert.False(t, epic.CreatedAt.IsZero())
 }

@@ -22,7 +22,7 @@ func TestFileStorage_LoadEpic(t *testing.T) {
 
 		assert.Equal(t, "8", e.ID)
 		assert.Equal(t, "Epic Name", e.Name)
-		assert.Equal(t, epic.StatusPlanning, e.Status)
+		assert.Equal(t, epic.StatusPending, e.Status)
 		assert.Equal(t, "agent_claude", e.Assignee)
 		assert.Equal(t, "Epic description", e.Description)
 
@@ -30,7 +30,7 @@ func TestFileStorage_LoadEpic(t *testing.T) {
 		require.Len(t, e.Phases, 2)
 		assert.Equal(t, "1A", e.Phases[0].ID)
 		assert.Equal(t, "Setup", e.Phases[0].Name)
-		assert.Equal(t, epic.StatusPlanning, e.Phases[0].Status)
+		assert.Equal(t, epic.StatusPending, e.Phases[0].Status)
 
 		// Check tasks
 		require.Len(t, e.Tasks, 2)
@@ -89,7 +89,7 @@ func TestFileStorage_SaveEpic(t *testing.T) {
 		e := &epic.Epic{
 			ID:          "test-1",
 			Name:        "Test Epic",
-			Status:      epic.StatusPlanning,
+			Status:      epic.StatusPending,
 			CreatedAt:   time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 			Assignee:    "test_agent",
 			Description: "Test description",
@@ -97,7 +97,7 @@ func TestFileStorage_SaveEpic(t *testing.T) {
 				{
 					ID:          "P1",
 					Name:        "Phase 1",
-					Status:      epic.StatusPlanning,
+					Status:      epic.StatusPending,
 					Description: "First phase",
 				},
 			},
@@ -106,7 +106,7 @@ func TestFileStorage_SaveEpic(t *testing.T) {
 					ID:          "T1",
 					PhaseID:     "P1",
 					Name:        "Task 1",
-					Status:      epic.StatusPlanning,
+					Status:      epic.StatusPending,
 					Assignee:    "test_agent",
 					Description: "First task",
 				},
@@ -116,7 +116,7 @@ func TestFileStorage_SaveEpic(t *testing.T) {
 					ID:          "TEST1",
 					TaskID:      "T1",
 					Name:        "Test 1",
-					Status:      epic.StatusPlanning,
+					Status:      epic.StatusPending,
 					Description: "First test",
 				},
 			},
@@ -155,7 +155,7 @@ func TestFileStorage_SaveEpic(t *testing.T) {
 		e := &epic.Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    epic.StatusPlanning,
+			Status:    epic.StatusPending,
 			CreatedAt: time.Now(),
 		}
 
@@ -173,7 +173,7 @@ func TestFileStorage_SaveEpic(t *testing.T) {
 		e1 := &epic.Epic{
 			ID:        "test-1",
 			Name:      "Original",
-			Status:    epic.StatusPlanning,
+			Status:    epic.StatusPending,
 			CreatedAt: time.Now(),
 		}
 
@@ -224,7 +224,7 @@ func TestMemoryStorage(t *testing.T) {
 		e := &epic.Epic{
 			ID:        "mem-1",
 			Name:      "Memory Epic",
-			Status:    epic.StatusPlanning,
+			Status:    epic.StatusPending,
 			CreatedAt: time.Now(),
 		}
 

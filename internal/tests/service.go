@@ -323,7 +323,7 @@ func (s *TestService) getTestStatus(test *epic.Test) epic.TestStatus {
 
 	// Convert from legacy Status field
 	switch test.Status {
-	case epic.StatusPlanning:
+	case epic.StatusPending:
 		return epic.TestStatusPending
 	case epic.StatusActive:
 		return epic.TestStatusWIP
@@ -343,7 +343,7 @@ func (s *TestService) setTestStatus(test *epic.Test, status epic.TestStatus) {
 	// Also set the legacy Status field for compatibility
 	switch status {
 	case epic.TestStatusPending:
-		test.Status = epic.StatusPlanning
+		test.Status = epic.StatusPending
 	case epic.TestStatusWIP:
 		test.Status = epic.StatusActive
 	case epic.TestStatusDone:

@@ -310,12 +310,12 @@ func New{{.Name}}Builder() *{{.Name}}Builder {
 			Status: epic.StatusPending,
 			Phases: []epic.Phase{
 				{{range .Phases}}
-				{ID: "{{.ID}}", Name: "{{.Name}}", Status: epic.StatusPlanning},
+				{ID: "{{.ID}}", Name: "{{.Name}}", Status: epic.StatusPending},
 				{{end}}
 			},
 			Tasks: []epic.Task{
 				{{range .Tasks}}
-				{ID: "{{.ID}}", PhaseID: "{{.PhaseID}}", Name: "{{.Name}}", Status: epic.StatusPlanning},
+				{ID: "{{.ID}}", PhaseID: "{{.PhaseID}}", Name: "{{.Name}}", Status: epic.StatusPending},
 				{{end}}
 			},
 		},
@@ -864,7 +864,7 @@ func Create{{.Name}}Epic() *epic.Epic {
 				ID:          Phase{{.Name}}ID,
 				Name:        "{{.Name}}",
 				Description: "{{.Description}}",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 			{{end}}
 		},
@@ -874,7 +874,7 @@ func Create{{.Name}}Epic() *epic.Epic {
 				ID:      Task{{.Name}}ID,
 				PhaseID: "{{.PhaseID}}",
 				Name:    "{{.Name}}",
-				Status:  epic.StatusPlanning,
+				Status:  epic.StatusPending,
 			},
 			{{end}}
 		},

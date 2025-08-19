@@ -93,7 +93,7 @@ func TestEpicLifecycleStatus_ToEpicStatus(t *testing.T) {
 		lifecycle EpicLifecycleStatus
 		expected  epic.Status
 	}{
-		{LifecycleStatusPending, epic.StatusPlanning},
+		{LifecycleStatusPending, epic.StatusPending},
 		{LifecycleStatusWIP, epic.StatusActive},
 		{LifecycleStatusDone, epic.StatusCompleted},
 	}
@@ -112,7 +112,7 @@ func TestFromEpicStatus(t *testing.T) {
 		epicStatus epic.Status
 		expected   EpicLifecycleStatus
 	}{
-		{epic.StatusPlanning, LifecycleStatusPending},
+		{epic.StatusPending, LifecycleStatusPending},
 		{epic.StatusActive, LifecycleStatusWIP},
 		{epic.StatusCompleted, LifecycleStatusDone},
 		{epic.StatusOnHold, LifecycleStatusPending}, // default case
@@ -171,7 +171,7 @@ func TestLifecycleService_StartEpic_Success(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusPlanning, // pending
+		Status: epic.StatusPending, // pending
 	}
 	storage.StoreEpic("test-epic.xml", testEpic)
 
@@ -226,7 +226,7 @@ func TestLifecycleService_StartEpic_WithTimestamp(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusPlanning,
+		Status: epic.StatusPending,
 	}
 	storage.StoreEpic("test-epic.xml", testEpic)
 
@@ -481,15 +481,15 @@ func TestLifecycleService_CompleteEpic_WithPendingWork(t *testing.T) {
 		Status: epic.StatusActive, // WIP
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
-			{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning}, // pending
+			{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending}, // pending
 		},
 		Tasks: []epic.Task{
 			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
-			{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPlanning}, // pending
+			{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPending}, // pending
 		},
 		Tests: []epic.Test{
 			{ID: "test-1", TaskID: "task-1", Name: "Test 1", Status: epic.StatusCompleted},
-			{ID: "test-2", TaskID: "task-2", Name: "Test 2", Status: epic.StatusPlanning}, // failing
+			{ID: "test-2", TaskID: "task-2", Name: "Test 2", Status: epic.StatusPending}, // failing
 		},
 	}
 	storage.StoreEpic("test-epic.xml", testEpic)
@@ -539,7 +539,7 @@ func TestLifecycleService_CompleteEpic_WithFailingTests(t *testing.T) {
 		Tests: []epic.Test{
 			{ID: "test-1", TaskID: "task-1", Name: "Test 1", Status: epic.StatusCompleted},
 			{ID: "test-2", TaskID: "task-2", Name: "Test 2", Status: epic.StatusActive},   // failing
-			{ID: "test-3", TaskID: "task-2", Name: "Test 3", Status: epic.StatusPlanning}, // failing
+			{ID: "test-3", TaskID: "task-2", Name: "Test 3", Status: epic.StatusPending}, // failing
 		},
 	}
 	storage.StoreEpic("test-epic.xml", testEpic)
@@ -581,7 +581,7 @@ func TestLifecycleService_CompleteEpic_NotStarted(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusPlanning, // pending, not started
+		Status: epic.StatusPending, // pending, not started
 	}
 	storage.StoreEpic("test-epic.xml", testEpic)
 
@@ -651,7 +651,7 @@ func TestLifecycleService_ValidateEpicCompletion(t *testing.T) {
 				Status: epic.StatusActive,
 				Phases: []epic.Phase{
 					{ID: "phase-1", Status: epic.StatusCompleted},
-					{ID: "phase-2", Status: epic.StatusPlanning},
+					{ID: "phase-2", Status: epic.StatusPending},
 				},
 				Tests: []epic.Test{
 					{ID: "test-1", Status: epic.StatusCompleted},
@@ -724,7 +724,7 @@ func TestLifecycleService_EpicEventCreation(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "test-epic",
 		Name:   "Test Epic for Events",
-		Status: epic.StatusPlanning,
+		Status: epic.StatusPending,
 		Phases: []epic.Phase{
 			{ID: "phase1", Name: "Phase 1", Status: epic.StatusCompleted},
 		},
@@ -849,7 +849,7 @@ func TestLifecycleService_EpicEventCreation(t *testing.T) {
 		noNameEpic := &epic.Epic{
 			ID:     "no-name-epic",
 			Name:   "",
-			Status: epic.StatusPlanning,
+			Status: epic.StatusPending,
 			Phases: []epic.Phase{
 				{ID: "phase1", Name: "Phase 1", Status: epic.StatusCompleted},
 			},
@@ -903,13 +903,13 @@ func TestLifecycleService_CalculateValidationSummary(t *testing.T) {
 	testEpic := &epic.Epic{
 		Phases: []epic.Phase{
 			{ID: "phase-1", Status: epic.StatusCompleted},
-			{ID: "phase-2", Status: epic.StatusPlanning},
+			{ID: "phase-2", Status: epic.StatusPending},
 			{ID: "phase-3", Status: epic.StatusActive},
 		},
 		Tasks: []epic.Task{
 			{ID: "task-1", Status: epic.StatusCompleted},
 			{ID: "task-2", Status: epic.StatusCompleted},
-			{ID: "task-3", Status: epic.StatusPlanning},
+			{ID: "task-3", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
 			{ID: "test-1", Status: epic.StatusCompleted},
@@ -1081,7 +1081,7 @@ func TestLifecycleService_ValidateEpicState(t *testing.T) {
 			ID:     "epic-1",
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},

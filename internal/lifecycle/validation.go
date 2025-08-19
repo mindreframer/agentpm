@@ -560,7 +560,7 @@ func (ls *LifecycleService) isPhaseReadyForCompletion(epicData *epic.Epic, phase
 			switch task.Status {
 			case epic.StatusActive:
 				hasActiveTasks = true
-			case epic.StatusPlanning:
+			case epic.StatusPending:
 				hasPendingTasks = true
 			}
 		}

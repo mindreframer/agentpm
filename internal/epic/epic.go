@@ -7,7 +7,6 @@ import (
 type Status string
 
 const (
-	StatusPlanning  Status = "planning"
 	StatusPending   Status = "pending"
 	StatusActive    Status = "active"
 	StatusCompleted Status = "completed"
@@ -166,7 +165,7 @@ func (t *Test) GetTestStatusUnified() TestStatus {
 	}
 	// Otherwise convert from legacy Status field
 	switch t.Status {
-	case StatusPending, StatusPlanning:
+	case StatusPending:
 		return TestStatusPending
 	case StatusActive:
 		return TestStatusWIP
@@ -228,7 +227,7 @@ type Event struct {
 
 func (s Status) IsValid() bool {
 	switch s {
-	case StatusPlanning, StatusPending, StatusActive, StatusCompleted, StatusOnHold, StatusCancelled:
+	case StatusPending, StatusActive, StatusCompleted, StatusOnHold, StatusCancelled:
 		return true
 	default:
 		return false
@@ -251,7 +250,7 @@ func TestStatusFailed() TestStatus {
 // ToEpicStatus converts legacy Status to Epic 13 EpicStatus
 func (s Status) ToEpicStatus() EpicStatus {
 	switch s {
-	case StatusPlanning, StatusPending:
+	case StatusPending:
 		return EpicStatusPending
 	case StatusActive:
 		return EpicStatusWIP
@@ -265,7 +264,7 @@ func (s Status) ToEpicStatus() EpicStatus {
 // ToPhaseStatus converts legacy Status to Epic 13 PhaseStatus
 func (s Status) ToPhaseStatus() PhaseStatus {
 	switch s {
-	case StatusPlanning, StatusPending:
+	case StatusPending:
 		return PhaseStatusPending
 	case StatusActive:
 		return PhaseStatusWIP
@@ -279,7 +278,7 @@ func (s Status) ToPhaseStatus() PhaseStatus {
 // ToTaskStatus converts legacy Status to Epic 13 TaskStatus
 func (s Status) ToTaskStatus() TaskStatus {
 	switch s {
-	case StatusPlanning, StatusPending:
+	case StatusPending:
 		return TaskStatusPending
 	case StatusActive:
 		return TaskStatusWIP
@@ -349,7 +348,7 @@ func NewEpic(id, name string) *Epic {
 	return &Epic{
 		ID:        id,
 		Name:      name,
-		Status:    StatusPlanning,
+		Status:    StatusPending,
 		CreatedAt: now,
 		Metadata: &EpicMetadata{
 			Created:         now,

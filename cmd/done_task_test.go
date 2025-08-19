@@ -76,7 +76,7 @@ func TestDoneTaskCommand(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 			},
 		}
 
@@ -214,7 +214,7 @@ func TestCancelTaskCommand(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 			},
 		}
 

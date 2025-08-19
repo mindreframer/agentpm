@@ -446,22 +446,22 @@ func createValidEpic(dir, filename string) string {
 	testEpic := &epic.Epic{
 		ID:        "integration-test-1",
 		Name:      "Integration Test Epic",
-		Status:    epic.StatusPlanning,
+		Status:    epic.StatusPending,
 		CreatedAt: time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 		Assignee:  "test_agent",
 		Phases: []epic.Phase{
-			{ID: "P1", Name: "Phase 1", Status: epic.StatusPlanning},
-			{ID: "P2", Name: "Phase 2", Status: epic.StatusPlanning},
+			{ID: "P1", Name: "Phase 1", Status: epic.StatusPending},
+			{ID: "P2", Name: "Phase 2", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
-			{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusPlanning},
-			{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusPlanning},
-			{ID: "T3", PhaseID: "P2", Name: "Task 3", Status: epic.StatusPlanning},
+			{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusPending},
+			{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusPending},
+			{ID: "T3", PhaseID: "P2", Name: "Task 3", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
-			{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: epic.StatusPlanning},
-			{ID: "TEST2", TaskID: "T2", Name: "Test 2", Status: epic.StatusPlanning},
-			{ID: "TEST3", TaskID: "T3", Name: "Test 3", Status: epic.StatusPlanning},
+			{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: epic.StatusPending},
+			{ID: "TEST2", TaskID: "T2", Name: "Test 2", Status: epic.StatusPending},
+			{ID: "TEST3", TaskID: "T3", Name: "Test 3", Status: epic.StatusPending},
 		},
 	}
 
@@ -480,7 +480,7 @@ func createLargeEpic(dir, filename string) string {
 	testEpic := &epic.Epic{
 		ID:        "large-test-epic",
 		Name:      "Large Test Epic",
-		Status:    epic.StatusPlanning,
+		Status:    epic.StatusPending,
 		CreatedAt: time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 		Assignee:  "test_agent",
 	}
@@ -490,7 +490,7 @@ func createLargeEpic(dir, filename string) string {
 		testEpic.Phases = append(testEpic.Phases, epic.Phase{
 			ID:     fmt.Sprintf("P%d", i),
 			Name:   fmt.Sprintf("Phase %d", i),
-			Status: epic.StatusPlanning,
+			Status: epic.StatusPending,
 		})
 	}
 
@@ -501,7 +501,7 @@ func createLargeEpic(dir, filename string) string {
 			ID:      fmt.Sprintf("T%d", i),
 			PhaseID: phaseID,
 			Name:    fmt.Sprintf("Task %d", i),
-			Status:  epic.StatusPlanning,
+			Status:  epic.StatusPending,
 		})
 	}
 
@@ -512,7 +512,7 @@ func createLargeEpic(dir, filename string) string {
 			ID:     fmt.Sprintf("TEST%d", i),
 			TaskID: taskID,
 			Name:   fmt.Sprintf("Test %d", i),
-			Status: epic.StatusPlanning,
+			Status: epic.StatusPending,
 		})
 	}
 

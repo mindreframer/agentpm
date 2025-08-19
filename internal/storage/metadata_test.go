@@ -131,10 +131,10 @@ func TestMetadataSection(t *testing.T) {
 
 		// Add some phases and tasks
 		testEpic.Phases = []epic.Phase{
-			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
+			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 		}
 		testEpic.Tasks = []epic.Task{
-			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 		}
 
 		storage := NewFileStorage()

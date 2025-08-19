@@ -21,7 +21,7 @@ start_next_phase_and_task
     <started_at>[TIMESTAMP]</started_at>
     <tasks>
         <task id="task-2" status="active">Task 2</task>
-        <task id="task-3" status="planning">Task 3</task>
+        <task id="task-3" status="pending">Task 3</task>
     </tasks>
     <started_task>task-2</started_task>
     <message>Started Phase phase-2 and Task task-2 (auto-selected)</message>

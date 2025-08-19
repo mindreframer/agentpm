@@ -24,7 +24,7 @@ func TestEpicBuilder_BasicConstruction(t *testing.T) {
 		t.Errorf("Expected Name to be 'test-epic', got: %s", result.Name)
 	}
 
-	if result.Status != epic.StatusPlanning {
+	if result.Status != epic.StatusPending {
 		t.Errorf("Expected Status to be 'planning', got: %s", result.Status)
 	}
 

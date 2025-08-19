@@ -106,7 +106,7 @@ func TestTestExecutionEnvironment_StateSnapshots(t *testing.T) {
 	}
 
 	// Verify epic status progression
-	if snapshots[0].EpicState.Status != epic.StatusPlanning {
+	if snapshots[0].EpicState.Status != epic.StatusPending {
 		t.Errorf("Initial snapshot: expected status planning, got: %s", snapshots[0].EpicState.Status)
 	}
 	if snapshots[1].EpicState.Status != epic.StatusActive {
@@ -224,7 +224,7 @@ func TestTestExecutionEnvironment_SnapshotQueries(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get initial state: %v", err)
 	}
-	if initialState.Status != epic.StatusPlanning {
+	if initialState.Status != epic.StatusPending {
 		t.Errorf("Expected initial epic status planning, got: %s", initialState.Status)
 	}
 
@@ -274,7 +274,7 @@ func TestTestExecutionEnvironment_ExecutionSummary(t *testing.T) {
 	}
 
 	// Verify summary
-	if summary.InitialState.Status != epic.StatusPlanning {
+	if summary.InitialState.Status != epic.StatusPending {
 		t.Errorf("Expected initial state status planning, got: %s", summary.InitialState.Status)
 	}
 
@@ -436,7 +436,7 @@ func TestTestExecutionEnvironment_MemoryIsolation(t *testing.T) {
 		t.Errorf("Expected epic1 status to be active, got: %s", current1.Status)
 	}
 
-	if current2.Status != epic.StatusPlanning {
+	if current2.Status != epic.StatusPending {
 		t.Errorf("Expected epic2 status to be planning, got: %s", current2.Status)
 	}
 

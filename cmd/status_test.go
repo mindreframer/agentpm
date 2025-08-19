@@ -26,18 +26,18 @@ func createTestEpicForStatus() *epic.Epic {
 		Phases: []epic.Phase{
 			{ID: "P1", Name: "Setup Phase", Status: epic.StatusCompleted},
 			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusActive},
-			{ID: "P3", Name: "Testing Phase", Status: epic.StatusPlanning},
+			{ID: "P3", Name: "Testing Phase", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
 			{ID: "T1", PhaseID: "P1", Name: "Setup Task", Status: epic.StatusCompleted},
 			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusActive},
-			{ID: "T3", PhaseID: "P2", Name: "Pending Task", Status: epic.StatusPlanning},
-			{ID: "T4", PhaseID: "P3", Name: "Future Task", Status: epic.StatusPlanning},
+			{ID: "T3", PhaseID: "P2", Name: "Pending Task", Status: epic.StatusPending},
+			{ID: "T4", PhaseID: "P3", Name: "Future Task", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
 			{ID: "TEST1", TaskID: "T1", Name: "Setup Test", Status: epic.StatusCompleted},
-			{ID: "TEST2", TaskID: "T2", Name: "Active Test", Status: epic.StatusPlanning},  // "failing"
-			{ID: "TEST3", TaskID: "T3", Name: "Pending Test", Status: epic.StatusPlanning}, // "failing"
+			{ID: "TEST2", TaskID: "T2", Name: "Active Test", Status: epic.StatusPending},  // "failing"
+			{ID: "TEST3", TaskID: "T3", Name: "Pending Test", Status: epic.StatusPending}, // "failing"
 		},
 		Events: []epic.Event{
 			{
@@ -394,7 +394,7 @@ func TestStatusCommand(t *testing.T) {
 		emptyEpic := &epic.Epic{
 			ID:        "empty-epic",
 			Name:      "Empty Epic",
-			Status:    epic.StatusPlanning,
+			Status:    epic.StatusPending,
 			CreatedAt: time.Now(),
 			Phases:    []epic.Phase{},
 			Tasks:     []epic.Task{},

@@ -60,7 +60,7 @@ func TestShowCommand(t *testing.T) {
 		output := stdout.String()
 		assert.Contains(t, output, "Epic: Show Test Epic")
 		assert.Contains(t, output, "ID: SHOW_TEST")
-		assert.Contains(t, output, "Status: planning")
+		assert.Contains(t, output, "Status: pending")
 		assert.Contains(t, output, "Phases (2):")
 		assert.Contains(t, output, "1A - Phase One")
 		assert.Contains(t, output, "1B - Phase Two")
@@ -105,7 +105,7 @@ func TestShowCommand(t *testing.T) {
 		output := stdout.String()
 		assert.Contains(t, output, "Phase: Phase One")
 		assert.Contains(t, output, "ID: 1A")
-		assert.Contains(t, output, "Status: planning")
+		assert.Contains(t, output, "Status: pending")
 		assert.Contains(t, output, "Tasks (1):")
 		assert.Contains(t, output, "1A_T1 - Task One")
 		assert.Contains(t, output, "Tests (1):")
@@ -146,7 +146,7 @@ func TestShowCommand(t *testing.T) {
 		assert.Contains(t, output, "Task: Task One")
 		assert.Contains(t, output, "ID: 1A_T1")
 		assert.Contains(t, output, "Phase: 1A")
-		assert.Contains(t, output, "Status: planning")
+		assert.Contains(t, output, "Status: pending")
 		assert.Contains(t, output, "Parent Phase: 1A - Phase One")
 		assert.Contains(t, output, "Tests (1):")
 		assert.Contains(t, output, "1A_T1_TEST1 - Test One")
@@ -186,7 +186,7 @@ func TestShowCommand(t *testing.T) {
 		assert.Contains(t, output, "Test: Test One")
 		assert.Contains(t, output, "ID: 1A_T1_TEST1")
 		assert.Contains(t, output, "Task: 1A_T1")
-		assert.Contains(t, output, "Status: planning")
+		assert.Contains(t, output, "Status: pending")
 		assert.Contains(t, output, "Parent Task: 1A_T1 - Task One")
 		assert.Contains(t, output, "Parent Phase: 1A - Phase One")
 	})
@@ -230,7 +230,7 @@ func TestShowCommand(t *testing.T) {
 
 		assert.Equal(t, "1A", jsonData["id"])
 		assert.Equal(t, "Phase One", jsonData["name"])
-		assert.Equal(t, "planning", jsonData["status"])
+		assert.Equal(t, "pending", jsonData["status"])
 		assert.Contains(t, jsonData, "related")
 	})
 
@@ -267,7 +267,7 @@ func TestShowCommand(t *testing.T) {
 		output := stdout.String()
 
 		// Verify XML structure
-		assert.Contains(t, output, "<task id=\"1A_T1\" phase_id=\"1A\" status=\"planning\">")
+		assert.Contains(t, output, "<task id=\"1A_T1\" phase_id=\"1A\" status=\"pending\">")
 		assert.Contains(t, output, "<name>Task One</name>")
 		assert.Contains(t, output, "<related>")
 		assert.Contains(t, output, "</task>")
@@ -440,7 +440,7 @@ func TestShowCommand(t *testing.T) {
 
 		assert.Equal(t, "SHOW_TEST", epicData.ID)
 		assert.Equal(t, "Show Test Epic", epicData.Name)
-		assert.Equal(t, epic.StatusPlanning, epicData.Status)
+		assert.Equal(t, epic.StatusPending, epicData.Status)
 		assert.Len(t, epicData.Phases, 2)
 		assert.Len(t, epicData.Tasks, 2)
 		assert.Len(t, epicData.Tests, 2)
@@ -479,14 +479,14 @@ func TestShowCommand(t *testing.T) {
 		output := stdout.String()
 
 		// Verify XML structure
-		assert.Contains(t, output, "<epic id=\"SHOW_TEST\" status=\"planning\">")
+		assert.Contains(t, output, "<epic id=\"SHOW_TEST\" status=\"pending\">")
 		assert.Contains(t, output, "<name>Show Test Epic</name>")
 		assert.Contains(t, output, "<phases>")
-		assert.Contains(t, output, "<phase id=\"1A\" status=\"planning\">")
+		assert.Contains(t, output, "<phase id=\"1A\" status=\"pending\">")
 		assert.Contains(t, output, "<tasks>")
-		assert.Contains(t, output, "<task id=\"1A_T1\" phase_id=\"1A\" status=\"planning\">")
+		assert.Contains(t, output, "<task id=\"1A_T1\" phase_id=\"1A\" status=\"pending\">")
 		assert.Contains(t, output, "<tests>")
-		assert.Contains(t, output, "<test id=\"1A_T1_TEST1\" task_id=\"1A_T1\" status=\"planning\">")
+		assert.Contains(t, output, "<test id=\"1A_T1_TEST1\" task_id=\"1A_T1\" status=\"pending\">")
 		assert.Contains(t, output, "</epic>")
 	})
 
@@ -500,12 +500,12 @@ func TestShowCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "MIN_TEST",
 			Name:   "Minimal Test Epic",
-			Status: epic.StatusPlanning,
+			Status: epic.StatusPending,
 			Phases: []epic.Phase{
 				{
 					ID:     "1A",
 					Name:   "Lonely Phase",
-					Status: epic.StatusPlanning,
+					Status: epic.StatusPending,
 				},
 			},
 			Tasks: []epic.Task{},
@@ -833,7 +833,7 @@ func TestShowCommand(t *testing.T) {
 		assert.Contains(t, output, "Task: Task One")
 		assert.Contains(t, output, "ID: 1A_T1")
 		assert.Contains(t, output, "Phase: 1A")
-		assert.Contains(t, output, "Status: planning")
+		assert.Contains(t, output, "Status: pending")
 		// Should NOT contain full context elements that are specific to full mode
 		// The key difference is that full mode shows rich hierarchical context
 		// while normal mode shows simple relationships
@@ -853,13 +853,13 @@ func TestShowCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "TEST_PHASE_TESTS",
 			Name:   "Test Epic with Phase Tests",
-			Status: epic.StatusPlanning,
+			Status: epic.StatusPending,
 			Phases: []epic.Phase{
 				{
 					ID:          "2B",
 					Name:        "Test Phase",
 					Description: "Phase with direct tests",
-					Status:      epic.StatusPlanning,
+					Status:      epic.StatusPending,
 				},
 			},
 			Tasks: []epic.Task{}, // No tasks
@@ -870,7 +870,7 @@ func TestShowCommand(t *testing.T) {
 					PhaseID:     "2B",
 					Name:        "Phase Test 1",
 					Description: "Direct phase test",
-					Status:      epic.StatusPlanning,
+					Status:      epic.StatusPending,
 				},
 				{
 					ID:          "2B_2",
@@ -878,7 +878,7 @@ func TestShowCommand(t *testing.T) {
 					PhaseID:     "2B",
 					Name:        "Phase Test 2",
 					Description: "Another direct phase test",
-					Status:      epic.StatusPlanning,
+					Status:      epic.StatusPending,
 				},
 			},
 			Events: []epic.Event{},
@@ -927,7 +927,7 @@ func TestShowCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "CRITERIA_TEST",
 			Name:   "Test Epic with Acceptance Criteria",
-			Status: epic.StatusPlanning,
+			Status: epic.StatusPending,
 			Phases: []epic.Phase{
 				{
 					ID:          "1A",
@@ -951,7 +951,7 @@ func TestShowCommand(t *testing.T) {
 					Name:               "Sibling Task",
 					Description:        "Another task with criteria",
 					AcceptanceCriteria: "- Feature implemented\n- Documentation updated",
-					Status:             epic.StatusPlanning,
+					Status:             epic.StatusPending,
 				},
 			},
 			Tests:  []epic.Test{},
@@ -1005,7 +1005,7 @@ func TestShowCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "PHASE_CRITERIA_TEST",
 			Name:   "Test Epic for Phase Criteria",
-			Status: epic.StatusPlanning,
+			Status: epic.StatusPending,
 			Phases: []epic.Phase{
 				{
 					ID:          "1A",
@@ -1029,7 +1029,7 @@ func TestShowCommand(t *testing.T) {
 					Name:               "Task Two",
 					Description:        "Second task",
 					AcceptanceCriteria: "- Task 2 requirements\n- Testing complete",
-					Status:             epic.StatusPlanning,
+					Status:             epic.StatusPending,
 				},
 			},
 			Tests:  []epic.Test{},
@@ -1076,19 +1076,19 @@ func createTestEpicWithSiblings() *epic.Epic {
 		ID:          "SHOW_TEST",
 		Name:        "Show Test Epic",
 		Description: "Epic for testing show command",
-		Status:      epic.StatusPlanning,
+		Status:      epic.StatusPending,
 		Phases: []epic.Phase{
 			{
 				ID:          "1A",
 				Name:        "Phase One",
 				Description: "First phase for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 			{
 				ID:          "1B",
 				Name:        "Phase Two",
 				Description: "Second phase for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 		},
 		Tasks: []epic.Task{
@@ -1097,21 +1097,21 @@ func createTestEpicWithSiblings() *epic.Epic {
 				PhaseID:     "1A",
 				Name:        "Task One",
 				Description: "First task for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 			{
 				ID:          "1A_T2",
 				PhaseID:     "1A",
 				Name:        "Task Two",
 				Description: "Second task in same phase",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 			{
 				ID:          "1B_T1",
 				PhaseID:     "1B",
 				Name:        "Task Three",
 				Description: "Third task for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 		},
 		Tests: []epic.Test{
@@ -1120,14 +1120,14 @@ func createTestEpicWithSiblings() *epic.Epic {
 				TaskID:      "1A_T1",
 				Name:        "Test One",
 				Description: "First test for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 			{
 				ID:          "1A_T2_TEST1",
 				TaskID:      "1A_T2",
 				Name:        "Test Two",
 				Description: "Second test for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 		},
 		Events: []epic.Event{},
@@ -1139,19 +1139,19 @@ func createTestEpicForShow() *epic.Epic {
 		ID:          "SHOW_TEST",
 		Name:        "Show Test Epic",
 		Description: "Epic for testing show command functionality",
-		Status:      epic.StatusPlanning,
+		Status:      epic.StatusPending,
 		Phases: []epic.Phase{
 			{
 				ID:          "1A",
 				Name:        "Phase One",
 				Description: "First phase for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 			{
 				ID:          "1B",
 				Name:        "Phase Two",
 				Description: "Second phase for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 		},
 		Tasks: []epic.Task{
@@ -1160,14 +1160,14 @@ func createTestEpicForShow() *epic.Epic {
 				PhaseID:     "1A",
 				Name:        "Task One",
 				Description: "First task for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 			{
 				ID:          "1B_T1",
 				PhaseID:     "1B",
 				Name:        "Task Two",
 				Description: "Second task for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 		},
 		Tests: []epic.Test{
@@ -1176,14 +1176,14 @@ func createTestEpicForShow() *epic.Epic {
 				TaskID:      "1A_T1",
 				Name:        "Test One",
 				Description: "First test for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 			{
 				ID:          "1B_T1_TEST1",
 				TaskID:      "1B_T1",
 				Name:        "Test Two",
 				Description: "Second test for testing",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 		},
 		Events: []epic.Event{},

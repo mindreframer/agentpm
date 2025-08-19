@@ -29,18 +29,18 @@ func createTestEpicForDocs() *epic.Epic {
 		Phases: []epic.Phase{
 			{ID: "P1", Name: "Setup Phase", Status: epic.StatusCompleted},
 			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusActive},
-			{ID: "P3", Name: "Testing Phase", Status: epic.StatusPlanning},
+			{ID: "P3", Name: "Testing Phase", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
 			{ID: "T1", PhaseID: "P1", Name: "Setup Task", Status: epic.StatusCompleted, Assignee: "test_agent"},
 			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusActive, Assignee: "test_agent"},
-			{ID: "T3", PhaseID: "P2", Name: "Pending Task", Status: epic.StatusPlanning},
-			{ID: "T4", PhaseID: "P3", Name: "Future Task", Status: epic.StatusPlanning},
+			{ID: "T3", PhaseID: "P2", Name: "Pending Task", Status: epic.StatusPending},
+			{ID: "T4", PhaseID: "P3", Name: "Future Task", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
 			{ID: "TEST1", TaskID: "T1", Name: "Setup Test", Status: epic.StatusCompleted, TestStatus: epic.TestStatusDone},
-			{ID: "TEST2", TaskID: "T2", Name: "Active Test", Status: epic.StatusPlanning, TestStatus: epic.TestStatusWIP, FailureNote: "Connection timeout"},
-			{ID: "TEST3", TaskID: "T3", Name: "Pending Test", Status: epic.StatusPlanning, TestStatus: epic.TestStatusPending},
+			{ID: "TEST2", TaskID: "T2", Name: "Active Test", Status: epic.StatusPending, TestStatus: epic.TestStatusWIP, FailureNote: "Connection timeout"},
+			{ID: "TEST3", TaskID: "T3", Name: "Pending Test", Status: epic.StatusPending, TestStatus: epic.TestStatusPending},
 		},
 		Events: []epic.Event{
 			{
@@ -416,7 +416,7 @@ func TestMarkdownGeneration(t *testing.T) {
 		// Should have status icons
 		assert.Contains(t, markdown, "✅ completed")
 		assert.Contains(t, markdown, "🔄 active")
-		assert.Contains(t, markdown, "⏳ planning")
+		assert.Contains(t, markdown, "⏳ pending")
 		assert.Contains(t, markdown, "❌ failed")
 
 		// Should have footer
