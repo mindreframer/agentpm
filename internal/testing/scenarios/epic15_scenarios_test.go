@@ -40,6 +40,7 @@ func TestEpic15_Scenario01_BasicEpicStartToCompletion(t *testing.T) {
 		StartTask("1A_1").
 		PassTest("T1A_1").
 		DoneTask("1A_1").
+		Assert().TaskStatus("1A_1", "completed").
 		DonePhase("1A").
 		DoneEpic().
 		Execute()
