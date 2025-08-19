@@ -32,8 +32,8 @@ func TestAutoNextService_SelectNext(t *testing.T) {
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPlanning},
-				{ID: "task-3", PhaseID: "phase-1", Name: "Task 3", Status: epic.StatusPlanning},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
+				{ID: "task-3", PhaseID: "phase-1", Name: "Task 3", Status: epic.StatusPending},
 			},
 		}
 
@@ -61,12 +61,12 @@ func TestAutoNextService_SelectNext(t *testing.T) {
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
-				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPlanning},
-				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusPlanning},
+				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPending},
+				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusPending},
 			},
 		}
 
@@ -124,12 +124,12 @@ func TestAutoNextService_SelectNext(t *testing.T) {
 			Name:   "Test Epic",
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
 
@@ -163,7 +163,7 @@ func TestAutoNextService_SelectNext(t *testing.T) {
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
 
@@ -179,7 +179,7 @@ func TestAutoNextService_SelectNext(t *testing.T) {
 		require.NotNil(t, task1)
 		require.NotNil(t, task2)
 		assert.Equal(t, epic.StatusActive, task1.Status)
-		assert.Equal(t, epic.StatusPlanning, task2.Status)
+		assert.Equal(t, epic.StatusPending, task2.Status)
 	})
 
 	t.Run("complete phase when all tasks done", func(t *testing.T) {
@@ -189,12 +189,12 @@ func TestAutoNextService_SelectNext(t *testing.T) {
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
 				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusCompleted},
-				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusPlanning},
+				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusPending},
 			},
 		}
 
@@ -221,12 +221,12 @@ func TestAutoNextService_SelectNext(t *testing.T) {
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
 				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusCancelled},
-				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusPlanning},
+				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusPending},
 			},
 		}
 
@@ -247,7 +247,7 @@ func TestAutoNextService_SelectNext(t *testing.T) {
 			Name:   "Test Epic",
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{}, // No tasks in the phase
 		}
@@ -275,12 +275,12 @@ func TestAutoNextService_SelectNext(t *testing.T) {
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPlanning},
-				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusPlanning},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
+				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusPending},
 			},
 		}
 
@@ -295,7 +295,7 @@ func TestAutoNextService_SelectNext(t *testing.T) {
 		// Verify phase-2 is still pending
 		phase2 := findPhaseByID(epicData, "phase-2")
 		require.NotNil(t, phase2)
-		assert.Equal(t, epic.StatusPlanning, phase2.Status)
+		assert.Equal(t, epic.StatusPending, phase2.Status)
 	})
 }
 
@@ -313,11 +313,11 @@ func TestAutoNextService_XMLOutputFormats(t *testing.T) {
 			Name:   "Test Epic",
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
-				{ID: "2A", Name: "Create PaginationComponent", Status: epic.StatusPlanning},
+				{ID: "2A", Name: "Create PaginationComponent", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
-				{ID: "2A_1", PhaseID: "2A", Name: "Create PaginationComponent with Previous/Next controls", Status: epic.StatusPlanning},
-				{ID: "2A_2", PhaseID: "2A", Name: "Add accessibility features to pagination controls", Status: epic.StatusPlanning},
+				{ID: "2A_1", PhaseID: "2A", Name: "Create PaginationComponent with Previous/Next controls", Status: epic.StatusPending},
+				{ID: "2A_2", PhaseID: "2A", Name: "Add accessibility features to pagination controls", Status: epic.StatusPending},
 			},
 		}
 
@@ -335,7 +335,7 @@ func TestAutoNextService_XMLOutputFormats(t *testing.T) {
 		assert.Contains(t, result.XMLOutput, `<started_at>2025-08-16T15:30:00Z</started_at>`)
 		assert.Contains(t, result.XMLOutput, `<tasks>`)
 		assert.Contains(t, result.XMLOutput, `<task id="2A_1" status="active">`)
-		assert.Contains(t, result.XMLOutput, `<task id="2A_2" status="planning">`)
+		assert.Contains(t, result.XMLOutput, `<task id="2A_2" status="pending">`)
 		assert.Contains(t, result.XMLOutput, `<started_task>2A_1</started_task>`)
 		assert.Contains(t, result.XMLOutput, `<message>Started Phase 2A and Task 2A_1 (auto-selected)</message>`)
 	})
@@ -397,11 +397,11 @@ func TestAutoNextService_EdgeCases(t *testing.T) {
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCancelled},
-				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
 
@@ -443,10 +443,10 @@ func TestAutoNextService_AutomaticEventCreation(t *testing.T) {
 			Name:   "Test Epic",
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPlanning},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 			},
 			Events: []epic.Event{}, // Start with no events
 		}
@@ -488,11 +488,11 @@ func TestAutoNextService_AutomaticEventCreation(t *testing.T) {
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive, StartedAt: &testTime},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
-				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPending},
 			},
 			Events: []epic.Event{}, // Start with no events
 		}

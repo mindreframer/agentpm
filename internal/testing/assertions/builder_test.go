@@ -14,7 +14,7 @@ func createTestResult(t *testing.T) *executor.TransitionChainResult {
 	env := executor.NewTestExecutionEnvironment("test-epic.xml")
 
 	testEpic, err := builders.NewEpicBuilder("test-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		WithPhase("1B", "Development", "pending").
 		WithTask("1A_1", "1A", "Initialize Project", "pending").
@@ -283,7 +283,7 @@ func TestAssertionBuilder_NoErrors_Failure(t *testing.T) {
 	// Create a result with errors
 	env := executor.NewTestExecutionEnvironment("test-epic.xml")
 	testEpic, _ := builders.NewEpicBuilder("test-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		Build()
 
@@ -313,7 +313,7 @@ func TestAssertionBuilder_HasErrors_Success(t *testing.T) {
 	// Create a result with errors
 	env := executor.NewTestExecutionEnvironment("test-epic.xml")
 	testEpic, _ := builders.NewEpicBuilder("test-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		Build()
 
@@ -354,7 +354,7 @@ func TestAssertionBuilder_ErrorCount_Success(t *testing.T) {
 	// Create a result with specific number of errors
 	env := executor.NewTestExecutionEnvironment("test-epic.xml")
 	testEpic, _ := builders.NewEpicBuilder("test-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		Build()
 
@@ -453,7 +453,7 @@ func TestAssertionBuilder_AllCommandsSuccessful_Failure(t *testing.T) {
 	// Create a result with failed commands
 	env := executor.NewTestExecutionEnvironment("test-epic.xml")
 	testEpic, _ := builders.NewEpicBuilder("test-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		Build()
 
@@ -615,7 +615,7 @@ func TestAssertionBuilder_ComplexScenario(t *testing.T) {
 	env := executor.NewTestExecutionEnvironment("complex-epic.xml")
 
 	complexEpic, err := builders.NewEpicBuilder("complex-epic").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithAssignee("agent_claude").
 		WithPhase("1A", "Setup", "pending").
 		WithPhase("1B", "Development", "pending").

@@ -60,20 +60,20 @@ func (s EpicLifecycleStatus) IsValid() bool {
 func (s EpicLifecycleStatus) ToEpicStatus() epic.Status {
 	switch s {
 	case LifecycleStatusPending:
-		return epic.StatusPlanning
+		return epic.StatusPending
 	case LifecycleStatusWIP:
 		return epic.StatusActive
 	case LifecycleStatusDone:
 		return epic.StatusCompleted
 	default:
-		return epic.StatusPlanning
+		return epic.StatusPending
 	}
 }
 
 // FromEpicStatus converts epic.Status to lifecycle status
 func FromEpicStatus(status epic.Status) EpicLifecycleStatus {
 	switch status {
-	case epic.StatusPlanning:
+	case epic.StatusPending:
 		return LifecycleStatusPending
 	case epic.StatusActive:
 		return LifecycleStatusWIP

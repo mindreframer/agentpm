@@ -39,7 +39,7 @@ func TestStartTest_Success(t *testing.T) {
 			ID:      testID,
 			TaskID:  "task_1",
 			PhaseID: "phase_1",
-			Status:  epic.StatusPlanning, // Use legacy status
+			Status:  epic.StatusPending, // Use legacy status
 		},
 	}
 	e.Tasks = []epic.Task{
@@ -190,7 +190,7 @@ func TestGetTestStatus_PreferNewStatus(t *testing.T) {
 
 	// Test that TestStatus takes precedence over Status
 	test := &epic.Test{
-		Status:     epic.StatusPlanning,
+		Status:     epic.StatusPending,
 		TestStatus: epic.TestStatusWIP,
 	}
 
@@ -468,7 +468,7 @@ func TestPassTest_InvalidTransition(t *testing.T) {
 			ID:         testID,
 			TaskID:     "task_1",
 			PhaseID:    "phase_1",
-			Status:     epic.StatusPlanning,
+			Status:     epic.StatusPending,
 			TestStatus: epic.TestStatusPending,
 		},
 	}
@@ -542,7 +542,7 @@ func TestCustomTimestamp(t *testing.T) {
 			ID:         testID,
 			TaskID:     "task_1",
 			PhaseID:    "phase_1",
-			Status:     epic.StatusPlanning,
+			Status:     epic.StatusPending,
 			TestStatus: epic.TestStatusPending,
 		},
 	}
@@ -747,12 +747,12 @@ func TestPrerequisiteValidation(t *testing.T) {
 			ID:         testID,
 			TaskID:     "task_1",
 			PhaseID:    "phase_1",
-			Status:     epic.StatusPlanning,
+			Status:     epic.StatusPending,
 			TestStatus: epic.TestStatusPending,
 		},
 	}
 	e.Tasks = []epic.Task{
-		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusPlanning}, // Not active
+		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusPending}, // Not active
 	}
 	e.Phases = []epic.Phase{
 		{ID: "phase_1", Status: epic.StatusActive},
@@ -771,7 +771,7 @@ func TestPrerequisiteValidation(t *testing.T) {
 		t.Fatal("Expected error for prerequisite validation, got nil")
 	}
 
-	expectedErr := "Cannot start test test_1: associated task task_1 is not active or completed (status: planning)"
+	expectedErr := "Cannot start test test_1: associated task task_1 is not active or completed (status: pending)"
 	if err.Error() != expectedErr {
 		t.Errorf("Expected error '%s', got '%s'", expectedErr, err.Error())
 	}
@@ -788,14 +788,14 @@ func TestMultipleTestsInProgress(t *testing.T) {
 			ID:         "test_1",
 			TaskID:     "task_1",
 			PhaseID:    "phase_1",
-			Status:     epic.StatusPlanning,
+			Status:     epic.StatusPending,
 			TestStatus: epic.TestStatusPending,
 		},
 		{
 			ID:         "test_2",
 			TaskID:     "task_1",
 			PhaseID:    "phase_1",
-			Status:     epic.StatusPlanning,
+			Status:     epic.StatusPending,
 			TestStatus: epic.TestStatusPending,
 		},
 	}

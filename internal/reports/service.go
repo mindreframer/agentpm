@@ -130,7 +130,7 @@ func (rs *ReportService) determineNextAction() string {
 	}
 
 	for _, task := range rs.epic.Tasks {
-		if task.PhaseID == activePhase && task.Status == epic.StatusPlanning {
+		if task.PhaseID == activePhase && task.Status == epic.StatusPending {
 			return fmt.Sprintf("Start task %s: %s", task.ID, task.Name)
 		}
 	}

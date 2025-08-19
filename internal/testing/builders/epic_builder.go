@@ -70,7 +70,7 @@ func NewEpicBuilder(id string) *EpicBuilder {
 	return &EpicBuilder{
 		id:            id,
 		name:          id,
-		status:        string(epic.StatusPlanning),
+		status:        string(epic.StatusPending),
 		defaultValues: true,
 		phases:        make([]PhaseConfig, 0),
 		tasks:         make([]TaskConfig, 0),

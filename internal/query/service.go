@@ -329,7 +329,7 @@ func (qs *QueryService) getPhaseStatus(phaseID string) epic.Status {
 	phaseTasks := qs.getTasksForPhase(phaseID)
 
 	if len(phaseTasks) == 0 {
-		return epic.StatusPlanning
+		return epic.StatusPending
 	}
 
 	allCompleted := true
@@ -340,7 +340,7 @@ func (qs *QueryService) getPhaseStatus(phaseID string) epic.Status {
 		case epic.StatusActive:
 			hasActive = true
 			allCompleted = false
-		case epic.StatusPlanning, epic.StatusOnHold:
+		case epic.StatusPending, epic.StatusOnHold:
 			allCompleted = false
 		}
 	}
@@ -351,7 +351,7 @@ func (qs *QueryService) getPhaseStatus(phaseID string) epic.Status {
 	if hasActive {
 		return epic.StatusActive
 	}
-	return epic.StatusPlanning
+	return epic.StatusPending
 }
 
 // getTasksForPhase returns all tasks for a given phase
@@ -708,7 +708,7 @@ func (qs *QueryService) getNextAction() string {
 	currentPhase := qs.findCurrentPhase()
 	if currentPhase != "" {
 		for _, task := range qs.epic.Tasks {
-			if task.PhaseID == currentPhase && task.Status == epic.StatusPlanning {
+			if task.PhaseID == currentPhase && task.Status == epic.StatusPending {
 				return fmt.Sprintf("Start next task: %s", task.Name)
 			}
 		}
@@ -716,7 +716,7 @@ func (qs *QueryService) getNextAction() string {
 
 	// 4. If pending phases → "Start next phase"
 	for _, phase := range qs.epic.Phases {
-		if phase.Status == epic.StatusPlanning {
+		if phase.Status == epic.StatusPending {
 			return fmt.Sprintf("Start next phase: %s", phase.Name)
 		}
 	}

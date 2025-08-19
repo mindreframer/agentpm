@@ -320,7 +320,7 @@ func TestEpic3LifecycleCommandIntegration(t *testing.T) {
 		stderr.Reset()
 		err = app.Run(context.Background(), []string{"agentpm", "status"})
 		require.NoError(t, err)
-		assert.Contains(t, stdout.String(), "planning")
+		assert.Contains(t, stdout.String(), "pending")
 
 		// 3. Start epic
 		stdout.Reset()
@@ -432,22 +432,22 @@ func createValidTestEpic(dir, filename string) string {
 	testEpic := &epic.Epic{
 		ID:        "integration-test-epic",
 		Name:      "Integration Test Epic",
-		Status:    epic.StatusPlanning,
+		Status:    epic.StatusPending,
 		CreatedAt: time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 		Assignee:  "test_agent",
 		Phases: []epic.Phase{
-			{ID: "P1", Name: "Phase 1", Status: epic.StatusPlanning},
-			{ID: "P2", Name: "Phase 2", Status: epic.StatusPlanning},
+			{ID: "P1", Name: "Phase 1", Status: epic.StatusPending},
+			{ID: "P2", Name: "Phase 2", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
-			{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusPlanning},
-			{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusPlanning},
-			{ID: "T3", PhaseID: "P2", Name: "Task 3", Status: epic.StatusPlanning},
+			{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusPending},
+			{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusPending},
+			{ID: "T3", PhaseID: "P2", Name: "Task 3", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
-			{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: epic.StatusPlanning},
-			{ID: "TEST2", TaskID: "T2", Name: "Test 2", Status: epic.StatusPlanning},
-			{ID: "TEST3", TaskID: "T3", Name: "Test 3", Status: epic.StatusPlanning},
+			{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: epic.StatusPending},
+			{ID: "TEST2", TaskID: "T2", Name: "Test 2", Status: epic.StatusPending},
+			{ID: "TEST3", TaskID: "T3", Name: "Test 3", Status: epic.StatusPending},
 		},
 	}
 

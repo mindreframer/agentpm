@@ -476,7 +476,7 @@ func createTestEpic() *epic.Epic {
 				ID:          "1B",
 				Name:        "Command Implementation",
 				Description: "Implement core CLI commands and functionality",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 		},
 		Tasks: []epic.Task{
@@ -497,7 +497,7 @@ func createTestEpic() *epic.Epic {
 				Name:               "Configure Tools",
 				Description:        "Set up development tools and linting configuration",
 				AcceptanceCriteria: "golangci-lint configured, pre-commit hooks set up, IDE configuration provided",
-				Status:             epic.StatusPlanning,
+				Status:             epic.StatusPending,
 			},
 			{
 				ID:                 "1A_3",
@@ -505,14 +505,14 @@ func createTestEpic() *epic.Epic {
 				Name:               "Setup Testing Framework",
 				Description:        "Initialize testing framework with basic test structure",
 				AcceptanceCriteria: "Test framework configured, Example tests created, Test coverage reporting enabled",
-				Status:             epic.StatusPlanning,
+				Status:             epic.StatusPending,
 			},
 			{
 				ID:          "1B_1",
 				PhaseID:     "1B",
 				Name:        "Implement Show Command",
 				Description: "Implement the show command for displaying entity information",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 			},
 		},
 		Tests: []epic.Test{
@@ -533,7 +533,7 @@ func createTestEpic() *epic.Epic {
 				PhaseID:     "1A",
 				Name:        "Test Dependency Resolution",
 				Description: "Verify all required dependencies are properly resolved",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 				TestStatus:  epic.TestStatusPending,
 			},
 			{
@@ -542,7 +542,7 @@ func createTestEpic() *epic.Epic {
 				PhaseID:     "1A",
 				Name:        "Test Linting Configuration",
 				Description: "Verify linting rules are properly configured",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 				TestStatus:  epic.TestStatusPending,
 			},
 			{
@@ -551,7 +551,7 @@ func createTestEpic() *epic.Epic {
 				PhaseID:     "1A",
 				Name:        "Test Framework Validation",
 				Description: "Verify testing framework is properly configured",
-				Status:      epic.StatusPlanning,
+				Status:      epic.StatusPending,
 				TestStatus:  epic.TestStatusPending,
 			},
 		},

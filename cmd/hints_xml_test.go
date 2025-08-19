@@ -127,7 +127,7 @@ func TestHintIntegrationInCommands(t *testing.T) {
 				{
 					ID:     "phase-2",
 					Name:   "Second Phase",
-					Status: epic.StatusPlanning,
+					Status: epic.StatusPending,
 				},
 			},
 		}

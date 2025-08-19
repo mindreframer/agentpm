@@ -27,8 +27,8 @@ func TestTaskService_StartTask(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
 
@@ -55,11 +55,11 @@ func TestTaskService_StartTask(t *testing.T) {
 			Status: epic.StatusActive,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPlanning},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
-				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
+				{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
 
@@ -71,12 +71,12 @@ func TestTaskService_StartTask(t *testing.T) {
 		require.ErrorAs(t, err, &phaseErr)
 		assert.Equal(t, "task-2", phaseErr.TaskID)
 		assert.Equal(t, "phase-2", phaseErr.PhaseID)
-		assert.Equal(t, epic.StatusPlanning, phaseErr.PhaseStatus)
+		assert.Equal(t, epic.StatusPending, phaseErr.PhaseStatus)
 
 		// Verify task is still pending
 		task := findTaskByID(epicData, "task-2")
 		require.NotNil(t, task)
-		assert.Equal(t, epic.StatusPlanning, task.Status)
+		assert.Equal(t, epic.StatusPending, task.Status)
 	})
 
 	t.Run("prevent multiple active tasks in same phase", func(t *testing.T) {
@@ -89,7 +89,7 @@ func TestTaskService_StartTask(t *testing.T) {
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPlanning},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
 
@@ -106,7 +106,7 @@ func TestTaskService_StartTask(t *testing.T) {
 		// Verify task-2 is still pending
 		task := findTaskByID(epicData, "task-2")
 		require.NotNil(t, task)
-		assert.Equal(t, epic.StatusPlanning, task.Status)
+		assert.Equal(t, epic.StatusPending, task.Status)
 	})
 
 	t.Run("cannot start task that is not pending", func(t *testing.T) {
@@ -192,7 +192,7 @@ func TestTaskService_CompleteTask(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 			},
 		}
 
@@ -203,7 +203,7 @@ func TestTaskService_CompleteTask(t *testing.T) {
 		var stateErr *TaskStateError
 		require.ErrorAs(t, err, &stateErr)
 		assert.Equal(t, "task-1", stateErr.TaskID)
-		assert.Equal(t, epic.StatusPlanning, stateErr.CurrentStatus)
+		assert.Equal(t, epic.StatusPending, stateErr.CurrentStatus)
 		assert.Equal(t, epic.StatusCompleted, stateErr.TargetStatus)
 	})
 
@@ -264,7 +264,7 @@ func TestTaskService_CancelTask(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 			},
 		}
 
@@ -275,7 +275,7 @@ func TestTaskService_CancelTask(t *testing.T) {
 		var stateErr *TaskStateError
 		require.ErrorAs(t, err, &stateErr)
 		assert.Equal(t, "task-1", stateErr.TaskID)
-		assert.Equal(t, epic.StatusPlanning, stateErr.CurrentStatus)
+		assert.Equal(t, epic.StatusPending, stateErr.CurrentStatus)
 		assert.Equal(t, epic.StatusCancelled, stateErr.TargetStatus)
 	})
 }
@@ -288,7 +288,7 @@ func TestTaskService_GetActiveTask(t *testing.T) {
 	t.Run("returns active task when exists in phase", func(t *testing.T) {
 		epicData := &epic.Epic{
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusActive},
 				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusActive},
 			},
@@ -302,7 +302,7 @@ func TestTaskService_GetActiveTask(t *testing.T) {
 	t.Run("returns nil when no active task in phase", func(t *testing.T) {
 		epicData := &epic.Epic{
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusCompleted},
 			},
 		}
@@ -329,7 +329,7 @@ func TestTaskService_GetActiveTaskInEpic(t *testing.T) {
 	t.Run("returns active task when exists in epic", func(t *testing.T) {
 		epicData := &epic.Epic{
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusActive},
 				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusCompleted},
 			},
@@ -343,7 +343,7 @@ func TestTaskService_GetActiveTaskInEpic(t *testing.T) {
 	t.Run("returns nil when no active task in epic", func(t *testing.T) {
 		epicData := &epic.Epic{
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusCompleted},
 			},
 		}
@@ -368,9 +368,9 @@ func TestTaskService_SingleActiveTaskConstraint(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPlanning},
-				{ID: "task-3", PhaseID: "phase-1", Name: "Task 3", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
+				{ID: "task-3", PhaseID: "phase-1", Name: "Task 3", Status: epic.StatusPending},
 			},
 		}
 
@@ -397,7 +397,7 @@ func TestTaskService_SingleActiveTaskConstraint(t *testing.T) {
 		// Verify task-2 is still pending
 		task2 := findTaskByID(epicData, "task-2")
 		require.NotNil(t, task2)
-		assert.Equal(t, epic.StatusPlanning, task2.Status)
+		assert.Equal(t, epic.StatusPending, task2.Status)
 	})
 }
 
@@ -409,7 +409,7 @@ func TestTaskService_GetTasksInPhase(t *testing.T) {
 	t.Run("returns all tasks for phase", func(t *testing.T) {
 		epicData := &epic.Epic{
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusActive},
 				{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusCompleted},
 				{ID: "task-4", PhaseID: "phase-1", Name: "Task 4", Status: epic.StatusCancelled},
@@ -431,7 +431,7 @@ func TestTaskService_GetTasksInPhase(t *testing.T) {
 	t.Run("returns empty slice for phase with no tasks", func(t *testing.T) {
 		epicData := &epic.Epic{
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 			},
 		}
 
@@ -448,7 +448,7 @@ func TestTaskService_GetPendingTasksInPhase(t *testing.T) {
 	t.Run("returns pending tasks only", func(t *testing.T) {
 		epicData := &epic.Epic{
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusActive},
 				{ID: "task-3", PhaseID: "phase-1", Name: "Task 3", Status: epic.StatusCompleted},
 				{ID: "task-4", PhaseID: "phase-1", Name: "Task 4", Status: epic.StatusCancelled},
@@ -494,7 +494,7 @@ func TestTaskService_AutomaticEventCreation(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 			},
 			Events: []epic.Event{}, // Start with no events
 		}
@@ -581,7 +581,7 @@ func TestTaskService_AutomaticEventCreation(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusPending},
 			},
 			Events: []epic.Event{}, // Start with no events
 		}

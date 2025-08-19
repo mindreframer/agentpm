@@ -18,17 +18,17 @@ func createTestEpic(valid bool) *epic.Epic {
 		return &epic.Epic{
 			ID:        "test-1",
 			Name:      "Test Epic",
-			Status:    epic.StatusPlanning,
+			Status:    epic.StatusPending,
 			CreatedAt: time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 			Assignee:  "test_agent",
 			Phases: []epic.Phase{
-				{ID: "P1", Name: "Phase 1", Status: epic.StatusPlanning},
+				{ID: "P1", Name: "Phase 1", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
-				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusPlanning},
+				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusPending},
 			},
 			Tests: []epic.Test{
-				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: epic.StatusPlanning},
+				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: epic.StatusPending},
 			},
 		}
 	} else {

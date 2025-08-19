@@ -108,7 +108,7 @@ func (s *PhaseService) validatePhaseStart(epicData *epic.Epic, phase *epic.Phase
 	}
 
 	// Check phase is in pending status (accept both "planning" and "pending" for backward compatibility)
-	if phase.Status != epic.StatusPlanning && phase.Status != epic.StatusPending {
+	if phase.Status != epic.StatusPending {
 		return NewPhaseStateError(phase.ID, phase.Status, epic.StatusActive, "Phase is not in pending state")
 	}
 

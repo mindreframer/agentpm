@@ -15,7 +15,7 @@ func TestSnapshotIntegration_CapturesFullStateCorrectly(t *testing.T) {
 	env := executor.NewTestExecutionEnvironment("snapshot-test.xml")
 
 	testEpic, err := builders.NewEpicBuilder("snapshot-test").
-		WithStatus("planning").
+		WithStatus("pending").
 		WithPhase("1A", "Setup", "pending").
 		WithTask("1A_1", "1A", "Initialize", "pending").
 		WithTest("T1A_1", "1A_1", "1A", "Test Init", "pending").

@@ -26,21 +26,21 @@ func createTestEpicForPending() *epic.Epic {
 		Phases: []epic.Phase{
 			{ID: "P1", Name: "Setup Phase", Status: epic.StatusCompleted},
 			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusActive},
-			{ID: "P3", Name: "Testing Phase", Status: epic.StatusPlanning},
-			{ID: "P4", Name: "Deployment Phase", Status: epic.StatusPlanning},
+			{ID: "P3", Name: "Testing Phase", Status: epic.StatusPending},
+			{ID: "P4", Name: "Deployment Phase", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
 			{ID: "T1", PhaseID: "P1", Name: "Setup Task", Status: epic.StatusCompleted},
 			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusActive},
-			{ID: "T3", PhaseID: "P2", Name: "Pending Task 1", Status: epic.StatusPlanning},
-			{ID: "T4", PhaseID: "P3", Name: "Pending Task 2", Status: epic.StatusPlanning},
-			{ID: "T5", PhaseID: "P4", Name: "Pending Task 3", Status: epic.StatusPlanning},
+			{ID: "T3", PhaseID: "P2", Name: "Pending Task 1", Status: epic.StatusPending},
+			{ID: "T4", PhaseID: "P3", Name: "Pending Task 2", Status: epic.StatusPending},
+			{ID: "T5", PhaseID: "P4", Name: "Pending Task 3", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
 			{ID: "TEST1", TaskID: "T1", Name: "Setup Test", Status: epic.StatusCompleted},
-			{ID: "TEST2", TaskID: "T2", Name: "Active Test", Status: epic.StatusPlanning},    // pending
-			{ID: "TEST3", TaskID: "T3", Name: "Pending Test 1", Status: epic.StatusPlanning}, // pending
-			{ID: "TEST4", TaskID: "T4", Name: "Pending Test 2", Status: epic.StatusPlanning}, // pending
+			{ID: "TEST2", TaskID: "T2", Name: "Active Test", Status: epic.StatusPending},    // pending
+			{ID: "TEST3", TaskID: "T3", Name: "Pending Test 1", Status: epic.StatusPending}, // pending
+			{ID: "TEST4", TaskID: "T4", Name: "Pending Test 2", Status: epic.StatusPending}, // pending
 		},
 		Events: []epic.Event{},
 	}
@@ -102,21 +102,21 @@ func TestPendingCommand(t *testing.T) {
 		// Should show pending phases (P2 active, P3 and P4 planning = 3 total)
 		assert.Contains(t, output, "Phases (3):")
 		assert.Contains(t, output, "P2 - Implementation Phase [active]")
-		assert.Contains(t, output, "P3 - Testing Phase [planning]")
-		assert.Contains(t, output, "P4 - Deployment Phase [planning]")
+		assert.Contains(t, output, "P3 - Testing Phase [pending]")
+		assert.Contains(t, output, "P4 - Deployment Phase [pending]")
 
-		// Should show pending tasks (T2 active, T3, T4, T5 planning = 4 total)
+		// Should show pending tasks (T2 active, T3, T4, T5 pending = 4 total)
 		assert.Contains(t, output, "Tasks (4):")
 		assert.Contains(t, output, "T2 (P2) - Active Task [active]")
-		assert.Contains(t, output, "T3 (P2) - Pending Task 1 [planning]")
-		assert.Contains(t, output, "T4 (P3) - Pending Task 2 [planning]")
-		assert.Contains(t, output, "T5 (P4) - Pending Task 3 [planning]")
+		assert.Contains(t, output, "T3 (P2) - Pending Task 1 [pending]")
+		assert.Contains(t, output, "T4 (P3) - Pending Task 2 [pending]")
+		assert.Contains(t, output, "T5 (P4) - Pending Task 3 [pending]")
 
 		// Should show pending tests (TEST2, TEST3, TEST4 = 3 total)
 		assert.Contains(t, output, "Tests (3):")
-		assert.Contains(t, output, "TEST2 (P2/T2) - Active Test [planning]")
-		assert.Contains(t, output, "TEST3 (P2/T3) - Pending Test 1 [planning]")
-		assert.Contains(t, output, "TEST4 (P3/T4) - Pending Test 2 [planning]")
+		assert.Contains(t, output, "TEST2 (P2/T2) - Active Test [pending]")
+		assert.Contains(t, output, "TEST3 (P2/T3) - Pending Test 1 [pending]")
+		assert.Contains(t, output, "TEST4 (P3/T4) - Pending Test 2 [pending]")
 	})
 
 	t.Run("pending with completed epic - text format", func(t *testing.T) {
@@ -314,7 +314,7 @@ func TestPendingCommandEdgeCases(t *testing.T) {
 		emptyEpic := &epic.Epic{
 			ID:        "empty-epic",
 			Name:      "Empty Epic",
-			Status:    epic.StatusPlanning,
+			Status:    epic.StatusPending,
 			CreatedAt: time.Now(),
 			Phases:    []epic.Phase{},
 			Tasks:     []epic.Task{},
