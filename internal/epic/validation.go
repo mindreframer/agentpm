@@ -196,7 +196,10 @@ func (e *Epic) validateTestCoverage(result *ValidationResult) {
 
 	// Check that all tests reference valid tasks
 	for _, test := range e.Tests {
-		if test.TaskID != "" && !taskMap[test.TaskID] {
+		// Require TaskID for all tests - orphaned tests can create inconsistent states
+		if test.TaskID == "" {
+			result.AddError(fmt.Sprintf("Test %s must have a task_id - orphaned tests are not allowed", test.ID))
+		} else if !taskMap[test.TaskID] {
 			result.AddError(fmt.Sprintf("Test %s references non-existent task: %s", test.ID, test.TaskID))
 		}
 	}
@@ -204,9 +207,8 @@ func (e *Epic) validateTestCoverage(result *ValidationResult) {
 	// Check for tasks without tests
 	tasksWithTests := make(map[string]bool)
 	for _, test := range e.Tests {
-		if test.TaskID != "" {
-			tasksWithTests[test.TaskID] = true
-		}
+		// Since we now require TaskID, we can track all tests
+		tasksWithTests[test.TaskID] = true
 	}
 
 	for _, task := range e.Tasks {

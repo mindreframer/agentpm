@@ -150,6 +150,27 @@ func TestEpic_Validate(t *testing.T) {
 		assert.Equal(t, "failed", result.Checks["test_coverage"])
 	})
 
+	t.Run("test without task_id fails validation", func(t *testing.T) {
+		epic := &Epic{
+			ID:        "test-1",
+			Name:      "Test Epic",
+			Status:    StatusPending,
+			CreatedAt: time.Now(),
+			Tasks: []Task{
+				{ID: "T1", Name: "Task 1", Status: StatusPending},
+			},
+			Tests: []Test{
+				{ID: "TEST1", TaskID: "T1", Name: "Test 1", Status: StatusPending},      // Valid test
+				{ID: "TEST2", TaskID: "", Name: "Orphaned Test", Status: StatusPending}, // Invalid - no TaskID
+			},
+		}
+
+		result := epic.Validate()
+		assert.False(t, result.Valid)
+		assert.Contains(t, result.Errors, "Test TEST2 must have a task_id - orphaned tests are not allowed")
+		assert.Equal(t, "failed", result.Checks["test_coverage"])
+	})
+
 	t.Run("task without tests generates warning", func(t *testing.T) {
 		epic := &Epic{
 			ID:        "test-1",

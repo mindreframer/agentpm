@@ -42,6 +42,6 @@ epic (id: number, name: string, status: enum[pending|wip|done|cancelled], starte
 - `epic.id` must be unique
 - `task.phase_id` must reference existing `phase.id`
 - `test.phase_id` must reference existing `phase.id`
-- `test.task_id` must reference existing `task.id`
+- `test.task_id` is **required** and must reference existing `task.id` (orphaned tests are not allowed)
 - Status transitions should follow logical progression
 - Timestamps should be chronological in events
