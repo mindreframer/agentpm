@@ -933,7 +933,7 @@ func TestShowCommand(t *testing.T) {
 					ID:          "1A",
 					Name:        "Test Phase",
 					Description: "Phase for criteria testing",
-					Status:      epic.StatusActive,
+					Status:      epic.StatusWIP,
 				},
 			},
 			Tasks: []epic.Task{
@@ -1011,7 +1011,7 @@ func TestShowCommand(t *testing.T) {
 					ID:          "1A",
 					Name:        "Test Phase",
 					Description: "Phase for criteria testing",
-					Status:      epic.StatusActive,
+					Status:      epic.StatusWIP,
 				},
 			},
 			Tasks: []epic.Task{

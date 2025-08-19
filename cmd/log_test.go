@@ -22,7 +22,7 @@ func TestLogCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Events: []epic.Event{},
 		}
 
@@ -61,7 +61,7 @@ func TestLogCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Events: []epic.Event{},
 		}
 
@@ -99,7 +99,7 @@ func TestLogCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Events: []epic.Event{},
 		}
 
@@ -136,7 +136,7 @@ func TestLogCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Events: []epic.Event{},
 		}
 
@@ -173,7 +173,7 @@ func TestLogCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Events: []epic.Event{},
 		}
 
@@ -213,7 +213,7 @@ func TestLogCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Events: []epic.Event{},
 		}
 
@@ -251,7 +251,7 @@ func TestLogCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Events: []epic.Event{},
 		}
 
@@ -296,7 +296,7 @@ func TestLogCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Events: []epic.Event{},
 		}
 

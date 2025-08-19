@@ -55,7 +55,7 @@ func TestEpic3LifecycleIntegration(t *testing.T) {
 		stderr.Reset()
 		err = app.Run(context.Background(), []string{"agentpm", "status"})
 		require.NoError(t, err)
-		assert.Contains(t, stdout.String(), "active")
+		assert.Contains(t, stdout.String(), "wip")
 
 		// Step 4: Switch to different epic
 		stdout.Reset()
@@ -333,7 +333,7 @@ func TestEpic3LifecycleCommandIntegration(t *testing.T) {
 		stderr.Reset()
 		err = app.Run(context.Background(), []string{"agentpm", "status"})
 		require.NoError(t, err)
-		assert.Contains(t, stdout.String(), "active")
+		assert.Contains(t, stdout.String(), "wip")
 
 		// 5. Check current work
 		stdout.Reset()

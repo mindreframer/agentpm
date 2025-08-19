@@ -21,17 +21,17 @@ func createTestEpicForHandoff() *epic.Epic {
 	return &epic.Epic{
 		ID:        "handoff-test-epic",
 		Name:      "Handoff Test Epic",
-		Status:    epic.StatusActive,
+		Status:    epic.StatusWIP,
 		CreatedAt: time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 		Assignee:  "test_agent",
 		Phases: []epic.Phase{
 			{ID: "P1", Name: "Setup Phase", Status: epic.StatusCompleted},
-			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusActive},
+			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusWIP},
 			{ID: "P3", Name: "Testing Phase", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
 			{ID: "T1", PhaseID: "P1", Name: "Setup Task", Status: epic.StatusCompleted},
-			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusActive},
+			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusWIP},
 			{ID: "T3", PhaseID: "P2", Name: "Pending Task", Status: epic.StatusPending},
 			{ID: "T4", PhaseID: "P3", Name: "Future Task", Status: epic.StatusPending},
 		},
@@ -137,7 +137,7 @@ func TestHandoffCommand(t *testing.T) {
 		assert.Contains(t, output, "=== AGENT HANDOFF REPORT ===")
 		assert.Contains(t, output, "Epic: Handoff Test Epic")
 		assert.Contains(t, output, "ID: handoff-test-epic")
-		assert.Contains(t, output, "Status: active")
+		assert.Contains(t, output, "Status: wip")
 		assert.Contains(t, output, "Assignee: test_agent")
 
 		// Verify current state

@@ -337,7 +337,7 @@ func (qs *QueryService) getPhaseStatus(phaseID string) epic.Status {
 
 	for _, task := range phaseTasks {
 		switch task.Status {
-		case epic.StatusActive:
+		case epic.StatusWIP:
 			hasActive = true
 			allCompleted = false
 		case epic.StatusPending, epic.StatusOnHold:
@@ -349,7 +349,7 @@ func (qs *QueryService) getPhaseStatus(phaseID string) epic.Status {
 		return epic.StatusCompleted
 	}
 	if hasActive {
-		return epic.StatusActive
+		return epic.StatusWIP
 	}
 	return epic.StatusPending
 }
@@ -368,14 +368,14 @@ func (qs *QueryService) getTasksForPhase(phaseID string) []epic.Task {
 // findCurrentPhase finds the currently active phase (active status)
 func (qs *QueryService) findCurrentPhase() string {
 	for _, phase := range qs.epic.Phases {
-		if phase.Status == epic.StatusActive {
+		if phase.Status == epic.StatusWIP {
 			return phase.ID
 		}
 	}
 
 	// If no phase is explicitly active, check for active tasks
 	for _, task := range qs.epic.Tasks {
-		if task.Status == epic.StatusActive {
+		if task.Status == epic.StatusWIP {
 			return task.PhaseID
 		}
 	}
@@ -386,7 +386,7 @@ func (qs *QueryService) findCurrentPhase() string {
 // findCurrentTask finds the currently active task (active status)
 func (qs *QueryService) findCurrentTask() string {
 	for _, task := range qs.epic.Tasks {
-		if task.Status == epic.StatusActive {
+		if task.Status == epic.StatusWIP {
 			return task.ID
 		}
 	}
@@ -649,7 +649,7 @@ func (qs *QueryService) GetProgressInsights() (*ProgressInsight, error) {
 
 	activeTaskCount := 0
 	for _, task := range qs.epic.Tasks {
-		if task.Status == epic.StatusActive {
+		if task.Status == epic.StatusWIP {
 			activeTaskCount++
 		}
 	}
@@ -890,7 +890,7 @@ func (qs *QueryService) validateEpicState() (string, []string) {
 	// Check for multiple active phases
 	activePhases := 0
 	for _, phase := range qs.epic.Phases {
-		if phase.Status == epic.StatusActive {
+		if phase.Status == epic.StatusWIP {
 			activePhases++
 		}
 	}
@@ -903,7 +903,7 @@ func (qs *QueryService) validateEpicState() (string, []string) {
 	activeTasks := 0
 	var activeTaskPhases []string
 	for _, task := range qs.epic.Tasks {
-		if task.Status == epic.StatusActive {
+		if task.Status == epic.StatusWIP {
 			activeTasks++
 			activeTaskPhases = append(activeTaskPhases, task.PhaseID)
 		}
@@ -915,9 +915,9 @@ func (qs *QueryService) validateEpicState() (string, []string) {
 
 	// Check for tasks in inactive phases
 	for _, task := range qs.epic.Tasks {
-		if task.Status == epic.StatusActive {
+		if task.Status == epic.StatusWIP {
 			phase := qs.findPhaseByID(task.PhaseID)
-			if phase != nil && phase.Status != epic.StatusActive {
+			if phase != nil && phase.Status != epic.StatusWIP {
 				issues = append(issues, fmt.Sprintf("Active task %s in inactive phase %s", task.ID, task.PhaseID))
 				severity = "error"
 			}
@@ -926,7 +926,7 @@ func (qs *QueryService) validateEpicState() (string, []string) {
 
 	// Check for incomplete phases without pending tasks
 	for _, phase := range qs.epic.Phases {
-		if phase.Status == epic.StatusActive {
+		if phase.Status == epic.StatusWIP {
 			pendingTasks := qs.getPendingTasksInPhase(phase.ID)
 			if len(pendingTasks) == 0 {
 				completedTasks := 0

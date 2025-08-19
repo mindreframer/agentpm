@@ -85,9 +85,9 @@ func (tvs *TaskValidationService) countTestsByStatus(epicData *epic.Epic, taskID
 
 func (tvs *TaskValidationService) ValidateTaskStatusTransition(currentStatus, targetStatus epic.Status) error {
 	validTransitions := map[epic.Status][]epic.Status{
-		epic.StatusPending:   {epic.StatusActive, epic.StatusCancelled},
-		epic.StatusActive:    {epic.StatusCompleted, epic.StatusCancelled, epic.StatusOnHold},
-		epic.StatusOnHold:    {epic.StatusActive, epic.StatusCancelled},
+		epic.StatusPending:   {epic.StatusWIP, epic.StatusCancelled},
+		epic.StatusWIP:       {epic.StatusCompleted, epic.StatusCancelled, epic.StatusOnHold},
+		epic.StatusOnHold:    {epic.StatusWIP, epic.StatusCancelled},
 		epic.StatusCompleted: {},
 		epic.StatusCancelled: {},
 	}

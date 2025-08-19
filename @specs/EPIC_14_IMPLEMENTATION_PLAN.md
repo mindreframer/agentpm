@@ -343,7 +343,7 @@ result := testingpkg.TransitionChain(env).
     Execute()
 
 testingpkg.Assert(result).
-    EpicStatus("active").
+    EpicStatus("wip").
     PhaseStatus("1A", "completed").
     TaskStatus("1A_1", "completed").
     TestStatusUnified("T1A_1", "done").

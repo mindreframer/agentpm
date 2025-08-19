@@ -69,7 +69,7 @@ The current `show` command provides compact output that lacks the full context n
         <completed_at>2025-08-16T15:45:00Z</completed_at>
     </task_details>
     
-    <parent_phase id="1A" status="active">
+    <parent_phase id="1A" status="wip">
         <name>CLI Framework & Core Structure</name>
         <description>Setup basic CLI structure and initialize project</description>
         <deliverables>
@@ -146,7 +146,7 @@ The current `show` command provides compact output that lacks the full context n
 
 **Output Format (XML):**
 ```xml
-<phase_context id="1A" status="active">
+<phase_context id="1A" status="wip">
     <phase_details>
         <name>CLI Framework & Core Structure</name>
         <description>Setup basic CLI structure and initialize project</description>
@@ -302,7 +302,7 @@ The current `show` command provides compact output that lacks the full context n
         <completed_at>2025-08-16T15:45:00Z</completed_at>
     </parent_task>
     
-    <parent_phase id="1A" status="active">
+    <parent_phase id="1A" status="wip">
         <name>CLI Framework & Core Structure</name>
         <description>Setup basic CLI structure and initialize project</description>
         <deliverables>

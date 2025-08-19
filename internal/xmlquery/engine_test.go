@@ -17,7 +17,7 @@ func createTestEpicXML(t *testing.T) string {
 	epicFile := filepath.Join(tempDir, "test-epic.xml")
 
 	xmlContent := `<?xml version="1.0" encoding="UTF-8"?>
-<epic id="epic-10" name="XML Query System" status="active">
+<epic id="epic-10" name="XML Query System" status="wip">
     <metadata>
         <assignee>test_agent</assignee>
         <created_at>2025-08-17T10:00:00Z</created_at>
@@ -27,7 +27,7 @@ func createTestEpicXML(t *testing.T) string {
         <phase id="10A" name="Core Query Engine" status="completed">
             <description>Setup XPath query engine with etree integration</description>
         </phase>
-        <phase id="10B" name="Query Engine Tests" status="active">
+        <phase id="10B" name="Query Engine Tests" status="wip">
             <description>Write comprehensive tests for query functionality</description>
         </phase>
         <phase id="10C" name="Result Formatting" status="pending">
@@ -51,7 +51,7 @@ func createTestEpicXML(t *testing.T) string {
                 - Performance improvement measurable
             </acceptance_criteria>
         </task>
-        <task id="10B_1" phase_id="10B" status="active">
+        <task id="10B_1" phase_id="10B" status="wip">
             <description>Write unit tests for query engine</description>
             <acceptance_criteria>
                 - Test XPath compilation
@@ -148,7 +148,7 @@ func TestEngine_ValidateQuery(t *testing.T) {
 	t.Run("valid queries", func(t *testing.T) {
 		validQueries := []string{
 			"//task",
-			"//phase[@status='active']",
+			"//phase[@status='wip']",
 			"//task[@phase_id='10A']",
 			"//metadata/assignee",
 			"//test[@id='test_1']",
@@ -290,7 +290,7 @@ func TestEngine_Execute(t *testing.T) {
 	})
 
 	t.Run("complex attribute filtering", func(t *testing.T) {
-		result, err := engine.Execute("//phase[@status='active']")
+		result, err := engine.Execute("//phase[@status='wip']")
 		require.NoError(t, err)
 
 		assert.Equal(t, 1, result.MatchCount) // 1 active phase
@@ -298,7 +298,7 @@ func TestEngine_Execute(t *testing.T) {
 
 		phase := result.Elements[0]
 		assert.Equal(t, "phase", phase.Tag)
-		assert.Equal(t, "active", phase.SelectAttrValue("status", ""))
+		assert.Equal(t, "wip", phase.SelectAttrValue("status", ""))
 		assert.Equal(t, "10B", phase.SelectAttrValue("id", ""))
 	})
 
@@ -410,7 +410,7 @@ func TestQueryResult_HelperMethods(t *testing.T) {
 		statuses := result.GetAttributeValues("status")
 		assert.Len(t, statuses, 4) // 4 tasks with status attributes
 		assert.Contains(t, statuses, "done")
-		assert.Contains(t, statuses, "active")
+		assert.Contains(t, statuses, "wip")
 		assert.Contains(t, statuses, "pending")
 	})
 

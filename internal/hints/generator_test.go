@@ -203,7 +203,7 @@ func TestEpicPhaseAwareHintGenerator(t *testing.T) {
 			ID:       "epic-1",
 			Workflow: "Sequential",
 			Phases: []epic.Phase{
-				{ID: "phase-1", Status: epic.StatusActive, Name: "Phase 1"},
+				{ID: "phase-1", Status: epic.StatusWIP, Name: "Phase 1"},
 				{ID: "phase-2", Status: epic.StatusPending, Name: "Phase 2"},
 			},
 		}
@@ -232,7 +232,7 @@ func TestEpicPhaseAwareHintGenerator(t *testing.T) {
 				{ID: "phase-1", Name: "Phase 1"},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Status: epic.StatusActive},
+				{ID: "task-1", PhaseID: "phase-1", Status: epic.StatusWIP},
 				{ID: "task-2", PhaseID: "phase-1", Status: epic.StatusPending},
 			},
 		}
@@ -324,7 +324,7 @@ func TestEpic9_PhaseConflictHints(t *testing.T) {
 			ID:       "epic-1",
 			Workflow: "Sequential",
 			Phases: []epic.Phase{
-				{ID: "implementation", Name: "Implementation", Status: epic.StatusActive},
+				{ID: "implementation", Name: "Implementation", Status: epic.StatusWIP},
 				{ID: "testing", Name: "Testing", Status: epic.StatusPending},
 			},
 		}
@@ -352,7 +352,7 @@ func TestEpic9_PhaseConflictHints(t *testing.T) {
 		epic := &epic.Epic{
 			ID: "epic-complex",
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 				{ID: "phase-3", Name: "Phase 3", Status: epic.StatusPending},
 			},
@@ -385,7 +385,7 @@ func TestEpic9_MissingDependencyHints(t *testing.T) {
 				{ID: "deployment", Name: "Deployment", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
-				{ID: "build-task", PhaseID: "deployment", Name: "Build", Status: epic.StatusActive},
+				{ID: "build-task", PhaseID: "deployment", Name: "Build", Status: epic.StatusWIP},
 				{ID: "test-task", PhaseID: "deployment", Name: "Test", Status: epic.StatusPending},
 			},
 		}
@@ -413,7 +413,7 @@ func TestEpic9_MissingDependencyHints(t *testing.T) {
 		epic := &epic.Epic{
 			ID: "epic-sequential",
 			Tasks: []epic.Task{
-				{ID: "prep-task", PhaseID: "prep", Status: epic.StatusActive},
+				{ID: "prep-task", PhaseID: "prep", Status: epic.StatusWIP},
 				{ID: "main-task", PhaseID: "prep", Status: epic.StatusPending},
 			},
 		}
@@ -487,7 +487,7 @@ func TestEpic9_EpicStateIssueHints(t *testing.T) {
 			EntityID:      "uninitialized-epic",
 			OperationType: "start",
 			CurrentStatus: "planning",
-			TargetStatus:  "active",
+			TargetStatus:  "wip",
 		}
 
 		registry := DefaultHintRegistry()
@@ -501,10 +501,10 @@ func TestEpic9_EpicStateIssueHints(t *testing.T) {
 	t.Run("epic completion blocked by active phases", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "epic-active",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Status: epic.StatusCompleted},
-				{ID: "phase-2", Status: epic.StatusActive},
+				{ID: "phase-2", Status: epic.StatusWIP},
 			},
 		}
 
@@ -583,7 +583,7 @@ func TestEpic9_CommandSuggestionAccuracy(t *testing.T) {
 						"phase_id":       "current-phase",
 					}
 				} else if tc.errorType == "EpicStateError" {
-					ctx.TargetStatus = "active"
+					ctx.TargetStatus = "wip"
 				}
 
 				registry := DefaultHintRegistry()
@@ -603,7 +603,7 @@ func TestEpic9_CommandSuggestionAccuracy(t *testing.T) {
 			EntityID:      "specific-task-123",
 			OperationType: "start",
 			CurrentStatus: "planning",
-			TargetStatus:  "active",
+			TargetStatus:  "wip",
 		}
 
 		registry := DefaultHintRegistry()
@@ -854,12 +854,12 @@ func TestWorkflowHintGenerator(t *testing.T) {
 func TestHintContext_PopulationAndUsage(t *testing.T) {
 	epicObj := &epic.Epic{
 		ID:     "test-epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 	}
 
 	phase := &epic.Phase{
 		ID:     "test-phase",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 	}
 
 	task := &epic.Task{
@@ -877,7 +877,7 @@ func TestHintContext_PopulationAndUsage(t *testing.T) {
 		EntityType:    "task",
 		EntityID:      "test-task",
 		CurrentStatus: "pending",
-		TargetStatus:  "active",
+		TargetStatus:  "wip",
 		AdditionalData: map[string]interface{}{
 			"active_task_id": "other-task",
 			"phase_id":       "test-phase",
@@ -893,7 +893,7 @@ func TestHintContext_PopulationAndUsage(t *testing.T) {
 		assert.Equal(t, "task", ctx.EntityType)
 		assert.Equal(t, "test-task", ctx.EntityID)
 		assert.Equal(t, "pending", ctx.CurrentStatus)
-		assert.Equal(t, "active", ctx.TargetStatus)
+		assert.Equal(t, "wip", ctx.TargetStatus)
 		assert.NotNil(t, ctx.AdditionalData)
 	})
 
@@ -993,7 +993,7 @@ func TestHintRegistryIntegration(t *testing.T) {
 			EntityType:    "task",
 			EntityID:      "task-1",
 			CurrentStatus: "completed",
-			TargetStatus:  "active",
+			TargetStatus:  "wip",
 		}
 
 		hint = registry.GenerateHint(stateCtx)

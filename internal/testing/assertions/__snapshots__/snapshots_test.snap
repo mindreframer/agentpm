@@ -68,7 +68,7 @@ map[string]interface {}{
         },
     },
     "Requirements": "",
-    "Status":       "active",
+    "Status":       "wip",
     "Tasks":        []interface {}{
         map[string]interface {}{
             "AcceptanceCriteria": "",
@@ -107,19 +107,19 @@ map[string]interface {}{
 
 [TestSnapshotIntegration_XMLSnapshotsShowMeaningfulDiffs - 1]
 xml_diff_test
-<epic status="active"><phase id="1A" status="completed"/></epic>
+<epic status="wip"><phase id="1A" status="completed"/></epic>
 ---
 
 [TestSnapshotIntegration_XMLSnapshotsShowMeaningfulDiffs - 2]
 xml_diff_test_2
-<epic status="pending"><phase id="1A" status="active"/></epic>
+<epic status="pending"><phase id="1A" status="wip"/></epic>
 ---
 
 [TestSnapshotIntegration_SnapshotUpdatesWorkDuringDevelopment - 1]
 update_test
 map[string]interface {}{
     "epic_id":     "update-test",
-    "epic_status": "active",
+    "epic_status": "wip",
     "phases":      float64(2),
     "tasks":       float64(4),
     "tests":       float64(4),
@@ -130,7 +130,7 @@ map[string]interface {}{
 selective_test
 map[string]interface {}{
     "epic_id":     "selective-test",
-    "epic_status": "active",
+    "epic_status": "wip",
     "phases":      float64(3),
     "tasks":       float64(6),
     "tests":       float64(8),
@@ -142,7 +142,7 @@ cross_platform_test
 map[string]interface {}{
     "config":      "./config/settings.json",
     "epic_id":     "cross-platform-test",
-    "epic_status": "active",
+    "epic_status": "wip",
     "file_path":   "/Users/test/file.xml",
     "work_dir":    "C:\\Projects\\AgentPM",
 }
@@ -151,7 +151,7 @@ map[string]interface {}{
 [TestSnapshotIntegration_ConfigurationOptions/default - 1]
 default
 map[string]interface {}{
-    "status":  "active",
+    "status":  "wip",
     "test_id": "config-test",
 }
 ---
@@ -159,7 +159,7 @@ map[string]interface {}{
 [TestSnapshotIntegration_ConfigurationOptions/cross_platform_only - 1]
 cross_platform_only
 map[string]interface {}{
-    "status":  "active",
+    "status":  "wip",
     "test_id": "config-test",
 }
 ---
@@ -167,7 +167,7 @@ map[string]interface {}{
 [TestSnapshotIntegration_ConfigurationOptions/update_mode_only - 1]
 update_mode_only
 map[string]interface {}{
-    "status":  "active",
+    "status":  "wip",
     "test_id": "config-test",
 }
 ---
@@ -175,29 +175,29 @@ map[string]interface {}{
 [TestSnapshotIntegration_ConfigurationOptions/both_enabled - 1]
 both_enabled
 map[string]interface {}{
-    "status":  "active",
+    "status":  "wip",
     "test_id": "config-test",
 }
 ---
 
 [TestSnapshotIntegration_XMLNormalization - 1]
 xml_norm_0
-<epic status="active"><phase id="1A"/></epic>
+<epic status="wip"><phase id="1A"/></epic>
 ---
 
 [TestSnapshotIntegration_XMLNormalization - 2]
 xml_norm_1
-<epic   status="active"  ><phase   id="1A"   /></epic>
+<epic   status="wip"  ><phase   id="1A"   /></epic>
 ---
 
 [TestSnapshotIntegration_XMLNormalization - 3]
 xml_norm_2
-<epic status='active'><phase id='1A'/></epic>
+<epic status='wip'><phase id='1A'/></epic>
 ---
 
 [TestSnapshotIntegration_XMLNormalization - 4]
 xml_norm_3
-<epic status="active">
+<epic status="wip">
             <phase id="1A"/>
         </epic>
 ---

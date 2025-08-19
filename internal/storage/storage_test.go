@@ -184,7 +184,7 @@ func TestFileStorage_SaveEpic(t *testing.T) {
 		e2 := &epic.Epic{
 			ID:        "test-1",
 			Name:      "Updated",
-			Status:    epic.StatusActive,
+			Status:    epic.StatusWIP,
 			CreatedAt: time.Now(),
 		}
 
@@ -195,7 +195,7 @@ func TestFileStorage_SaveEpic(t *testing.T) {
 		loaded, err := storage.LoadEpic(epicPath)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated", loaded.Name)
-		assert.Equal(t, epic.StatusActive, loaded.Status)
+		assert.Equal(t, epic.StatusWIP, loaded.Status)
 
 		// Verify no temp file left behind
 		tempFile := epicPath + ".tmp"
@@ -294,7 +294,7 @@ func TestXMLRoundTrip(t *testing.T) {
 	original := &epic.Epic{
 		ID:          "rt-1",
 		Name:        "Round Trip Epic",
-		Status:      epic.StatusActive,
+		Status:      epic.StatusWIP,
 		CreatedAt:   time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 		Assignee:    "test_agent",
 		Description: "Round trip test",
@@ -302,7 +302,7 @@ func TestXMLRoundTrip(t *testing.T) {
 			{
 				ID:          "RT_P1",
 				Name:        "RT Phase 1",
-				Status:      epic.StatusActive,
+				Status:      epic.StatusWIP,
 				Description: "Round trip phase",
 			},
 		},

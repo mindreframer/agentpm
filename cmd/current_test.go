@@ -19,17 +19,17 @@ func createTestEpicForCurrent() *epic.Epic {
 	return &epic.Epic{
 		ID:        "current-test-epic",
 		Name:      "Current Test Epic",
-		Status:    epic.StatusActive,
+		Status:    epic.StatusWIP,
 		CreatedAt: time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 		Assignee:  "test_agent",
 		Phases: []epic.Phase{
 			{ID: "P1", Name: "Setup Phase", Status: epic.StatusCompleted},
-			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusActive},
+			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusWIP},
 			{ID: "P3", Name: "Testing Phase", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
 			{ID: "T1", PhaseID: "P1", Name: "Setup Task", Status: epic.StatusCompleted},
-			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusActive},
+			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusWIP},
 			{ID: "T3", PhaseID: "P2", Name: "Pending Task", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
@@ -92,7 +92,7 @@ func TestCurrentCommand(t *testing.T) {
 
 		output := stdout.String()
 		assert.Contains(t, output, "Current Work State")
-		assert.Contains(t, output, "Epic Status: active")
+		assert.Contains(t, output, "Epic Status: wip")
 		assert.Contains(t, output, "Active Phase: P2")
 		assert.Contains(t, output, "Active Task: T2")
 		assert.Contains(t, output, "Failing Tests: 1")
@@ -212,7 +212,7 @@ func TestCurrentCommand(t *testing.T) {
 		require.NoError(t, err)
 
 		output := stdout.String()
-		assert.Contains(t, output, `"epic_status": "active"`)
+		assert.Contains(t, output, `"epic_status": "wip"`)
 		assert.Contains(t, output, `"active_phase": "P2"`)
 		assert.Contains(t, output, `"active_task": "T2"`)
 		assert.Contains(t, output, `"failing_tests": 1`)
@@ -251,7 +251,7 @@ func TestCurrentCommand(t *testing.T) {
 
 		output := stdout.String()
 		assert.Contains(t, output, `<current_state>`)
-		assert.Contains(t, output, `<epic_status>active</epic_status>`)
+		assert.Contains(t, output, `<epic_status>wip</epic_status>`)
 		assert.Contains(t, output, `<active_phase>P2</active_phase>`)
 		assert.Contains(t, output, `<active_task>T2</active_task>`)
 		assert.Contains(t, output, `<failing_tests>1</failing_tests>`)

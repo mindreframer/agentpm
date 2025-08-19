@@ -27,7 +27,7 @@ func createSampleQueryResult() *QueryResult {
 	// Add another task element
 	task2 := root.CreateElement("task")
 	task2.CreateAttr("id", "10B_1")
-	task2.CreateAttr("status", "active")
+	task2.CreateAttr("status", "wip")
 	task2.SetText("Write unit tests for query engine")
 
 	// Add a phase element
@@ -170,7 +170,7 @@ func TestTextFormatter_Format(t *testing.T) {
 
 		// Verify second task
 		assert.Contains(t, output, "id=10B_1")
-		assert.Contains(t, output, "status=active")
+		assert.Contains(t, output, "status=wip")
 		assert.Contains(t, output, "Write unit tests")
 	})
 
@@ -396,14 +396,14 @@ func TestFormatterIntegrationWithRealQueries(t *testing.T) {
 	})
 
 	t.Run("phase query formatted as JSON", func(t *testing.T) {
-		output, err := service.QueryEpicFileFormatted(epicFile, "//phase[@status='active']", FormatJSON)
+		output, err := service.QueryEpicFileFormatted(epicFile, "//phase[@status='wip']", FormatJSON)
 		require.NoError(t, err)
 
 		var result QueryResultJSON
 		err = json.Unmarshal([]byte(output), &result)
 		require.NoError(t, err)
 
-		assert.Equal(t, "//phase[@status='active']", result.Query)
+		assert.Equal(t, "//phase[@status='wip']", result.Query)
 		assert.Equal(t, 1, result.MatchCount)
 		assert.NotNil(t, result.Matches)
 	})

@@ -20,7 +20,7 @@ start_next_phase_and_task
     <new_status>wip</new_status>
     <started_at>[TIMESTAMP]</started_at>
     <tasks>
-        <task id="task-2" status="active">Task 2</task>
+        <task id="task-2" status="wip">Task 2</task>
         <task id="task-3" status="pending">Task 3</task>
     </tasks>
     <started_task>task-2</started_task>

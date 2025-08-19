@@ -220,7 +220,7 @@ func (n *XMLNormalizer) sortAttributesInLine(line string) string {
 		}
 
 		tagStart := parts[1]   // e.g., "<epic"
-		attributes := parts[2] // e.g., 'id="test" status="active"'
+		attributes := parts[2] // e.g., 'id="test" status="wip"'
 		tagEnd := parts[3]     // e.g., ">" or "/>"
 
 		if strings.TrimSpace(attributes) == "" {

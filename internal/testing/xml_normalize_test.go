@@ -84,7 +84,7 @@ func TestNormalizeXML_SimpleXML(t *testing.T) {
 func TestXMLNormalizer_WithTimestamps(t *testing.T) {
 	normalizer := NewXMLNormalizer()
 
-	input := `<epic created_at="2025-08-16T09:00:00Z" status="active">
+	input := `<epic created_at="2025-08-16T09:00:00Z" status="wip">
 		<started_at>2025-08-16T10:00:00Z</started_at>
 		<completed_at>2025-08-16T11:00:00Z</completed_at>
 	</epic>`
@@ -116,12 +116,12 @@ func TestXMLNormalizer_DisableTimestampNormalization(t *testing.T) {
 func TestNormalizeXML_AttributeSorting(t *testing.T) {
 	normalizer := NewXMLNormalizer()
 
-	input := `<epic status="active" name="Test Epic" id="test-epic">`
+	input := `<epic status="wip" name="Test Epic" id="test-epic">`
 	result, err := normalizer.NormalizeXML(input)
 
 	assert.NoError(t, err)
 	// Attributes should be sorted alphabetically
-	assert.Contains(t, result, `id="test-epic" name="Test Epic" status="active"`)
+	assert.Contains(t, result, `id="test-epic" name="Test Epic" status="wip"`)
 }
 
 func TestNormalizeXML_DisableAttributeSorting(t *testing.T) {
@@ -129,12 +129,12 @@ func TestNormalizeXML_DisableAttributeSorting(t *testing.T) {
 	config.SortAttributes = false
 	normalizer := NewXMLNormalizerWithConfig(config)
 
-	input := `<epic status="active" id="test-epic">`
+	input := `<epic status="wip" id="test-epic">`
 	result, err := normalizer.NormalizeXML(input)
 
 	assert.NoError(t, err)
 	// Attributes should remain in original order
-	assert.Contains(t, result, `status="active" id="test-epic"`)
+	assert.Contains(t, result, `status="wip" id="test-epic"`)
 }
 
 func TestNormalizeTimestamps(t *testing.T) {
@@ -200,13 +200,13 @@ func TestSortAttributesInLine(t *testing.T) {
 	}{
 		{
 			name:     "Two attributes",
-			input:    `<epic status="active" id="test">`,
-			expected: `<epic id="test" status="active">`,
+			input:    `<epic status="wip" id="test">`,
+			expected: `<epic id="test" status="wip">`,
 		},
 		{
 			name:     "Self-closing tag",
-			input:    `<test status="active" id="test"/>`,
-			expected: `<test id="test" status="active"/>`,
+			input:    `<test status="wip" id="test"/>`,
+			expected: `<test id="test" status="wip"/>`,
 		},
 		{
 			name:     "No attributes",
@@ -215,13 +215,13 @@ func TestSortAttributesInLine(t *testing.T) {
 		},
 		{
 			name:     "Already sorted",
-			input:    `<epic id="test" status="active">`,
-			expected: `<epic id="test" status="active">`,
+			input:    `<epic id="test" status="wip">`,
+			expected: `<epic id="test" status="wip">`,
 		},
 		{
 			name:     "Mixed quotes",
-			input:    `<epic status="active" id='test'>`,
-			expected: `<epic id='test' status="active">`,
+			input:    `<epic status="wip" id='test'>`,
+			expected: `<epic id='test' status="wip">`,
 		},
 	}
 
@@ -243,28 +243,28 @@ func TestXMLNormalizer_SortAttributes(t *testing.T) {
 	}{
 		{
 			name:     "Two attributes",
-			input:    `status="active" id="test"`,
-			expected: `id="test" status="active"`,
+			input:    `status="wip" id="test"`,
+			expected: `id="test" status="wip"`,
 		},
 		{
 			name:     "Three attributes",
-			input:    `status="active" name="Test" id="test"`,
-			expected: `id="test" name="Test" status="active"`,
+			input:    `status="wip" name="Test" id="test"`,
+			expected: `id="test" name="Test" status="wip"`,
 		},
 		{
 			name:     "Single quotes",
-			input:    `status='active' id='test'`,
-			expected: `id='test' status='active'`,
+			input:    `status='wip' id='test'`,
+			expected: `id='test' status='wip'`,
 		},
 		{
 			name:     "Mixed quotes",
-			input:    `status="active" id='test'`,
-			expected: `id='test' status="active"`,
+			input:    `status="wip" id='test'`,
+			expected: `id='test' status="wip"`,
 		},
 		{
 			name:     "Already sorted",
-			input:    `id="test" status="active"`,
-			expected: `id="test" status="active"`,
+			input:    `id="test" status="wip"`,
+			expected: `id="test" status="wip"`,
 		},
 		{
 			name:     "Empty input",
@@ -372,7 +372,7 @@ func TestNormalizeXML_ComplexExample(t *testing.T) {
 // Benchmark tests for performance validation
 func BenchmarkNormalizeXML_Simple(b *testing.B) {
 	normalizer := NewXMLNormalizer()
-	input := `<epic id="test" status="active"><name>Test Epic</name></epic>`
+	input := `<epic id="test" status="wip"><name>Test Epic</name></epic>`
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -385,13 +385,13 @@ func BenchmarkNormalizeXML_Simple(b *testing.B) {
 
 func BenchmarkNormalizeXML_Complex(b *testing.B) {
 	normalizer := NewXMLNormalizer()
-	input := `<status epic="test-epic" created_at="2025-08-16T09:00:00Z" status="active">
+	input := `<status epic="test-epic" created_at="2025-08-16T09:00:00Z" status="wip">
 		<name>Complex Epic</name>
 		<phases>
 			<phase id="p1" name="Setup" status="completed" started_at="2025-08-16T09:00:00Z" completed_at="2025-08-16T10:00:00Z">
 				<tasks>
 					<task id="t1" name="Task 1" status="completed"/>
-					<task id="t2" name="Task 2" status="active" started_at="2025-08-16T10:30:00Z"/>
+					<task id="t2" name="Task 2" status="wip" started_at="2025-08-16T10:30:00Z"/>
 				</tasks>
 			</phase>
 		</phases>

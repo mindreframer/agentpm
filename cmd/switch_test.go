@@ -33,7 +33,7 @@ func TestSwitchCommand_Success(t *testing.T) {
 	currentEpic := &epic.Epic{
 		ID:     "current-epic",
 		Name:   "Current Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 	}
 	writeTestEpicXML(t, currentEpicFile, currentEpic)
 
@@ -94,7 +94,7 @@ func TestSwitchCommand_WithAbsolutePath(t *testing.T) {
 	require.NoError(t, config.SaveConfig(cfg, configFile))
 
 	// Create epic files
-	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusActive}
+	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusWIP}
 	writeTestEpicXML(t, currentEpicFile, currentEpic)
 
 	targetEpic := &epic.Epic{ID: "target-epic", Name: "Target Epic", Status: epic.StatusPending}
@@ -139,7 +139,7 @@ func TestSwitchCommand_SwitchBack(t *testing.T) {
 	require.NoError(t, config.SaveConfig(cfg, configFile))
 
 	// Create epic files
-	epic1 := &epic.Epic{ID: "epic-1", Name: "Epic 1", Status: epic.StatusActive}
+	epic1 := &epic.Epic{ID: "epic-1", Name: "Epic 1", Status: epic.StatusWIP}
 	writeTestEpicXML(t, epic1File, epic1)
 
 	epic2 := &epic.Epic{ID: "epic-2", Name: "Epic 2", Status: epic.StatusPending}
@@ -188,7 +188,7 @@ func TestSwitchCommand_JSONOutput(t *testing.T) {
 	require.NoError(t, config.SaveConfig(cfg, configFile))
 
 	// Create epic files
-	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusActive}
+	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusWIP}
 	writeTestEpicXML(t, currentEpicFile, currentEpic)
 
 	targetEpic := &epic.Epic{ID: "target-epic", Name: "Target Epic", Status: epic.StatusPending}
@@ -241,7 +241,7 @@ func TestSwitchCommand_XMLOutput(t *testing.T) {
 	require.NoError(t, config.SaveConfig(cfg, configFile))
 
 	// Create epic files
-	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusActive}
+	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusWIP}
 	writeTestEpicXML(t, currentEpicFile, currentEpic)
 
 	targetEpic := &epic.Epic{ID: "target-epic", Name: "Target Epic", Status: epic.StatusPending}
@@ -286,7 +286,7 @@ func TestSwitchCommand_ErrorNonExistentFile(t *testing.T) {
 	require.NoError(t, config.SaveConfig(cfg, configFile))
 
 	// Create current epic file
-	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusActive}
+	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusWIP}
 	writeTestEpicXML(t, currentEpicFile, currentEpic)
 
 	// Create CLI app
@@ -325,7 +325,7 @@ func TestSwitchCommand_ErrorInvalidEpicFile(t *testing.T) {
 	require.NoError(t, config.SaveConfig(cfg, configFile))
 
 	// Create current epic file
-	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusActive}
+	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusWIP}
 	writeTestEpicXML(t, currentEpicFile, currentEpic)
 
 	// Create invalid epic file (bad XML)
@@ -366,7 +366,7 @@ func TestSwitchCommand_ErrorNoTargetSpecified(t *testing.T) {
 	require.NoError(t, config.SaveConfig(cfg, configFile))
 
 	// Create current epic file
-	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusActive}
+	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusWIP}
 	writeTestEpicXML(t, currentEpicFile, currentEpic)
 
 	// Create CLI app
@@ -405,7 +405,7 @@ func TestSwitchCommand_ErrorSwitchBackNoPrevious(t *testing.T) {
 	require.NoError(t, config.SaveConfig(cfg, configFile))
 
 	// Create current epic file
-	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusActive}
+	currentEpic := &epic.Epic{ID: "current-epic", Name: "Current Epic", Status: epic.StatusWIP}
 	writeTestEpicXML(t, currentEpicFile, currentEpic)
 
 	// Create CLI app

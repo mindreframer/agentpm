@@ -25,7 +25,7 @@ func createTestEpicForQuery() *epic.Epic {
 	return &epic.Epic{
 		ID:          "query-test-epic",
 		Name:        "Query Test Epic",
-		Status:      epic.StatusActive,
+		Status:      epic.StatusWIP,
 		Description: "Epic for testing query functionality",
 		Assignee:    "test_agent",
 		Phases: []epic.Phase{
@@ -38,7 +38,7 @@ func createTestEpicForQuery() *epic.Epic {
 			{
 				ID:          "10B",
 				Name:        "Query Tests",
-				Status:      epic.StatusActive,
+				Status:      epic.StatusWIP,
 				Description: "Write comprehensive tests",
 			},
 			{
@@ -67,7 +67,7 @@ func createTestEpicForQuery() *epic.Epic {
 				ID:          "10B_1",
 				PhaseID:     "10B",
 				Name:        "Write unit tests",
-				Status:      epic.StatusActive,
+				Status:      epic.StatusWIP,
 				Description: "Test XPath compilation and execution",
 			},
 			{
@@ -97,7 +97,7 @@ func createTestEpicForQuery() *epic.Epic {
 				ID:          "test_attribute_filtering",
 				TaskID:      "10B_1",
 				Name:        "Attribute filtering test",
-				Status:      epic.StatusActive,
+				Status:      epic.StatusWIP,
 				Description: "Test attribute-based queries",
 			},
 		},
@@ -301,7 +301,7 @@ func TestQueryCommand(t *testing.T) {
 		}
 
 		// Execute query with XML format
-		err = app.Run(context.Background(), []string{"agentpm", "query", "//phase[@status='active']", "--format", "xml"})
+		err = app.Run(context.Background(), []string{"agentpm", "query", "//phase[@status='wip']", "--format", "xml"})
 		require.NoError(t, err)
 
 		output := stdout.String()
@@ -316,7 +316,7 @@ func TestQueryCommand(t *testing.T) {
 		xmlContent := strings.TrimPrefix(output, xml.Header)
 		err = xml.Unmarshal([]byte(xmlContent), &result)
 		require.NoError(t, err)
-		assert.Equal(t, "//phase[@status='active']", result.Query)
+		assert.Equal(t, "//phase[@status='wip']", result.Query)
 		assert.Equal(t, 1, result.MatchCount)
 	})
 

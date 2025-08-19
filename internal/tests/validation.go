@@ -147,7 +147,7 @@ func (tvs *TestValidationService) ValidateTestActivePhase(epicData *epic.Epic, t
 	// Find the active phase
 	var activePhase *epic.Phase
 	for i := range epicData.Phases {
-		if epicData.Phases[i].Status == epic.StatusActive {
+		if epicData.Phases[i].Status == epic.StatusWIP {
 			activePhase = &epicData.Phases[i]
 			break
 		}

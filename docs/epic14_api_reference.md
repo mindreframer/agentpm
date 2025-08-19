@@ -51,7 +51,7 @@ assertions.Assert(result).
 ```
 
 **Parameters:**
-- `expectedStatus`: Expected epic status ("pending", "active", "completed", "failed")
+- `expectedStatus`: Expected epic status ("pending", "wip", "completed", "failed")
 
 #### PhaseStatus
 Validates a specific phase status.
@@ -64,7 +64,7 @@ func (ab *AssertionBuilder) PhaseStatus(phaseID, expectedStatus string) *Asserti
 ```go
 assertions.Assert(result).
     PhaseStatus("1A", "completed").
-    PhaseStatus("1B", "active").
+    PhaseStatus("1B", "wip").
     MustPass()
 ```
 
@@ -213,7 +213,7 @@ func (ab *AssertionBuilder) StateProgression(expectedStates []string) *Assertion
 **Example:**
 ```go
 assertions.Assert(result).
-    StateProgression([]string{"pending", "active", "completed"}).
+    StateProgression([]string{"pending", "wip", "completed"}).
     MustPass()
 ```
 

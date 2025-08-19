@@ -276,7 +276,7 @@ func TestValidationResult_SetCheck(t *testing.T) {
 func TestStatus_IsValid(t *testing.T) {
 	validStatuses := []Status{
 		StatusPending,
-		StatusActive,
+		StatusWIP,
 		StatusCompleted,
 		StatusOnHold,
 		StatusCancelled,

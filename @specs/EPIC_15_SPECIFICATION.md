@@ -368,7 +368,7 @@ Assert(result).
     PhaseStatus("1A", "done").
     PhaseStatus("1B", "done").
     PhaseStatus("1C", "done").
-    StateProgression([]string{"planning", "active", "active", "active", "done"}).
+    StateProgression([]string{"planning", "wip", "wip", "wip", "done"}).
     NoErrors().
     MustPass()
 ```
@@ -470,11 +470,11 @@ epic := EpicBuilder("complex-010").
 
 result := TransitionChain(env).
     StartEpic().
-    Assert().EpicStatus("active").
+    Assert().EpicStatus("wip").
     StartPhase("1A").
-    Assert().PhaseStatus("1A", "active").
+    Assert().PhaseStatus("1A", "wip").
     StartTask("1A_1").
-    Assert().TaskStatus("1A_1", "active").
+    Assert().TaskStatus("1A_1", "wip").
     PassTest("T1A_1").
     DoneTask("1A_1").
     DonePhase("1A").
@@ -598,7 +598,7 @@ result := TransitionChain(env).
 Assert(result).
     HasErrors().
     ErrorCount(1).
-    TaskStatus("1A_1", "active"). // Should remain active due to validation failure
+    TaskStatus("1A_1", "wip"). // Should remain active due to validation failure
     TestStatusUnified("T1A_2", "pending"). // This test blocks completion
     CustomAssertion("validation_error", func(r *executor.TransitionChainResult) error {
         if len(r.Errors) == 0 {
@@ -636,7 +636,7 @@ result := TransitionChain(env).
 
 Assert(result).
     HasErrors().
-    PhaseStatus("1A", "active"). // Should remain active
+    PhaseStatus("1A", "wip"). // Should remain active
     TaskStatus("1A_1", "done").   // This completed successfully
     TaskStatus("1A_2", "pending"). // This blocks phase completion
     CustomAssertion("phase_blocked", func(r *executor.TransitionChainResult) error {

@@ -22,9 +22,9 @@ func TestStartNextCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
@@ -65,7 +65,7 @@ func TestStartNextCommand(t *testing.T) {
 		}
 
 		require.NotNil(t, task2)
-		assert.Equal(t, epic.StatusActive, task2.Status)
+		assert.Equal(t, epic.StatusWIP, task2.Status)
 	})
 
 	t.Run("start next phase and task", func(t *testing.T) {
@@ -76,9 +76,9 @@ func TestStartNextCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
@@ -134,8 +134,8 @@ func TestStartNextCommand(t *testing.T) {
 		require.NotNil(t, task2)
 
 		assert.Equal(t, epic.StatusCompleted, phase1.Status)
-		assert.Equal(t, epic.StatusActive, phase2.Status)
-		assert.Equal(t, epic.StatusActive, task2.Status)
+		assert.Equal(t, epic.StatusWIP, phase2.Status)
+		assert.Equal(t, epic.StatusWIP, task2.Status)
 	})
 
 	t.Run("all work completed", func(t *testing.T) {
@@ -146,7 +146,7 @@ func TestStartNextCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusCompleted},
@@ -187,12 +187,12 @@ func TestStartNextCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusWIP},
 				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
 			},
 		}
@@ -225,7 +225,7 @@ func TestStartNextCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 			},
@@ -277,8 +277,8 @@ func TestStartNextCommand(t *testing.T) {
 		require.NotNil(t, phase1)
 		require.NotNil(t, task1)
 
-		assert.Equal(t, epic.StatusActive, phase1.Status)
-		assert.Equal(t, epic.StatusActive, task1.Status)
+		assert.Equal(t, epic.StatusWIP, phase1.Status)
+		assert.Equal(t, epic.StatusWIP, task1.Status)
 	})
 
 	t.Run("handle invalid timestamp format", func(t *testing.T) {
@@ -289,7 +289,7 @@ func TestStartNextCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 			},
@@ -339,7 +339,7 @@ func TestStartNextCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Empty Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{},
 			Tasks:  []epic.Task{},
 		}

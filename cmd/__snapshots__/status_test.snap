@@ -3,7 +3,7 @@
 status_command_xml_format
 <status epic="status-test-epic">
     <name>Status Test Epic</name>
-    <status>active</status>
+    <status>wip</status>
     <progress>
         <completed_phases>1</completed_phases>
         <total_phases>3</total_phases>

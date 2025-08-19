@@ -109,7 +109,7 @@ func TestAssertionBuilder_IntermediateState_Success(t *testing.T) {
 	// Validate the first intermediate state (epic should be active after start)
 	err := Assert(result).
 		IntermediateState(1, func(e *epic.Epic) error {
-			if e.Status != epic.StatusActive {
+			if e.Status != epic.StatusWIP {
 				return fmt.Errorf("expected epic to be active, got %s", e.Status)
 			}
 			return nil
@@ -354,7 +354,7 @@ func TestAssertionBuilder_ComplexAdvancedScenario(t *testing.T) {
 	err := Assert(result).
 		StateProgression(actualStates).
 		IntermediateState(1, func(e *epic.Epic) error {
-			if e.Status != epic.StatusActive {
+			if e.Status != epic.StatusWIP {
 				return fmt.Errorf("epic should be active after start")
 			}
 			return nil
@@ -429,7 +429,7 @@ func TestAssertionBuilder_EdgeCases(t *testing.T) {
 	t.Run("EmptyIntermediateStates", func(t *testing.T) {
 		// Create result with no intermediate states
 		result := &executor.TransitionChainResult{
-			FinalState:         &epic.Epic{ID: "test", Status: epic.StatusActive},
+			FinalState:         &epic.Epic{ID: "test", Status: epic.StatusWIP},
 			IntermediateStates: []executor.StateSnapshot{},
 			ExecutedCommands:   []executor.CommandExecution{},
 			Errors:             []executor.TransitionError{},
@@ -437,7 +437,7 @@ func TestAssertionBuilder_EdgeCases(t *testing.T) {
 		}
 
 		err := Assert(result).
-			StateProgression([]string{"active"}).
+			StateProgression([]string{"wip"}).
 			Check()
 
 		if err == nil {
@@ -448,7 +448,7 @@ func TestAssertionBuilder_EdgeCases(t *testing.T) {
 	t.Run("NilEpicStateInSnapshot", func(t *testing.T) {
 		// Create result with nil epic state in snapshot
 		result := &executor.TransitionChainResult{
-			FinalState: &epic.Epic{ID: "test", Status: epic.StatusActive},
+			FinalState: &epic.Epic{ID: "test", Status: epic.StatusWIP},
 			IntermediateStates: []executor.StateSnapshot{
 				{Command: "test", EpicState: nil},
 			},
@@ -496,7 +496,7 @@ func TestAssertionBuilder_HelperMethods(t *testing.T) {
 	t.Run("generateSnapshotData", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "test",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{{ID: "1A"}},
 			Tasks:  []epic.Task{{ID: "1A_1"}, {ID: "1A_2"}},
 			Tests:  []epic.Test{{ID: "T1"}},
@@ -565,8 +565,8 @@ func TestAssertionBuilder_XMLDiffPrecision(t *testing.T) {
 	result := createAdvancedTestResult(t)
 
 	// Test XML diff generation shows precise changes
-	expectedXML := `<epic status="active"><phase id="1A" status="completed"/></epic>`
-	actualXML := `<epic status="pending"><phase id="1A" status="active"/></epic>`
+	expectedXML := `<epic status="wip"><phase id="1A" status="completed"/></epic>`
+	actualXML := `<epic status="pending"><phase id="1A" status="wip"/></epic>`
 
 	err := Assert(result).
 		XMLDiff(expectedXML, actualXML).
@@ -587,9 +587,9 @@ func TestAssertionBuilder_IntermediateChainValidation(t *testing.T) {
 
 	// Test intermediate validations work within chains
 	err := Assert(result).
-		EpicStatus("active"). // Use correct status
+		EpicStatus("wip"). // Use correct status
 		IntermediateState(5, func(e *epic.Epic) error {
-			if string(e.Status) != "active" {
+			if string(e.Status) != "wip" {
 				return fmt.Errorf("expected active epic at step 5, got %s", e.Status)
 			}
 			return nil
@@ -608,7 +608,7 @@ func TestAssertionBuilder_AssertionComposition(t *testing.T) {
 	// Test assertion composition enables complex checks
 	assertions := []func(*AssertionBuilder) *AssertionBuilder{
 		func(ab *AssertionBuilder) *AssertionBuilder {
-			return ab.EpicStatus("active") // Use correct status from the advanced test result
+			return ab.EpicStatus("wip") // Use correct status from the advanced test result
 		},
 		func(ab *AssertionBuilder) *AssertionBuilder {
 			return ab.PhaseStatus("1A", "completed")
@@ -691,7 +691,7 @@ func TestAssertionBuilder_Phase3DComprehensive(t *testing.T) {
 		// Performance benchmarks
 		PerformanceBenchmark(time.Minute, 0). // Allow 1 minute, no memory check
 		// Complex assertion composition
-		EpicStatus("active"). // Use correct status
+		EpicStatus("wip"). // Use correct status
 		PhaseStatus("1A", "completed").
 		PhaseStatus("1B", "completed").
 		AllCommandsSuccessful().

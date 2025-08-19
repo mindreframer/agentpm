@@ -30,7 +30,7 @@ func TestDoneEpicCommand_Success(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusActive, // wip state
+		Status: epic.StatusWIP, // wip state
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 		},
@@ -84,7 +84,7 @@ func TestDoneEpicCommand_WithFileFlag(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-2",
 		Name:   "Custom Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 		},
@@ -128,7 +128,7 @@ func TestDoneEpicCommand_WithTimestamp(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 		},
@@ -173,7 +173,7 @@ func TestDoneEpicCommand_JSONOutput(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-json",
 		Name:   "JSON Test Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 		},
@@ -228,7 +228,7 @@ func TestDoneEpicCommand_XMLOutput(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-xml",
 		Name:   "XML Test Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 		},
@@ -314,7 +314,7 @@ func TestDoneEpicCommand_ErrorPendingPhases(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusActive, // wip state
+		Status: epic.StatusWIP, // wip state
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending}, // pending!
 		},
@@ -359,7 +359,7 @@ func TestDoneEpicCommand_ErrorFailingTests(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusActive, // wip state
+		Status: epic.StatusWIP, // wip state
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 		},
@@ -430,7 +430,7 @@ func TestDoneEpicCommand_EnhancedValidationErrorJSON(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "enhanced-validation-epic",
 		Name:   "Enhanced Validation Test Epic",
-		Status: epic.StatusActive, // wip state
+		Status: epic.StatusWIP, // wip state
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Implementation Phase", Status: epic.StatusPending}, // pending!
 			{ID: "phase-2", Name: "Testing Phase", Status: epic.StatusCompleted},
@@ -506,7 +506,7 @@ func TestDoneEpicCommand_EnhancedValidationErrorXML(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "xml-validation-epic",
 		Name:   "XML Validation Test Epic",
-		Status: epic.StatusActive, // wip state
+		Status: epic.StatusWIP, // wip state
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Development Phase", Status: epic.StatusPending}, // pending!
 		},
@@ -560,7 +560,7 @@ func TestDoneEpicCommand_EnhancedValidationProgress(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "progress-test-epic",
 		Name:   "Progress Test Epic",
-		Status: epic.StatusActive, // wip state
+		Status: epic.StatusWIP, // wip state
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 			{ID: "phase-2", Name: "Phase 2", Status: epic.StatusCompleted},

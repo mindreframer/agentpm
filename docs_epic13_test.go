@@ -79,7 +79,7 @@ func TestDocumentationExamples(t *testing.T) {
 			},
 			Tasks: []epic.Task{
 				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusPending},
-				{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusActive}, // WIP task
+				{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusWIP}, // WIP task
 			},
 			Tests: []epic.Test{
 				{ID: "TEST1", TaskID: "T1", Name: "Test 1", TestStatus: epic.TestStatusPending, TestResult: epic.TestResultFailing},
@@ -148,7 +148,7 @@ func TestDocumentationExamples(t *testing.T) {
 			CreatedAt: time.Now(),
 			Assignee:  "test_agent",
 			Phases: []epic.Phase{
-				{ID: "P1", Name: "Phase 1", Status: epic.Status("active")}, // Legacy status
+				{ID: "P1", Name: "Phase 1", Status: epic.Status("wip")}, // Legacy status
 			},
 			Tasks: []epic.Task{
 				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.Status("completed")}, // Legacy status
@@ -184,15 +184,15 @@ func TestDocumentationExamples(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:        "troubleshooting-test",
 			Name:      "Troubleshooting Test Epic",
-			Status:    epic.StatusActive,
+			Status:    epic.StatusWIP,
 			CreatedAt: time.Now(),
 			Assignee:  "test_agent",
 			Phases: []epic.Phase{
-				{ID: "P1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "P1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
 				{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusPending}, // Blocking task
-				{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusActive},  // WIP task
+				{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusWIP},     // WIP task
 			},
 			Tests: []epic.Test{
 				{ID: "TEST1", TaskID: "T1", Name: "Test 1", TestStatus: epic.TestStatusPending, TestResult: epic.TestResultFailing},
@@ -297,14 +297,14 @@ func TestDocumentationExamples(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:        "workflow-example",
 			Name:      "Workflow Example Epic",
-			Status:    epic.StatusActive, // Active phase
+			Status:    epic.StatusWIP, // Active phase
 			CreatedAt: time.Now(),
 			Assignee:  "test_agent",
 			Phases: []epic.Phase{
-				{ID: "P1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "P1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusActive},
+				{ID: "task-1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusWIP},
 			},
 			Tests: []epic.Test{
 				{ID: "test1", TaskID: "task-1", Name: "Test 1", TestStatus: epic.TestStatusWIP, TestResult: epic.TestResultFailing},
@@ -447,7 +447,7 @@ func createSizedEpicForDocs(numTasks, numTests int) *epic.Epic {
 	testEpic := &epic.Epic{
 		ID:        fmt.Sprintf("docs-perf-test-%d-%d", numTasks, numTests),
 		Name:      fmt.Sprintf("Documentation Performance Test (%d tasks, %d tests)", numTasks, numTests),
-		Status:    epic.StatusActive,
+		Status:    epic.StatusWIP,
 		CreatedAt: time.Now(),
 		Assignee:  "test_agent",
 	}

@@ -41,7 +41,7 @@ func (pvs *PhaseValidationService) checkPhaseCompletionPrerequisites(epicData *e
 					Name:   task.Name,
 					Status: string(task.Status),
 				})
-			case epic.StatusActive:
+			case epic.StatusWIP:
 				blockingItems = append(blockingItems, epic.BlockingItem{
 					Type:   "task",
 					ID:     task.ID,
@@ -98,7 +98,7 @@ func (pvs *PhaseValidationService) countTasksByStatus(epicData *epic.Epic, phase
 			switch task.Status {
 			case epic.StatusPending:
 				pending++
-			case epic.StatusActive:
+			case epic.StatusWIP:
 				active++
 			}
 		}
@@ -122,9 +122,9 @@ func (pvs *PhaseValidationService) countTestsByStatus(epicData *epic.Epic, phase
 
 func (pvs *PhaseValidationService) ValidatePhaseStatusTransition(currentStatus, targetStatus epic.Status) error {
 	validTransitions := map[epic.Status][]epic.Status{
-		epic.StatusPending:   {epic.StatusActive, epic.StatusCancelled},
-		epic.StatusActive:    {epic.StatusCompleted, epic.StatusCancelled, epic.StatusOnHold},
-		epic.StatusOnHold:    {epic.StatusActive, epic.StatusCancelled},
+		epic.StatusPending:   {epic.StatusWIP, epic.StatusCancelled},
+		epic.StatusWIP:       {epic.StatusCompleted, epic.StatusCancelled, epic.StatusOnHold},
+		epic.StatusOnHold:    {epic.StatusWIP, epic.StatusCancelled},
 		epic.StatusCompleted: {},
 		epic.StatusCancelled: {},
 	}

@@ -55,8 +55,8 @@ func TestSnapshotIntegration_CapturesFullStateCorrectly(t *testing.T) {
 
 func TestSnapshotIntegration_XMLSnapshotsShowMeaningfulDiffs(t *testing.T) {
 	// Test XML snapshots with different content
-	xmlContent1 := `<epic status="active"><phase id="1A" status="completed"/></epic>`
-	xmlContent2 := `<epic status="pending"><phase id="1A" status="active"/></epic>`
+	xmlContent1 := `<epic status="wip"><phase id="1A" status="completed"/></epic>`
+	xmlContent2 := `<epic status="pending"><phase id="1A" status="wip"/></epic>`
 
 	snapshotAssertion := NewSnapshotAssertion(t)
 
@@ -80,7 +80,7 @@ func TestSnapshotIntegration_SnapshotUpdatesWorkDuringDevelopment(t *testing.T) 
 
 	testData := map[string]interface{}{
 		"epic_id":     "update-test",
-		"epic_status": "active",
+		"epic_status": "wip",
 		"phases":      2,
 		"tasks":       4,
 		"tests":       4,
@@ -102,7 +102,7 @@ func TestSnapshotIntegration_SelectiveSnapshotsFocusOnRelevantElements(t *testin
 	// Create complex test data
 	testData := map[string]interface{}{
 		"epic_id":        "selective-test",
-		"epic_status":    "active",
+		"epic_status":    "wip",
 		"phases":         3,
 		"tasks":          6,
 		"tests":          8,
@@ -130,7 +130,7 @@ func TestSnapshotIntegration_CrossPlatformSnapshotsAreConsistent(t *testing.T) {
 		"file_path":   "/Users/test/file.xml",   // Unix-style path
 		"work_dir":    "C:\\Projects\\AgentPM",  // Windows-style path
 		"config":      "./config/settings.json", // Relative path
-		"epic_status": "active",
+		"epic_status": "wip",
 	}
 
 	snapshotAssertion := NewSnapshotAssertionWithConfig(t, true, false) // Enable cross-platform
@@ -171,7 +171,7 @@ func TestSnapshotIntegration_ConfigurationOptions(t *testing.T) {
 
 	testData := map[string]interface{}{
 		"test_id": "config-test",
-		"status":  "active",
+		"status":  "wip",
 	}
 
 	for _, config := range testConfigs {
@@ -198,10 +198,10 @@ func TestSnapshotIntegration_ConfigurationOptions(t *testing.T) {
 func TestSnapshotIntegration_XMLNormalization(t *testing.T) {
 	// Test XML normalization for consistent snapshots
 	xmlVariations := []string{
-		`<epic status="active"><phase id="1A"/></epic>`,
-		`<epic   status="active"  ><phase   id="1A"   /></epic>`, // Extra whitespace
-		`<epic status='active'><phase id='1A'/></epic>`,          // Single quotes
-		`<epic status="active">
+		`<epic status="wip"><phase id="1A"/></epic>`,
+		`<epic   status="wip"  ><phase   id="1A"   /></epic>`, // Extra whitespace
+		`<epic status='wip'><phase id='1A'/></epic>`,          // Single quotes
+		`<epic status="wip">
 			<phase id="1A"/>
 		</epic>`, // Multi-line formatting
 	}

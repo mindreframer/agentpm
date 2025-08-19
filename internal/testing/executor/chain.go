@@ -645,7 +645,7 @@ func (tc *TransitionChain) failTestDirect(epicData *epic.Epic, testID string, ti
 	}
 
 	// Update test status to failed (WIP with failing result)
-	test.Status = epic.StatusActive // In Epic 13, failed tests are WIP
+	test.Status = epic.StatusWIP // In Epic 13, failed tests are WIP
 	test.SetTestStatusUnified(epic.TestStatusWIP)
 	test.SetTestResult(epic.TestResultFailing)
 	test.FailedAt = &timestamp

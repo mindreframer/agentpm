@@ -161,7 +161,7 @@ func TestStartTestCommand_AlreadyStarted(t *testing.T) {
 	testEpic := createTestEpicForCLI()
 	// Set test to WIP status (already started)
 	testEpic.Tests[0].TestStatus = epic.TestStatusWIP
-	testEpic.Tests[0].Status = epic.StatusActive
+	testEpic.Tests[0].Status = epic.StatusWIP
 
 	storage := storage.NewFileStorage()
 	err := storage.SaveEpic(testEpic, epicFile)
@@ -233,7 +233,7 @@ func TestPassTestCommand_Success(t *testing.T) {
 	// Set test to WIP status (can pass)
 	startTime := time.Date(2025, 8, 16, 14, 30, 0, 0, time.UTC)
 	testEpic.Tests[0].TestStatus = epic.TestStatusWIP
-	testEpic.Tests[0].Status = epic.StatusActive
+	testEpic.Tests[0].Status = epic.StatusWIP
 	testEpic.Tests[0].StartedAt = &startTime
 
 	storage := storage.NewFileStorage()
@@ -303,7 +303,7 @@ func TestFailTestCommand_Success(t *testing.T) {
 	// Set test to WIP status (can fail)
 	startTime := time.Date(2025, 8, 16, 14, 30, 0, 0, time.UTC)
 	testEpic.Tests[0].TestStatus = epic.TestStatusWIP
-	testEpic.Tests[0].Status = epic.StatusActive
+	testEpic.Tests[0].Status = epic.StatusWIP
 	testEpic.Tests[0].StartedAt = &startTime
 
 	storage := storage.NewFileStorage()
@@ -408,7 +408,7 @@ func TestCancelTestCommand_Success(t *testing.T) {
 	// Set test to WIP status (can cancel)
 	startTime := time.Date(2025, 8, 16, 14, 30, 0, 0, time.UTC)
 	testEpic.Tests[0].TestStatus = epic.TestStatusWIP
-	testEpic.Tests[0].Status = epic.StatusActive
+	testEpic.Tests[0].Status = epic.StatusWIP
 	testEpic.Tests[0].StartedAt = &startTime
 
 	storage := storage.NewFileStorage()
@@ -700,12 +700,12 @@ func createTestEpicForCLI() *epic.Epic {
 	return &epic.Epic{
 		ID:     "test-epic",
 		Name:   "Test Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Phases: []epic.Phase{
-			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 		},
 		Tasks: []epic.Task{
-			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusWIP},
 		},
 		Tests: []epic.Test{
 			{

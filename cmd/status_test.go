@@ -20,17 +20,17 @@ func createTestEpicForStatus() *epic.Epic {
 	return &epic.Epic{
 		ID:        "status-test-epic",
 		Name:      "Status Test Epic",
-		Status:    epic.StatusActive,
+		Status:    epic.StatusWIP,
 		CreatedAt: time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 		Assignee:  "test_agent",
 		Phases: []epic.Phase{
 			{ID: "P1", Name: "Setup Phase", Status: epic.StatusCompleted},
-			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusActive},
+			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusWIP},
 			{ID: "P3", Name: "Testing Phase", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
 			{ID: "T1", PhaseID: "P1", Name: "Setup Task", Status: epic.StatusCompleted},
-			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusActive},
+			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusWIP},
 			{ID: "T3", PhaseID: "P2", Name: "Pending Task", Status: epic.StatusPending},
 			{ID: "T4", PhaseID: "P3", Name: "Future Task", Status: epic.StatusPending},
 		},
@@ -103,7 +103,7 @@ func TestStatusCommand(t *testing.T) {
 		output := stdout.String()
 		assert.Contains(t, output, "Epic Status: Status Test Epic")
 		assert.Contains(t, output, "ID: status-test-epic")
-		assert.Contains(t, output, "Status: active")
+		assert.Contains(t, output, "Status: wip")
 		assert.Contains(t, output, "Progress: 30% complete") // Enhanced weighted calculation: 40%*phases + 40%*tasks + 20%*tests
 		assert.Contains(t, output, "Phases: 1/3 completed")
 		assert.Contains(t, output, "Tests: 1 passing, 2 failing")
@@ -230,7 +230,7 @@ func TestStatusCommand(t *testing.T) {
 		output := stdout.String()
 		assert.Contains(t, output, `"epic": "status-test-epic"`)
 		assert.Contains(t, output, `"name": "Status Test Epic"`)
-		assert.Contains(t, output, `"status": "active"`)
+		assert.Contains(t, output, `"status": "wip"`)
 		assert.Contains(t, output, `"completion_percentage": 30`)
 		assert.Contains(t, output, `"completed_phases": 1`)
 		assert.Contains(t, output, `"total_phases": 3`)
@@ -563,7 +563,7 @@ func TestStatusCommandOutputConsistency(t *testing.T) {
 		xmlOutput := xmlOut.String()
 
 		// Verify each format contains the core information
-		coreInfo := []string{"Status Test Epic", "status-test-epic", "active", "30"}
+		coreInfo := []string{"Status Test Epic", "status-test-epic", "wip", "30"}
 
 		for _, info := range coreInfo {
 			assert.Contains(t, textOutput, info, "Text format missing: %s", info)

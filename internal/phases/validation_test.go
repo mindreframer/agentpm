@@ -32,7 +32,7 @@ func TestPhaseValidationService_ValidatePhaseCompletion(t *testing.T) {
 		phase := &epic.Phase{
 			ID:     "phase1",
 			Name:   "Test Phase",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := pvs.ValidatePhaseCompletion(epicData, phase)
@@ -56,7 +56,7 @@ func TestPhaseValidationService_ValidatePhaseCompletion(t *testing.T) {
 		phase := &epic.Phase{
 			ID:     "phase1",
 			Name:   "Test Phase",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := pvs.ValidatePhaseCompletion(epicData, phase)
@@ -86,7 +86,7 @@ func TestPhaseValidationService_ValidatePhaseCompletion(t *testing.T) {
 					ID:      "task1",
 					PhaseID: "phase1",
 					Name:    "Active Task",
-					Status:  epic.StatusActive,
+					Status:  epic.StatusWIP,
 				},
 			},
 			Tests: []epic.Test{},
@@ -94,7 +94,7 @@ func TestPhaseValidationService_ValidatePhaseCompletion(t *testing.T) {
 		phase := &epic.Phase{
 			ID:     "phase1",
 			Name:   "Test Phase",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := pvs.ValidatePhaseCompletion(epicData, phase)
@@ -118,7 +118,7 @@ func TestPhaseValidationService_ValidatePhaseCompletion(t *testing.T) {
 		phase := &epic.Phase{
 			ID:     "phase1",
 			Name:   "Test Phase",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := pvs.ValidatePhaseCompletion(epicData, phase)
@@ -142,7 +142,7 @@ func TestPhaseValidationService_ValidatePhaseCompletion(t *testing.T) {
 		phase := &epic.Phase{
 			ID:     "phase1",
 			Name:   "Test Phase",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := pvs.ValidatePhaseCompletion(epicData, phase)
@@ -164,7 +164,7 @@ func TestPhaseValidationService_ValidatePhaseStatusTransition(t *testing.T) {
 		{
 			name:          "pending to active should be valid",
 			currentStatus: epic.StatusPending,
-			targetStatus:  epic.StatusActive,
+			targetStatus:  epic.StatusWIP,
 			wantError:     false,
 		},
 		{
@@ -175,7 +175,7 @@ func TestPhaseValidationService_ValidatePhaseStatusTransition(t *testing.T) {
 		},
 		{
 			name:          "active to completed should be valid",
-			currentStatus: epic.StatusActive,
+			currentStatus: epic.StatusWIP,
 			targetStatus:  epic.StatusCompleted,
 			wantError:     false,
 		},
@@ -188,7 +188,7 @@ func TestPhaseValidationService_ValidatePhaseStatusTransition(t *testing.T) {
 		{
 			name:          "completed to any status should be invalid",
 			currentStatus: epic.StatusCompleted,
-			targetStatus:  epic.StatusActive,
+			targetStatus:  epic.StatusWIP,
 			wantError:     true,
 		},
 	}
@@ -216,7 +216,7 @@ func TestPhaseValidationService_CountMethods(t *testing.T) {
 	epicData := &epic.Epic{
 		Tasks: []epic.Task{
 			{ID: "task1", PhaseID: "phase1", Status: epic.StatusPending},
-			{ID: "task2", PhaseID: "phase1", Status: epic.StatusActive},
+			{ID: "task2", PhaseID: "phase1", Status: epic.StatusWIP},
 			{ID: "task3", PhaseID: "phase1", Status: epic.StatusCompleted},
 			{ID: "task4", PhaseID: "phase2", Status: epic.StatusPending}, // Different phase
 		},
@@ -268,7 +268,7 @@ func TestPhaseValidationService_ErrorMessageContainsExactCounts(t *testing.T) {
 		Tasks: []epic.Task{
 			{ID: "task1", PhaseID: "phase1", Status: epic.StatusPending},
 			{ID: "task2", PhaseID: "phase1", Status: epic.StatusPending},
-			{ID: "task3", PhaseID: "phase1", Status: epic.StatusActive},
+			{ID: "task3", PhaseID: "phase1", Status: epic.StatusWIP},
 		},
 		Tests: []epic.Test{
 			{ID: "test1", PhaseID: "phase1", TestStatus: epic.TestStatusPending},
@@ -280,7 +280,7 @@ func TestPhaseValidationService_ErrorMessageContainsExactCounts(t *testing.T) {
 
 	phase := &epic.Phase{
 		ID:     "phase1",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 	}
 
 	err := pvs.ValidatePhaseCompletion(epicData, phase)

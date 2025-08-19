@@ -20,18 +20,18 @@ func createTestEpicForPending() *epic.Epic {
 	return &epic.Epic{
 		ID:        "pending-test-epic",
 		Name:      "Pending Test Epic",
-		Status:    epic.StatusActive,
+		Status:    epic.StatusWIP,
 		CreatedAt: time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 		Assignee:  "test_agent",
 		Phases: []epic.Phase{
 			{ID: "P1", Name: "Setup Phase", Status: epic.StatusCompleted},
-			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusActive},
+			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusWIP},
 			{ID: "P3", Name: "Testing Phase", Status: epic.StatusPending},
 			{ID: "P4", Name: "Deployment Phase", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
 			{ID: "T1", PhaseID: "P1", Name: "Setup Task", Status: epic.StatusCompleted},
-			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusActive},
+			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusWIP},
 			{ID: "T3", PhaseID: "P2", Name: "Pending Task 1", Status: epic.StatusPending},
 			{ID: "T4", PhaseID: "P3", Name: "Pending Task 2", Status: epic.StatusPending},
 			{ID: "T5", PhaseID: "P4", Name: "Pending Task 3", Status: epic.StatusPending},
@@ -101,13 +101,13 @@ func TestPendingCommand(t *testing.T) {
 
 		// Should show pending phases (P2 active, P3 and P4 planning = 3 total)
 		assert.Contains(t, output, "Phases (3):")
-		assert.Contains(t, output, "P2 - Implementation Phase [active]")
+		assert.Contains(t, output, "P2 - Implementation Phase [wip]")
 		assert.Contains(t, output, "P3 - Testing Phase [pending]")
 		assert.Contains(t, output, "P4 - Deployment Phase [pending]")
 
 		// Should show pending tasks (T2 active, T3, T4, T5 pending = 4 total)
 		assert.Contains(t, output, "Tasks (4):")
-		assert.Contains(t, output, "T2 (P2) - Active Task [active]")
+		assert.Contains(t, output, "T2 (P2) - Active Task [wip]")
 		assert.Contains(t, output, "T3 (P2) - Pending Task 1 [pending]")
 		assert.Contains(t, output, "T4 (P3) - Pending Task 2 [pending]")
 		assert.Contains(t, output, "T5 (P4) - Pending Task 3 [pending]")
@@ -236,7 +236,7 @@ func TestPendingCommand(t *testing.T) {
 		assert.Contains(t, output, `"phases": [`)
 		assert.Contains(t, output, `"id": "P2"`)
 		assert.Contains(t, output, `"name": "Implementation Phase"`)
-		assert.Contains(t, output, `"status": "active"`)
+		assert.Contains(t, output, `"status": "wip"`)
 		assert.Contains(t, output, `"tasks": [`)
 		assert.Contains(t, output, `"id": "T2"`)
 		assert.Contains(t, output, `"phase_id": "P2"`)

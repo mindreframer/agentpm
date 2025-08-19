@@ -329,7 +329,7 @@ func (ls *LifecycleService) validatePhaseConstraints(epicData *epic.Epic, result
 	activePhases := []string{}
 
 	for _, phase := range epicData.Phases {
-		if phase.Status == epic.StatusActive {
+		if phase.Status == epic.StatusWIP {
 			activePhases = append(activePhases, phase.ID)
 		}
 	}
@@ -357,7 +357,7 @@ func (ls *LifecycleService) validatePhaseConstraints(epicData *epic.Epic, result
 
 	// Check for phases that should be completed
 	for _, phase := range epicData.Phases {
-		if phase.Status == epic.StatusActive {
+		if phase.Status == epic.StatusWIP {
 			if ls.isPhaseReadyForCompletion(epicData, phase.ID) {
 				issue := StateValidationIssue{
 					Type:    "phase_ready_for_completion",
@@ -385,7 +385,7 @@ func (ls *LifecycleService) validateTaskConstraints(epicData *epic.Epic, result 
 	activeTasksByPhase := make(map[string][]string)
 
 	for _, task := range epicData.Tasks {
-		if task.Status == epic.StatusActive {
+		if task.Status == epic.StatusWIP {
 			activeTasksByPhase[task.PhaseID] = append(activeTasksByPhase[task.PhaseID], task.ID)
 		}
 	}
@@ -419,7 +419,7 @@ func (ls *LifecycleService) validateTaskConstraints(epicData *epic.Epic, result 
 func (ls *LifecycleService) validatePhaseTaskRelationships(epicData *epic.Epic, result *StateValidationResult) {
 	// Check for active tasks in inactive phases
 	for _, task := range epicData.Tasks {
-		if task.Status == epic.StatusActive {
+		if task.Status == epic.StatusWIP {
 			phase := ls.findPhaseByID(epicData, task.PhaseID)
 			if phase == nil {
 				issue := StateValidationIssue{
@@ -439,7 +439,7 @@ func (ls *LifecycleService) validatePhaseTaskRelationships(epicData *epic.Epic, 
 				if result.Level == ValidationLevelValid {
 					result.Level = ValidationLevelError
 				}
-			} else if phase.Status != epic.StatusActive {
+			} else if phase.Status != epic.StatusWIP {
 				issue := StateValidationIssue{
 					Type:    "active_task_in_inactive_phase",
 					Level:   ValidationLevelError,
@@ -558,7 +558,7 @@ func (ls *LifecycleService) isPhaseReadyForCompletion(epicData *epic.Epic, phase
 	for _, task := range epicData.Tasks {
 		if task.PhaseID == phaseID {
 			switch task.Status {
-			case epic.StatusActive:
+			case epic.StatusWIP:
 				hasActiveTasks = true
 			case epic.StatusPending:
 				hasPendingTasks = true

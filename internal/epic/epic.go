@@ -8,7 +8,7 @@ type Status string
 
 const (
 	StatusPending   Status = "pending"
-	StatusActive    Status = "active"
+	StatusWIP       Status = "wip"
 	StatusCompleted Status = "completed"
 	StatusOnHold    Status = "on_hold"
 	StatusCancelled Status = "cancelled"
@@ -167,7 +167,7 @@ func (t *Test) GetTestStatusUnified() TestStatus {
 	switch t.Status {
 	case StatusPending:
 		return TestStatusPending
-	case StatusActive:
+	case StatusWIP:
 		return TestStatusWIP
 	case StatusCompleted:
 		return TestStatusDone
@@ -186,7 +186,7 @@ func (t *Test) SetTestStatusUnified(status TestStatus) {
 	case TestStatusPending:
 		t.Status = StatusPending
 	case TestStatusWIP:
-		t.Status = StatusActive
+		t.Status = StatusWIP
 	case TestStatusDone:
 		t.Status = StatusCompleted
 	case TestStatusCancelled:
@@ -227,7 +227,7 @@ type Event struct {
 
 func (s Status) IsValid() bool {
 	switch s {
-	case StatusPending, StatusActive, StatusCompleted, StatusOnHold, StatusCancelled:
+	case StatusPending, StatusWIP, StatusCompleted, StatusOnHold, StatusCancelled:
 		return true
 	default:
 		return false
@@ -252,7 +252,7 @@ func (s Status) ToEpicStatus() EpicStatus {
 	switch s {
 	case StatusPending:
 		return EpicStatusPending
-	case StatusActive:
+	case StatusWIP:
 		return EpicStatusWIP
 	case StatusCompleted:
 		return EpicStatusDone
@@ -266,7 +266,7 @@ func (s Status) ToPhaseStatus() PhaseStatus {
 	switch s {
 	case StatusPending:
 		return PhaseStatusPending
-	case StatusActive:
+	case StatusWIP:
 		return PhaseStatusWIP
 	case StatusCompleted:
 		return PhaseStatusDone
@@ -280,7 +280,7 @@ func (s Status) ToTaskStatus() TaskStatus {
 	switch s {
 	case StatusPending:
 		return TaskStatusPending
-	case StatusActive:
+	case StatusWIP:
 		return TaskStatusWIP
 	case StatusCompleted:
 		return TaskStatusDone
@@ -297,7 +297,7 @@ func FromEpicStatus(s EpicStatus) Status {
 	case EpicStatusPending:
 		return StatusPending
 	case EpicStatusWIP:
-		return StatusActive
+		return StatusWIP
 	case EpicStatusDone:
 		return StatusCompleted
 	default:
@@ -311,7 +311,7 @@ func FromPhaseStatus(s PhaseStatus) Status {
 	case PhaseStatusPending:
 		return StatusPending
 	case PhaseStatusWIP:
-		return StatusActive
+		return StatusWIP
 	case PhaseStatusDone:
 		return StatusCompleted
 	default:
@@ -325,7 +325,7 @@ func FromTaskStatus(s TaskStatus) Status {
 	case TaskStatusPending:
 		return StatusPending
 	case TaskStatusWIP:
-		return StatusActive
+		return StatusWIP
 	case TaskStatusDone:
 		return StatusCompleted
 	case TaskStatusCancelled:

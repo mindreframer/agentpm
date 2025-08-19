@@ -37,7 +37,7 @@ func (s *PhaseService) StartPhase(epicData *epic.Epic, phaseID string, timestamp
 	}
 
 	// Check if phase is already active
-	if phase.Status == epic.StatusActive {
+	if phase.Status == epic.StatusWIP {
 		// Return a special error type to indicate "already started"
 		return NewPhaseAlreadyActiveError(phaseID)
 	}
@@ -48,7 +48,7 @@ func (s *PhaseService) StartPhase(epicData *epic.Epic, phaseID string, timestamp
 	}
 
 	// Transition phase status and set timestamp
-	phase.Status = epic.StatusActive
+	phase.Status = epic.StatusWIP
 	phase.StartedAt = &timestamp
 
 	// Create automatic event for phase start
@@ -83,7 +83,7 @@ func (s *PhaseService) CompletePhase(epicData *epic.Epic, phaseID string, timest
 // GetActivePhase returns the currently active phase, if any
 func (s *PhaseService) GetActivePhase(epicData *epic.Epic) *epic.Phase {
 	for i := range epicData.Phases {
-		if epicData.Phases[i].Status == epic.StatusActive {
+		if epicData.Phases[i].Status == epic.StatusWIP {
 			return &epicData.Phases[i]
 		}
 	}
@@ -103,13 +103,13 @@ func (s *PhaseService) findPhase(epicData *epic.Epic, phaseID string) *epic.Phas
 // validatePhaseStart checks if a phase can be started
 func (s *PhaseService) validatePhaseStart(epicData *epic.Epic, phase *epic.Phase) error {
 	// Check if phase is already active - this is not an error, just a no-op
-	if phase.Status == epic.StatusActive {
+	if phase.Status == epic.StatusWIP {
 		return nil // Let the caller handle this as "already started"
 	}
 
 	// Check phase is in pending status (accept both "planning" and "pending" for backward compatibility)
 	if phase.Status != epic.StatusPending {
-		return NewPhaseStateError(phase.ID, phase.Status, epic.StatusActive, "Phase is not in pending state")
+		return NewPhaseStateError(phase.ID, phase.Status, epic.StatusWIP, "Phase is not in pending state")
 	}
 
 	// Check no other phase is active
@@ -130,7 +130,7 @@ func (s *PhaseService) validatePhaseStart(epicData *epic.Epic, phase *epic.Phase
 // validatePhaseCompletion checks if a phase can be completed
 func (s *PhaseService) validatePhaseCompletion(epicData *epic.Epic, phase *epic.Phase) error {
 	// Check phase is in active status
-	if phase.Status != epic.StatusActive {
+	if phase.Status != epic.StatusWIP {
 		return NewPhaseStateError(phase.ID, phase.Status, epic.StatusCompleted, "Phase is not in active state")
 	}
 

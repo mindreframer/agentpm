@@ -22,20 +22,20 @@ func setupTestEpicForQuery(t *testing.T) string {
 	testEpic := &epic.Epic{
 		ID:          "query-test-epic",
 		Name:        "Query Test Epic",
-		Status:      epic.StatusActive,
+		Status:      epic.StatusWIP,
 		Description: "Epic for testing query functionality",
 		Assignee:    "test_agent",
 		Phases: []epic.Phase{
 			{ID: "10A", Name: "Core Query Engine", Status: epic.StatusCompleted},
-			{ID: "10B", Name: "Query Tests", Status: epic.StatusActive},
+			{ID: "10B", Name: "Query Tests", Status: epic.StatusWIP},
 		},
 		Tasks: []epic.Task{
 			{ID: "10A_1", PhaseID: "10A", Name: "Create QueryEngine", Status: epic.StatusCompleted},
-			{ID: "10B_1", PhaseID: "10B", Name: "Write unit tests", Status: epic.StatusActive},
+			{ID: "10B_1", PhaseID: "10B", Name: "Write unit tests", Status: epic.StatusWIP},
 		},
 		Tests: []epic.Test{
 			{ID: "test_1", TaskID: "10A_1", Name: "XPath compilation test", Status: epic.StatusCompleted},
-			{ID: "test_2", TaskID: "10B_1", Name: "Element selection test", Status: epic.StatusActive},
+			{ID: "test_2", TaskID: "10B_1", Name: "Element selection test", Status: epic.StatusWIP},
 		},
 	}
 

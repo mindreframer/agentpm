@@ -18,7 +18,7 @@ func TestErrorContext_IncludesRelevantStateInformation(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "test-epic",
 		Name:   "Test Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 	}
 
 	// Create debug context with some trace entries
@@ -27,7 +27,7 @@ func TestErrorContext_IncludesRelevantStateInformation(t *testing.T) {
 	debugCtx.Trace("WARN", "Potential issue detected", map[string]interface{}{"phase": "1A"})
 
 	// Create error context
-	err := errors.New("assertion failed: expected status 'completed' but got 'active'")
+	err := errors.New("assertion failed: expected status 'completed' but got 'wip'")
 	errorCtx := CreateErrorContext(err, "validation", 2, testEpic, debugCtx)
 
 	// Verify error context contains relevant information
@@ -77,7 +77,7 @@ func TestDebugMode_ProvidesUsefulExecutionDetails(t *testing.T) {
 	result := &executor.TransitionChainResult{
 		FinalState: &epic.Epic{
 			ID:     "debug-test",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		},
 		ExecutionTime: time.Millisecond * 150,
 	}
@@ -125,8 +125,8 @@ func TestStateVisualization_HelpsUnderstandFailures(t *testing.T) {
 	// Create a result with multiple states
 	states := []interface{}{
 		&epic.Epic{ID: "test", Status: epic.StatusPending},
-		&epic.Epic{ID: "test", Status: epic.StatusActive},
-		&epic.Epic{ID: "test", Status: epic.StatusActive}, // Still active - failure point
+		&epic.Epic{ID: "test", Status: epic.StatusWIP},
+		&epic.Epic{ID: "test", Status: epic.StatusWIP}, // Still active - failure point
 	}
 
 	commands := []string{
@@ -146,7 +146,7 @@ func TestStateVisualization_HelpsUnderstandFailures(t *testing.T) {
 	if !strings.Contains(timeline, "pending") {
 		t.Error("Expected timeline to show initial pending status")
 	}
-	if !strings.Contains(timeline, "active") {
+	if !strings.Contains(timeline, "wip") {
 		t.Error("Expected timeline to show active status")
 	}
 
@@ -185,7 +185,7 @@ func TestParallelExecution_MaintainsIsolation(t *testing.T) {
 		results[i] = &executor.TransitionChainResult{
 			FinalState: &epic.Epic{
 				ID:     fmt.Sprintf("parallel-test-%d", i),
-				Status: epic.StatusActive,
+				Status: epic.StatusWIP,
 			},
 		}
 		builders[i] = NewAssertionBuilder(results[i]).WithDebugMode(DebugBasic)
@@ -354,13 +354,13 @@ func TestErrorRecovery_AndContinuationStrategies(t *testing.T) {
 	result := &executor.TransitionChainResult{
 		FinalState: &epic.Epic{
 			ID:     "recovery-test",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		},
 		Errors: []executor.TransitionError{
 			{
 				Command:       "complete phase 1A",
 				ExpectedState: "completed",
-				ActualState:   "active",
+				ActualState:   "wip",
 			},
 		},
 	}
@@ -445,10 +445,10 @@ func TestDebugInfo_PrintsUsefulInformation(t *testing.T) {
 		},
 		FinalState: &epic.Epic{
 			ID:     "debug-print-test",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		},
 		IntermediateStates: []executor.StateSnapshot{
-			{EpicState: &epic.Epic{ID: "debug-print-test", Status: epic.StatusActive}},
+			{EpicState: &epic.Epic{ID: "debug-print-test", Status: epic.StatusWIP}},
 		},
 		ExecutedCommands: []executor.CommandExecution{
 			{

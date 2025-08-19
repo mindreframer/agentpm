@@ -204,7 +204,7 @@ func (e *Engine) calculatePhaseProgress(phaseID string) *ProgressSummary {
 			switch task.Status {
 			case epic.StatusCompleted:
 				completedTasks++
-			case epic.StatusActive:
+			case epic.StatusWIP:
 				activeTasks++
 			case epic.StatusCancelled:
 				cancelledTasks++

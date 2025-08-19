@@ -19,24 +19,24 @@ func TestCommandsBasic(t *testing.T) {
 
 	// Create a minimal epic file that the CLI can work with
 	epicContent := `<?xml version="1.0" encoding="UTF-8"?>
-<epic id="test-epic" name="Test Epic" status="active" created_at="2025-08-16T14:00:00Z">
+<epic id="test-epic" name="Test Epic" status="wip" created_at="2025-08-16T14:00:00Z">
     <phases>
-        <phase id="phase-1" name="Phase 1" status="active" />
+        <phase id="phase-1" name="Phase 1" status="wip" />
     </phases>
     <tasks>
-        <task id="task-1" phase_id="phase-1" name="Task 1" status="active" />
+        <task id="task-1" phase_id="phase-1" name="Task 1" status="wip" />
     </tasks>
     <tests>
         <test id="test-1" phase_id="phase-1" task_id="task-1" status="planning">
             <description>Test for start command</description>
         </test>
-        <test id="test-2" phase_id="phase-1" task_id="task-1" status="active">
+        <test id="test-2" phase_id="phase-1" task_id="task-1" status="wip">
             <description>Test for pass command</description>
         </test>
-        <test id="test-3" phase_id="phase-1" task_id="task-1" status="active">
+        <test id="test-3" phase_id="phase-1" task_id="task-1" status="wip">
             <description>Test for fail command</description>
         </test>
-        <test id="test-4" phase_id="phase-1" task_id="task-1" status="active">
+        <test id="test-4" phase_id="phase-1" task_id="task-1" status="wip">
             <description>Test for cancel command</description>
         </test>
     </tests>
@@ -148,12 +148,12 @@ func TestCommandsCustomTimestamp(t *testing.T) {
 	epicFile := filepath.Join(tempDir, "test-epic.xml")
 
 	epicContent := `<?xml version="1.0" encoding="UTF-8"?>
-<epic id="test-epic" name="Test Epic" status="active" created_at="2025-08-16T14:00:00Z">
+<epic id="test-epic" name="Test Epic" status="wip" created_at="2025-08-16T14:00:00Z">
     <phases>
-        <phase id="phase-1" name="Phase 1" status="active" />
+        <phase id="phase-1" name="Phase 1" status="wip" />
     </phases>
     <tasks>
-        <task id="task-1" phase_id="phase-1" name="Task 1" status="active" />
+        <task id="task-1" phase_id="phase-1" name="Task 1" status="wip" />
     </tasks>
     <tests>
         <test id="test-1" phase_id="phase-1" task_id="task-1" status="planning">
@@ -196,12 +196,12 @@ func TestCommandsInvalidTimestamp(t *testing.T) {
 	epicFile := filepath.Join(tempDir, "test-epic.xml")
 
 	epicContent := `<?xml version="1.0" encoding="UTF-8"?>
-<epic id="test-epic" name="Test Epic" status="active" created_at="2025-08-16T14:00:00Z">
+<epic id="test-epic" name="Test Epic" status="wip" created_at="2025-08-16T14:00:00Z">
     <phases>
-        <phase id="phase-1" name="Phase 1" status="active" />
+        <phase id="phase-1" name="Phase 1" status="wip" />
     </phases>
     <tasks>
-        <task id="task-1" phase_id="phase-1" name="Task 1" status="active" />
+        <task id="task-1" phase_id="phase-1" name="Task 1" status="wip" />
     </tasks>
     <tests>
         <test id="test-1" phase_id="phase-1" task_id="task-1" status="planning">

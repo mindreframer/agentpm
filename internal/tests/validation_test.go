@@ -236,7 +236,7 @@ func TestTestValidationService_ValidateTestActivePhase(t *testing.T) {
 	t.Run("test in active phase should pass", func(t *testing.T) {
 		epicData := &epic.Epic{
 			Phases: []epic.Phase{
-				{ID: "phase1", Status: epic.StatusActive},
+				{ID: "phase1", Status: epic.StatusWIP},
 				{ID: "phase2", Status: epic.StatusPending},
 			},
 		}
@@ -254,7 +254,7 @@ func TestTestValidationService_ValidateTestActivePhase(t *testing.T) {
 	t.Run("test not in active phase should fail", func(t *testing.T) {
 		epicData := &epic.Epic{
 			Phases: []epic.Phase{
-				{ID: "phase1", Status: epic.StatusActive},
+				{ID: "phase1", Status: epic.StatusWIP},
 				{ID: "phase2", Status: epic.StatusPending},
 			},
 		}

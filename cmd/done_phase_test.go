@@ -21,9 +21,9 @@ func TestDonePhaseCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
@@ -72,9 +72,9 @@ func TestDonePhaseCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
@@ -122,14 +122,14 @@ func TestDonePhaseCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
 				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusPending},
-				{ID: "task-3", PhaseID: "phase-1", Name: "Task 3", Status: epic.StatusActive},
+				{ID: "task-3", PhaseID: "phase-1", Name: "Task 3", Status: epic.StatusWIP},
 			},
 		}
 
@@ -150,7 +150,7 @@ func TestDonePhaseCommand(t *testing.T) {
 		output := stderr.String()
 		// Epic 13 validation format
 		assert.Contains(t, output, "blocking items")
-		assert.Contains(t, output, "active")
+		assert.Contains(t, output, "wip")
 		assert.Contains(t, output, "phase-1")
 
 		// Verify phase is still active
@@ -166,7 +166,7 @@ func TestDonePhaseCommand(t *testing.T) {
 		}
 
 		require.NotNil(t, phase1)
-		assert.Equal(t, epic.StatusActive, phase1.Status)
+		assert.Equal(t, epic.StatusWIP, phase1.Status)
 		assert.Nil(t, phase1.CompletedAt)
 	})
 
@@ -178,7 +178,7 @@ func TestDonePhaseCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 			},
@@ -226,9 +226,9 @@ func TestDonePhaseCommand(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "epic-1",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 		}
 

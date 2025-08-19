@@ -13,11 +13,11 @@ func TestBatchValidationService_ValidateBatchOperations(t *testing.T) {
 	// Create test epic with active phase and tests
 	testEpic := &epic.Epic{
 		ID:     "test_epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Phases: []epic.Phase{
 			{
 				ID:     "phase1",
-				Status: epic.StatusActive,
+				Status: epic.StatusWIP,
 			},
 			{
 				ID:     "phase2",
@@ -207,7 +207,7 @@ func TestBatchValidationService_CancelOperationValidation(t *testing.T) {
 
 	testEpic := &epic.Epic{
 		Phases: []epic.Phase{
-			{ID: "phase1", Status: epic.StatusActive},
+			{ID: "phase1", Status: epic.StatusWIP},
 		},
 		Tests: []epic.Test{
 			{
@@ -294,7 +294,7 @@ func TestBatchValidationService_InvalidOperationType(t *testing.T) {
 
 	testEpic := &epic.Epic{
 		Phases: []epic.Phase{
-			{ID: "phase1", Status: epic.StatusActive},
+			{ID: "phase1", Status: epic.StatusWIP},
 		},
 		Tests: []epic.Test{
 			{
@@ -370,7 +370,7 @@ func TestBatchValidationService_AllOrNothingPrinciple(t *testing.T) {
 	// Create epic with many tests - some valid, some invalid
 	testEpic := &epic.Epic{
 		Phases: []epic.Phase{
-			{ID: "phase1", Status: epic.StatusActive},
+			{ID: "phase1", Status: epic.StatusWIP},
 			{ID: "phase2", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
@@ -422,7 +422,7 @@ func TestBatchValidationService_MixedOperationTypes(t *testing.T) {
 
 	testEpic := &epic.Epic{
 		Phases: []epic.Phase{
-			{ID: "phase1", Status: epic.StatusActive},
+			{ID: "phase1", Status: epic.StatusWIP},
 		},
 		Tests: []epic.Test{
 			{ID: "test1", PhaseID: "phase1", Name: "WIP Test", TestStatus: epic.TestStatusWIP},

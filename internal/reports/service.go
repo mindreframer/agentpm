@@ -106,7 +106,7 @@ func (rs *ReportService) GenerateHandoffReport(limit int) (*HandoffReport, error
 
 func (rs *ReportService) findActivePhase() string {
 	for _, phase := range rs.epic.Phases {
-		if phase.Status == epic.StatusActive {
+		if phase.Status == epic.StatusWIP {
 			return phase.ID
 		}
 	}
@@ -115,7 +115,7 @@ func (rs *ReportService) findActivePhase() string {
 
 func (rs *ReportService) findActiveTask() string {
 	for _, task := range rs.epic.Tasks {
-		if task.Status == epic.StatusActive {
+		if task.Status == epic.StatusWIP {
 			return task.ID
 		}
 	}
@@ -418,7 +418,7 @@ func (rs *ReportService) generateTaskStatus() TaskStatus {
 		if task.Status == epic.StatusCompleted {
 			status.CompletedTasks++
 		}
-		if task.Status == epic.StatusActive {
+		if task.Status == epic.StatusWIP {
 			status.ActiveTask = task.ID
 		}
 
@@ -597,7 +597,7 @@ func (rs *ReportService) formatStatusIcon(status string) string {
 	switch status {
 	case "completed":
 		return "✅ completed"
-	case "active":
+	case "wip":
 		return "🔄 active"
 	case "planning":
 		return "⏳ planning"

@@ -94,7 +94,7 @@ func TestEpicLifecycleStatus_ToEpicStatus(t *testing.T) {
 		expected  epic.Status
 	}{
 		{LifecycleStatusPending, epic.StatusPending},
-		{LifecycleStatusWIP, epic.StatusActive},
+		{LifecycleStatusWIP, epic.StatusWIP},
 		{LifecycleStatusDone, epic.StatusCompleted},
 	}
 
@@ -113,7 +113,7 @@ func TestFromEpicStatus(t *testing.T) {
 		expected   EpicLifecycleStatus
 	}{
 		{epic.StatusPending, LifecycleStatusPending},
-		{epic.StatusActive, LifecycleStatusWIP},
+		{epic.StatusWIP, LifecycleStatusWIP},
 		{epic.StatusCompleted, LifecycleStatusDone},
 		{epic.StatusOnHold, LifecycleStatusPending}, // default case
 	}
@@ -212,8 +212,8 @@ func TestLifecycleService_StartEpic_Success(t *testing.T) {
 		t.Fatalf("Failed to load updated epic: %v", err)
 	}
 
-	if updatedEpic.Status != epic.StatusActive {
-		t.Errorf("Expected epic status to be %s, got %s", epic.StatusActive, updatedEpic.Status)
+	if updatedEpic.Status != epic.StatusWIP {
+		t.Errorf("Expected epic status to be %s, got %s", epic.StatusWIP, updatedEpic.Status)
 	}
 }
 
@@ -256,7 +256,7 @@ func TestLifecycleService_StartEpic_AlreadyStarted(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusActive, // already WIP
+		Status: epic.StatusWIP, // already WIP
 	}
 	storage.StoreEpic("test-epic.xml", testEpic)
 
@@ -398,7 +398,7 @@ func TestLifecycleService_CompleteEpic_Success(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusActive, // WIP
+		Status: epic.StatusWIP, // WIP
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 			{ID: "phase-2", Name: "Phase 2", Status: epic.StatusCompleted},
@@ -478,7 +478,7 @@ func TestLifecycleService_CompleteEpic_WithPendingWork(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusActive, // WIP
+		Status: epic.StatusWIP, // WIP
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 			{ID: "phase-2", Name: "Phase 2", Status: epic.StatusPending}, // pending
@@ -531,14 +531,14 @@ func TestLifecycleService_CompleteEpic_WithFailingTests(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusActive, // WIP
+		Status: epic.StatusWIP, // WIP
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
 			{ID: "phase-2", Name: "Phase 2", Status: epic.StatusCompleted},
 		},
 		Tests: []epic.Test{
 			{ID: "test-1", TaskID: "task-1", Name: "Test 1", Status: epic.StatusCompleted},
-			{ID: "test-2", TaskID: "task-2", Name: "Test 2", Status: epic.StatusActive},   // failing
+			{ID: "test-2", TaskID: "task-2", Name: "Test 2", Status: epic.StatusWIP},     // failing
 			{ID: "test-3", TaskID: "task-2", Name: "Test 3", Status: epic.StatusPending}, // failing
 		},
 	}
@@ -629,7 +629,7 @@ func TestLifecycleService_ValidateEpicCompletion(t *testing.T) {
 			name: "valid epic ready for completion",
 			epic: &epic.Epic{
 				ID:     "epic-1",
-				Status: epic.StatusActive,
+				Status: epic.StatusWIP,
 				Phases: []epic.Phase{
 					{ID: "phase-1", Status: epic.StatusCompleted},
 				},
@@ -648,7 +648,7 @@ func TestLifecycleService_ValidateEpicCompletion(t *testing.T) {
 			name: "epic with pending phases",
 			epic: &epic.Epic{
 				ID:     "epic-1",
-				Status: epic.StatusActive,
+				Status: epic.StatusWIP,
 				Phases: []epic.Phase{
 					{ID: "phase-1", Status: epic.StatusCompleted},
 					{ID: "phase-2", Status: epic.StatusPending},
@@ -665,13 +665,13 @@ func TestLifecycleService_ValidateEpicCompletion(t *testing.T) {
 			name: "epic with failing tests",
 			epic: &epic.Epic{
 				ID:     "epic-1",
-				Status: epic.StatusActive,
+				Status: epic.StatusWIP,
 				Phases: []epic.Phase{
 					{ID: "phase-1", Status: epic.StatusCompleted},
 				},
 				Tests: []epic.Test{
 					{ID: "test-1", Status: epic.StatusCompleted},
-					{ID: "test-2", Status: epic.StatusActive},
+					{ID: "test-2", Status: epic.StatusWIP},
 				},
 			},
 			expectedValid:   false,
@@ -787,7 +787,7 @@ func TestLifecycleService_EpicEventCreation(t *testing.T) {
 		wipEpic := &epic.Epic{
 			ID:     "test-epic",
 			Name:   "Test Epic for Events",
-			Status: epic.StatusActive, // WIP state
+			Status: epic.StatusWIP, // WIP state
 			Phases: []epic.Phase{
 				{ID: "phase1", Name: "Phase 1", Status: epic.StatusCompleted},
 			},
@@ -904,7 +904,7 @@ func TestLifecycleService_CalculateValidationSummary(t *testing.T) {
 		Phases: []epic.Phase{
 			{ID: "phase-1", Status: epic.StatusCompleted},
 			{ID: "phase-2", Status: epic.StatusPending},
-			{ID: "phase-3", Status: epic.StatusActive},
+			{ID: "phase-3", Status: epic.StatusWIP},
 		},
 		Tasks: []epic.Task{
 			{ID: "task-1", Status: epic.StatusCompleted},
@@ -913,7 +913,7 @@ func TestLifecycleService_CalculateValidationSummary(t *testing.T) {
 		},
 		Tests: []epic.Test{
 			{ID: "test-1", Status: epic.StatusCompleted},
-			{ID: "test-2", Status: epic.StatusActive},
+			{ID: "test-2", Status: epic.StatusWIP},
 		},
 	}
 
@@ -1012,12 +1012,12 @@ func TestLifecycleService_ValidateEpicState(t *testing.T) {
 	t.Run("valid epic state", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "epic-1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusWIP},
 			},
 		}
 
@@ -1031,10 +1031,10 @@ func TestLifecycleService_ValidateEpicState(t *testing.T) {
 	t.Run("multiple active phases error", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "epic-1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusWIP},
 			},
 		}
 
@@ -1058,13 +1058,13 @@ func TestLifecycleService_ValidateEpicState(t *testing.T) {
 	t.Run("multiple active tasks in phase error", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "epic-1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusActive},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusWIP},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusWIP},
 			},
 		}
 
@@ -1079,12 +1079,12 @@ func TestLifecycleService_ValidateEpicState(t *testing.T) {
 	t.Run("active task in inactive phase error", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "epic-1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusWIP},
 			},
 		}
 
@@ -1099,9 +1099,9 @@ func TestLifecycleService_ValidateEpicState(t *testing.T) {
 	t.Run("phase ready for completion warning", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "epic-1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
@@ -1122,10 +1122,10 @@ func TestLifecycleService_ValidateEpicState(t *testing.T) {
 			ID:     "epic-1",
 			Status: epic.StatusCompleted,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive}, // Still active
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP}, // Still active
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusWIP},
 			},
 		}
 

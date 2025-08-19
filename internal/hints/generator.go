@@ -358,7 +358,7 @@ func (g *StateTransitionHintGenerator) GenerateHint(ctx *HintContext) *Hint {
 				hint.Content = fmt.Sprintf("Start %s '%s' before performing other operations", entityType, entityID)
 				hint.Command = fmt.Sprintf("agentpm start-%s %s", entityType, entityID)
 			}
-		case "active":
+		case "wip":
 			if operation == "start" {
 				hint.Content = fmt.Sprintf("%s '%s' is already active. Use 'agentpm current' to see active work", entityType, entityID)
 				hint.Command = "agentpm current"
@@ -389,9 +389,9 @@ func getRequiredStatus(operation, entityType string) string {
 	case "start":
 		return "pending"
 	case "complete", "done":
-		return "active"
+		return "wip"
 	case "cancel":
-		return "active"
+		return "wip"
 	default:
 		return "appropriate"
 	}
@@ -418,7 +418,7 @@ func (g *WorkflowHintGenerator) GenerateHint(ctx *HintContext) *Hint {
 		case "planning":
 			hint.Content = "Epic is in planning phase. Start the first phase to begin work"
 			hint.Command = "agentpm start-phase"
-		case "active":
+		case "wip":
 			if ctx.ActivePhase != nil {
 				hint.Content = fmt.Sprintf("Continue work in active phase '%s'. Use 'agentpm current' to see current task", ctx.ActivePhase.ID)
 				hint.Command = "agentpm current"
@@ -499,7 +499,7 @@ func (g *EpicPhaseAwareHintGenerator) generatePhaseWorkflowHint(ctx *HintContext
 
 	// Find phases
 	for i := range epicData.Phases {
-		if epicData.Phases[i].Status == epic.StatusActive {
+		if epicData.Phases[i].Status == epic.StatusWIP {
 			activePhase = &epicData.Phases[i]
 		}
 		if epicData.Phases[i].ID == targetPhaseID {
@@ -544,7 +544,7 @@ func (g *EpicPhaseAwareHintGenerator) generateTaskWorkflowHint(ctx *HintContext,
 	var activeTask *epic.Task
 
 	for i := range epicData.Tasks {
-		if epicData.Tasks[i].Status == epic.StatusActive {
+		if epicData.Tasks[i].Status == epic.StatusWIP {
 			activeTask = &epicData.Tasks[i]
 			// Find the phase for this task
 			for j := range epicData.Phases {

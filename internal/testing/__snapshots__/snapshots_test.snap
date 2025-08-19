@@ -9,7 +9,7 @@ test_data_output
 map[string]interface {}{
     "epic":   "test-epic",
     "phases": []string{"P1", "P2", "P3"},
-    "status": "active",
+    "status": "wip",
 }
 ---
 

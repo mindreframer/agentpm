@@ -325,7 +325,7 @@ func (s *TestService) getTestStatus(test *epic.Test) epic.TestStatus {
 	switch test.Status {
 	case epic.StatusPending:
 		return epic.TestStatusPending
-	case epic.StatusActive:
+	case epic.StatusWIP:
 		return epic.TestStatusWIP
 	case epic.StatusCompleted:
 		return epic.TestStatusDone
@@ -345,7 +345,7 @@ func (s *TestService) setTestStatus(test *epic.Test, status epic.TestStatus) {
 	case epic.TestStatusPending:
 		test.Status = epic.StatusPending
 	case epic.TestStatusWIP:
-		test.Status = epic.StatusActive
+		test.Status = epic.StatusWIP
 	case epic.TestStatusDone:
 		test.Status = epic.StatusCompleted
 	case epic.TestStatusCancelled:
@@ -358,7 +358,7 @@ func (s *TestService) validateTestPrerequisites(e *epic.Epic, test *epic.Test) e
 	if test.TaskID != "" {
 		for _, task := range e.Tasks {
 			if task.ID == test.TaskID {
-				if task.Status != epic.StatusActive && task.Status != epic.StatusCompleted {
+				if task.Status != epic.StatusWIP && task.Status != epic.StatusCompleted {
 					return &TestError{
 						Type:    ErrorTypeValidation,
 						TestID:  test.ID,
@@ -374,7 +374,7 @@ func (s *TestService) validateTestPrerequisites(e *epic.Epic, test *epic.Test) e
 	if test.PhaseID != "" {
 		for _, phase := range e.Phases {
 			if phase.ID == test.PhaseID {
-				if phase.Status != epic.StatusActive && phase.Status != epic.StatusCompleted {
+				if phase.Status != epic.StatusWIP && phase.Status != epic.StatusCompleted {
 					return &TestError{
 						Type:    ErrorTypeValidation,
 						TestID:  test.ID,

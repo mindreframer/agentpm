@@ -166,7 +166,7 @@ func createTestEpic() *epic.Epic {
     return &epic.Epic{
         ID:     "8",
         Name:   "Epic Name",
-        Status: epic.StatusActive,
+        Status: epic.StatusWIP,
         Phases: []epic.Phase{
             {ID: "1A", Name: "Setup", Status: epic.StatusPlanning},
             {ID: "1B", Name: "Development", Status: epic.StatusPlanning},
@@ -234,8 +234,8 @@ func convertXMLTest(t *testing.T,
 // XML pattern: strings.Contains(xml, `<phase id="1A" status="completed">`)
 // Converts to: .PhaseStatus("1A", "completed")
 
-// XML pattern: strings.Contains(xml, `<task id="1A_1" status="active">`)
-// Converts to: .TaskStatus("1A_1", "active")
+// XML pattern: strings.Contains(xml, `<task id="1A_1" status="wip">`)
+// Converts to: .TaskStatus("1A_1", "wip")
 ```
 
 #### Converting Event Validations

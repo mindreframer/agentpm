@@ -49,7 +49,7 @@ func TestTransitionChain_BasicWorkflow(t *testing.T) {
 	}
 
 	// Verify epic status changed
-	if result.FinalState.Status != epic.StatusActive {
+	if result.FinalState.Status != epic.StatusWIP {
 		t.Errorf("Expected epic status to be active, got: %s", result.FinalState.Status)
 	}
 
@@ -69,7 +69,7 @@ func TestTransitionChain_PhaseWorkflow(t *testing.T) {
 
 	// Build test epic with active epic (already started)
 	testEpic, err := builders.NewEpicBuilder("test-epic").
-		WithStatus("active").
+		WithStatus("wip").
 		WithPhase("1A", "Setup", "pending").
 		WithTask("1A_1", "1A", "Initialize Project", "pending").
 		Build()
@@ -102,7 +102,7 @@ func TestTransitionChain_PhaseWorkflow(t *testing.T) {
 		t.Fatal("Phase 1A not found in final state")
 	}
 
-	if phase1A.Status != epic.StatusActive {
+	if phase1A.Status != epic.StatusWIP {
 		t.Errorf("Expected phase 1A status to be active, got: %s", phase1A.Status)
 	}
 
@@ -117,8 +117,8 @@ func TestTransitionChain_TaskWorkflow(t *testing.T) {
 
 	// Build test epic with active phase
 	testEpic, err := builders.NewEpicBuilder("test-epic").
-		WithStatus("active").
-		WithPhase("1A", "Setup", "active").
+		WithStatus("wip").
+		WithPhase("1A", "Setup", "wip").
 		WithTask("1A_1", "1A", "Initialize Project", "pending").
 		Build()
 
@@ -170,9 +170,9 @@ func TestTransitionChain_TestWorkflow(t *testing.T) {
 
 	// Build test epic with active task
 	testEpic, err := builders.NewEpicBuilder("test-epic").
-		WithStatus("active").
-		WithPhase("1A", "Setup", "active").
-		WithTask("1A_1", "1A", "Initialize Project", "active").
+		WithStatus("wip").
+		WithPhase("1A", "Setup", "wip").
+		WithTask("1A_1", "1A", "Initialize Project", "wip").
 		WithTest("T1A_1", "1A_1", "1A", "Test Project Init", "pending").
 		Build()
 
@@ -229,10 +229,10 @@ func TestTransitionChain_FailedTestWorkflow(t *testing.T) {
 
 	// Build test epic with active task and a test in WIP status
 	testEpic, err := builders.NewEpicBuilder("test-epic").
-		WithStatus("active").
-		WithPhase("1A", "Setup", "active").
-		WithTask("1A_1", "1A", "Initialize Project", "active").
-		WithTestDescriptive("T1A_1", "1A_1", "1A", "Test Project Init", "Test description", "active", "wip", "passing").
+		WithStatus("wip").
+		WithPhase("1A", "Setup", "wip").
+		WithTask("1A_1", "1A", "Initialize Project", "wip").
+		WithTestDescriptive("T1A_1", "1A_1", "1A", "Test Project Init", "Test description", "wip", "wip", "passing").
 		Build()
 
 	if err != nil {
@@ -517,9 +517,9 @@ func TestTransitionChain_IntermediateAssertions(t *testing.T) {
 	// Execute with intermediate assertions
 	result, err := CreateTransitionChain(env).
 		StartEpic().
-		Assert().EpicStatus("active").
+		Assert().EpicStatus("wip").
 		StartPhase("1A").
-		Assert().PhaseStatus("1A", "active").
+		Assert().PhaseStatus("1A", "wip").
 		Execute()
 
 	if err != nil {

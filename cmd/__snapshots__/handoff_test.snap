@@ -5,7 +5,7 @@ handoff_comprehensive_xml_format
 <handoff epic="handoff-test-epic" timestamp="[TIMESTAMP]">
     <epic_info>
         <name>Handoff Test Epic</name>
-        <status>active</status>
+        <status>wip</status>
         <started>[TIMESTAMP]</started>
         <assignee>test_agent</assignee>
     </epic_info>

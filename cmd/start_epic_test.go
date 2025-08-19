@@ -77,7 +77,7 @@ func TestStartEpicCommand_Success(t *testing.T) {
 
 	// Verify epic was updated on disk
 	updatedEpic := readTestEpicXML(t, epicFile)
-	assert.Equal(t, epic.StatusActive, updatedEpic.Status)
+	assert.Equal(t, epic.StatusWIP, updatedEpic.Status)
 }
 
 func TestStartEpicCommand_WithFileFlag(t *testing.T) {
@@ -159,7 +159,7 @@ func TestStartEpicCommand_AlreadyStarted(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusActive, // already started
+		Status: epic.StatusWIP, // already started
 	}
 	writeTestEpicXML(t, epicFile, testEpic)
 

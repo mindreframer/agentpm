@@ -14,19 +14,19 @@ func createTestEpic() *epic.Epic {
 	return &epic.Epic{
 		ID:        "test-epic-1",
 		Name:      "Test Epic",
-		Status:    epic.StatusActive,
+		Status:    epic.StatusWIP,
 		CreatedAt: time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 		Assignee:  "test_agent",
 		Phases: []epic.Phase{
 			{ID: "P1", Name: "Phase 1", Status: epic.StatusCompleted},
-			{ID: "P2", Name: "Phase 2", Status: epic.StatusActive},
+			{ID: "P2", Name: "Phase 2", Status: epic.StatusWIP},
 			{ID: "P3", Name: "Phase 3", Status: epic.StatusPending},
 			{ID: "P4", Name: "Phase 4", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
 			{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusCompleted},
 			{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusCompleted},
-			{ID: "T3", PhaseID: "P2", Name: "Task 3", Status: epic.StatusActive},
+			{ID: "T3", PhaseID: "P2", Name: "Task 3", Status: epic.StatusWIP},
 			{ID: "T4", PhaseID: "P2", Name: "Task 4", Status: epic.StatusPending},
 			{ID: "T5", PhaseID: "P3", Name: "Task 5", Status: epic.StatusPending},
 		},
@@ -119,7 +119,7 @@ func TestQueryService_GetEpicStatus(t *testing.T) {
 
 		assert.Equal(t, "test-epic-1", status.ID)
 		assert.Equal(t, "Test Epic", status.Name)
-		assert.Equal(t, epic.StatusActive, status.Status)
+		assert.Equal(t, epic.StatusWIP, status.Status)
 		assert.Equal(t, 1, status.CompletedPhases) // P1 is completed
 		assert.Equal(t, 4, status.TotalPhases)
 		assert.Equal(t, 2, status.PassingTests) // TEST1, TEST2
@@ -177,7 +177,7 @@ func TestQueryService_GetCurrentState(t *testing.T) {
 		state, err := qs.GetCurrentState()
 		require.NoError(t, err)
 
-		assert.Equal(t, epic.StatusActive, state.EpicStatus)
+		assert.Equal(t, epic.StatusWIP, state.EpicStatus)
 		assert.Equal(t, "P2", state.ActivePhase)
 		assert.Equal(t, "T3", state.ActiveTask)
 		assert.Equal(t, 2, state.FailingTests)
@@ -272,7 +272,7 @@ func TestQueryService_GetFailingTests(t *testing.T) {
 		Name: "Test Epic",
 		Tests: []epic.Test{
 			{ID: "test-1", TaskID: "task-1", Name: "Passing Test", Status: epic.StatusCompleted},
-			{ID: "test-2", TaskID: "task-1", Name: "Failing Test", Status: epic.StatusActive},
+			{ID: "test-2", TaskID: "task-1", Name: "Failing Test", Status: epic.StatusWIP},
 			{ID: "test-3", TaskID: "task-2", Name: "Pending Test", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
@@ -444,12 +444,12 @@ func TestQueryService_GetProgressInsights(t *testing.T) {
 		Name: "Test Epic",
 		Tasks: []epic.Task{
 			{ID: "task-1", Name: "Task 1", Status: epic.StatusCompleted},
-			{ID: "task-2", Name: "Task 2", Status: epic.StatusActive},
+			{ID: "task-2", Name: "Task 2", Status: epic.StatusWIP},
 			{ID: "task-3", Name: "Task 3", Status: epic.StatusPending},
 		},
 		Tests: []epic.Test{
 			{ID: "test-1", Name: "Test 1", Status: epic.StatusCompleted},
-			{ID: "test-2", Name: "Test 2", Status: epic.StatusActive},
+			{ID: "test-2", Name: "Test 2", Status: epic.StatusWIP},
 		},
 	}
 
@@ -549,7 +549,7 @@ func TestQueryService_PhaseStatusDetermination(t *testing.T) {
 
 	t.Run("active phase", func(t *testing.T) {
 		status := qs.getPhaseStatus("P2")
-		assert.Equal(t, epic.StatusActive, status)
+		assert.Equal(t, epic.StatusWIP, status)
 	})
 
 	t.Run("planning phase", func(t *testing.T) {
@@ -744,11 +744,11 @@ func TestQueryService_EnhancedCompletionPercentage(t *testing.T) {
 				Name: "Partial Epic",
 				Phases: []epic.Phase{
 					{ID: "phase-1", Status: epic.StatusCompleted}, // 1/2 = 50%
-					{ID: "phase-2", Status: epic.StatusActive},
+					{ID: "phase-2", Status: epic.StatusWIP},
 				},
 				Tasks: []epic.Task{
 					{ID: "task-1", Status: epic.StatusCompleted}, // 1/2 = 50%
-					{ID: "task-2", Status: epic.StatusActive},
+					{ID: "task-2", Status: epic.StatusWIP},
 				},
 				Tests: []epic.Test{
 					{ID: "test-1", Status: epic.StatusCompleted}, // 1/1 = 100%
@@ -778,15 +778,15 @@ func TestQueryService_GetDetailedProgress(t *testing.T) {
 	epic := &epic.Epic{
 		ID:     "epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Phases: []epic.Phase{
 			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusCompleted},
-			{ID: "phase-2", Name: "Phase 2", Status: epic.StatusActive, StartedAt: &testTime},
+			{ID: "phase-2", Name: "Phase 2", Status: epic.StatusWIP, StartedAt: &testTime},
 			{ID: "phase-3", Name: "Phase 3", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
 			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},
-			{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusActive, StartedAt: &testTime},
+			{ID: "task-2", PhaseID: "phase-2", Name: "Task 2", Status: epic.StatusWIP, StartedAt: &testTime},
 			{ID: "task-3", PhaseID: "phase-2", Name: "Task 3", Status: epic.StatusPending},
 			{ID: "task-4", PhaseID: "phase-3", Name: "Task 4", Status: epic.StatusPending},
 		},
@@ -805,7 +805,7 @@ func TestQueryService_GetDetailedProgress(t *testing.T) {
 	// Verify basic epic info
 	assert.Equal(t, "epic-1", progress.EpicID)
 	assert.Equal(t, "Test Epic", progress.EpicName)
-	// assert.Equal(t, epic.StatusActive, progress.EpicStatus) // Temporarily commented out
+	// assert.Equal(t, epic.StatusWIP, progress.EpicStatus) // Temporarily commented out
 
 	// Verify counts
 	assert.Equal(t, 3, progress.TotalPhases)
@@ -842,7 +842,7 @@ func TestQueryService_CalculatePhaseProgress(t *testing.T) {
 		Tasks: []epic.Task{
 			{ID: "task-1", PhaseID: "phase-1", Status: epic.StatusCompleted},
 			{ID: "task-2", PhaseID: "phase-1", Status: epic.StatusCompleted},
-			{ID: "task-3", PhaseID: "phase-1", Status: epic.StatusActive},
+			{ID: "task-3", PhaseID: "phase-1", Status: epic.StatusWIP},
 			{ID: "task-4", PhaseID: "phase-2", Status: epic.StatusCompleted},
 		},
 	}
@@ -875,12 +875,12 @@ func TestQueryService_ValidateEpicState(t *testing.T) {
 	t.Run("valid epic state", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "epic-1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusWIP},
 			},
 		}
 
@@ -894,10 +894,10 @@ func TestQueryService_ValidateEpicState(t *testing.T) {
 	t.Run("multiple active phases error", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "epic-1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
-				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
+				{ID: "phase-2", Name: "Phase 2", Status: epic.StatusWIP},
 			},
 		}
 
@@ -912,13 +912,13 @@ func TestQueryService_ValidateEpicState(t *testing.T) {
 	t.Run("multiple active tasks error", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "epic-1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
-				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusActive},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusWIP},
+				{ID: "task-2", PhaseID: "phase-1", Name: "Task 2", Status: epic.StatusWIP},
 			},
 		}
 
@@ -933,12 +933,12 @@ func TestQueryService_ValidateEpicState(t *testing.T) {
 	t.Run("active task in inactive phase error", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "epic-1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
 				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusPending},
 			},
 			Tasks: []epic.Task{
-				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusWIP},
 			},
 		}
 
@@ -953,9 +953,9 @@ func TestQueryService_ValidateEpicState(t *testing.T) {
 	t.Run("phase ready for completion warning", func(t *testing.T) {
 		epic := &epic.Epic{
 			ID:     "epic-1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
-				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+				{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
 				{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusCompleted},

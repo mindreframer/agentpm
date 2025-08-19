@@ -454,7 +454,7 @@ func createSampleTaskContext() *TaskContext {
 			Name:         "CLI Framework & Core Structure",
 			Description:  "Setup basic CLI structure and initialize project",
 			Deliverables: "Functional CLI framework\nProject structure established\nCore dependencies configured",
-			Status:       epic.StatusActive,
+			Status:       epic.StatusWIP,
 			StartedAt:    &earlier,
 			Progress: &ProgressSummary{
 				TotalTasks:             3,
@@ -520,7 +520,7 @@ func createSamplePhaseContext() *PhaseContext {
 			Name:         "CLI Framework & Core Structure",
 			Description:  "Setup basic CLI structure and initialize project",
 			Deliverables: "Functional CLI framework\nProject structure established\nCore dependencies configured",
-			Status:       epic.StatusActive,
+			Status:       epic.StatusWIP,
 			StartedAt:    &earlier,
 		},
 		ProgressSummary: &ProgressSummary{
@@ -596,7 +596,7 @@ func createSampleTestContext() *TestContext {
 		ParentPhase: &PhaseDetails{
 			ID:        "1A",
 			Name:      "CLI Framework & Core Structure",
-			Status:    epic.StatusActive,
+			Status:    epic.StatusWIP,
 			StartedAt: &earlier,
 			Progress: &ProgressSummary{
 				TotalTasks:           3,

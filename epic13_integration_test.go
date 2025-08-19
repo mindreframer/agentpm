@@ -271,9 +271,9 @@ func TestEpic13StatusSystemCompleteWorkflow(t *testing.T) {
 		assert.True(t, result.Valid, "Initial epic should be valid")
 
 		// Test status transitions
-		testEpic.Status = epic.StatusActive           // WIP -> Active
-		testEpic.Phases[0].Status = epic.StatusActive // WIP -> Active
-		testEpic.Tasks[0].Status = epic.StatusActive  // WIP -> Active
+		testEpic.Status = epic.StatusWIP           // WIP -> Active
+		testEpic.Phases[0].Status = epic.StatusWIP // WIP -> Active
+		testEpic.Tasks[0].Status = epic.StatusWIP  // WIP -> Active
 		testEpic.Tests[0].TestStatus = epic.TestStatusWIP
 
 		err = storage.SaveEpic(testEpic, epicPath)
@@ -304,7 +304,7 @@ func createEpic13StatusEpic(dir, filename string) string {
 		},
 		Tasks: []epic.Task{
 			{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusPending},
-			{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusActive},    // WIP -> Active
+			{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusWIP},       // WIP -> Active
 			{ID: "T3", PhaseID: "P2", Name: "Task 3", Status: epic.StatusCompleted}, // Done -> Completed
 		},
 		Tests: []epic.Test{
@@ -329,11 +329,11 @@ func createEpic13StatusValidationEpic(dir, filename string) string {
 	testEpic := &epic.Epic{
 		ID:        "status-validation-test",
 		Name:      "Status Validation Test Epic",
-		Status:    epic.StatusActive, // Active instead of WIP
+		Status:    epic.StatusWIP, // Active instead of WIP
 		CreatedAt: time.Now(),
 		Assignee:  "test_agent",
 		Phases: []epic.Phase{
-			{ID: "P1", Name: "Phase 1", Status: epic.StatusActive}, // Active instead of WIP
+			{ID: "P1", Name: "Phase 1", Status: epic.StatusWIP}, // Active instead of WIP
 			{ID: "P2", Name: "Phase 2", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
@@ -363,7 +363,7 @@ func createLargeEpic13StatusEpic(dir, filename string) string {
 	testEpic := &epic.Epic{
 		ID:        "large-epic13-test",
 		Name:      "Large Epic 13 Status Test",
-		Status:    epic.StatusActive, // Active instead of WIP
+		Status:    epic.StatusWIP, // Active instead of WIP
 		CreatedAt: time.Now(),
 		Assignee:  "test_agent",
 	}
@@ -372,7 +372,7 @@ func createLargeEpic13StatusEpic(dir, filename string) string {
 	for i := 1; i <= 100; i++ {
 		status := epic.StatusPending
 		if i%3 == 0 {
-			status = epic.StatusActive // Active instead of WIP
+			status = epic.StatusWIP // Active instead of WIP
 		} else if i%5 == 0 {
 			status = epic.StatusCompleted // Completed instead of Done
 		}
@@ -389,7 +389,7 @@ func createLargeEpic13StatusEpic(dir, filename string) string {
 		phaseID := fmt.Sprintf("P%d", (i%100)+1)
 		status := epic.StatusPending
 		if i%3 == 0 {
-			status = epic.StatusActive // Active instead of WIP
+			status = epic.StatusWIP // Active instead of WIP
 		} else if i%7 == 0 {
 			status = epic.StatusCompleted // Completed instead of Done
 		} else if i%11 == 0 {
@@ -440,7 +440,7 @@ func createPerformanceTestEpic() *epic.Epic {
 	testEpic := &epic.Epic{
 		ID:        "performance-test",
 		Name:      "Performance Test Epic",
-		Status:    epic.StatusActive, // Active instead of WIP
+		Status:    epic.StatusWIP, // Active instead of WIP
 		CreatedAt: time.Now(),
 		Assignee:  "test_agent",
 	}

@@ -195,7 +195,7 @@ func (suite *Epic14TestSuite) TestPhaseProgression() {
     
     // Use Epic 14 for complex state validation
     err := assertions.Assert(result).
-        StateProgression([]string{"pending", "active", "completed"}).
+        StateProgression([]string{"pending", "wip", "completed"}).
         PhaseStatus("1A", "completed").
         PhaseStatus("1B", "completed").
         Check()

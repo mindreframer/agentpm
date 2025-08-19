@@ -168,10 +168,10 @@ func TestFriendlyResponseTemplates(t *testing.T) {
 	})
 
 	t.Run("AlreadyInState", func(t *testing.T) {
-		msg := templates.AlreadyInState("epic", "feature-x", "active")
+		msg := templates.AlreadyInState("epic", "feature-x", "wip")
 
 		assert.Equal(t, MessageInfo, msg.Type)
-		assert.Contains(t, msg.Content, "Epic 'feature-x' is already active")
+		assert.Contains(t, msg.Content, "Epic 'feature-x' is already wip")
 	})
 
 	t.Run("SuccessfulTransition", func(t *testing.T) {
@@ -220,12 +220,12 @@ func TestFriendlyResponseTemplates(t *testing.T) {
 	})
 
 	t.Run("InvalidState", func(t *testing.T) {
-		msg := templates.InvalidState("task", "task-1", "completed", "active")
+		msg := templates.InvalidState("task", "task-1", "completed", "wip")
 
 		assert.Equal(t, MessageError, msg.Type)
 		assert.Contains(t, msg.Content, "Cannot perform action on task 'task-1'")
-		assert.Contains(t, msg.Content, "Current state: completed, required: active")
-		assert.Contains(t, msg.Hint, "First transition task to active state")
+		assert.Contains(t, msg.Content, "Current state: completed, required: wip")
+		assert.Contains(t, msg.Hint, "First transition task to wip state")
 	})
 
 	t.Run("DependencyBlocked with custom hint", func(t *testing.T) {

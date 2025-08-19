@@ -43,10 +43,10 @@ func TestStartTest_Success(t *testing.T) {
 		},
 	}
 	e.Tasks = []epic.Task{
-		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusActive},
+		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusWIP},
 	}
 	e.Phases = []epic.Phase{
-		{ID: "phase_1", Status: epic.StatusActive},
+		{ID: "phase_1", Status: epic.StatusWIP},
 	}
 
 	err := service.storage.SaveEpic(e, epicFile)
@@ -97,8 +97,8 @@ func TestStartTest_Success(t *testing.T) {
 		t.Errorf("Expected TestStatus %s, got %s", epic.TestStatusWIP, updatedTest.TestStatus)
 	}
 
-	if updatedTest.Status != epic.StatusActive {
-		t.Errorf("Expected legacy Status %s, got %s", epic.StatusActive, updatedTest.Status)
+	if updatedTest.Status != epic.StatusWIP {
+		t.Errorf("Expected legacy Status %s, got %s", epic.StatusWIP, updatedTest.Status)
 	}
 
 	if updatedTest.StartedAt == nil {
@@ -119,7 +119,7 @@ func TestPassTest_Success(t *testing.T) {
 			ID:         testID,
 			TaskID:     "task_1",
 			PhaseID:    "phase_1",
-			Status:     epic.StatusActive,  // Legacy status
+			Status:     epic.StatusWIP,     // Legacy status
 			TestStatus: epic.TestStatusWIP, // New test status
 			StartedAt:  &startTime,
 		},
@@ -205,7 +205,7 @@ func TestGetTestStatus_FallbackToLegacy(t *testing.T) {
 
 	// Test fallback to Status conversion when TestStatus is empty
 	test := &epic.Test{
-		Status:     epic.StatusActive,
+		Status:     epic.StatusWIP,
 		TestStatus: "", // Empty
 	}
 
@@ -236,7 +236,7 @@ func createTestEpic() *epic.Epic {
 	return &epic.Epic{
 		ID:     "test-epic",
 		Name:   "Test Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Tests:  []epic.Test{},
 		Tasks:  []epic.Task{},
 		Phases: []epic.Phase{},
@@ -258,7 +258,7 @@ func TestFailTest_Success(t *testing.T) {
 			ID:         testID,
 			TaskID:     "task_1",
 			PhaseID:    "phase_1",
-			Status:     epic.StatusActive,
+			Status:     epic.StatusWIP,
 			TestStatus: epic.TestStatusWIP,
 			StartedAt:  &startTime,
 		},
@@ -316,8 +316,8 @@ func TestFailTest_Success(t *testing.T) {
 	}
 
 	// Epic 13: Failed tests stay in WIP status, which maps to active in legacy Status
-	if updatedTest.Status != epic.StatusActive {
-		t.Errorf("Expected legacy Status %s, got %s", epic.StatusActive, updatedTest.Status)
+	if updatedTest.Status != epic.StatusWIP {
+		t.Errorf("Expected legacy Status %s, got %s", epic.StatusWIP, updatedTest.Status)
 	}
 
 	if updatedTest.FailedAt == nil {
@@ -343,7 +343,7 @@ func TestCancelTest_Success(t *testing.T) {
 			ID:         testID,
 			TaskID:     "task_1",
 			PhaseID:    "phase_1",
-			Status:     epic.StatusActive,
+			Status:     epic.StatusWIP,
 			TestStatus: epic.TestStatusWIP,
 			StartedAt:  &startTime,
 		},
@@ -425,7 +425,7 @@ func TestStartTest_AlreadyStarted(t *testing.T) {
 			ID:         testID,
 			TaskID:     "task_1",
 			PhaseID:    "phase_1",
-			Status:     epic.StatusActive,
+			Status:     epic.StatusWIP,
 			TestStatus: epic.TestStatusWIP,
 		},
 	}
@@ -547,10 +547,10 @@ func TestCustomTimestamp(t *testing.T) {
 		},
 	}
 	e.Tasks = []epic.Task{
-		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusActive},
+		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusWIP},
 	}
 	e.Phases = []epic.Phase{
-		{ID: "phase_1", Status: epic.StatusActive},
+		{ID: "phase_1", Status: epic.StatusWIP},
 	}
 
 	err := service.storage.SaveEpic(e, epicFile)
@@ -755,7 +755,7 @@ func TestPrerequisiteValidation(t *testing.T) {
 		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusPending}, // Not active
 	}
 	e.Phases = []epic.Phase{
-		{ID: "phase_1", Status: epic.StatusActive},
+		{ID: "phase_1", Status: epic.StatusWIP},
 	}
 
 	err := service.storage.SaveEpic(e, epicFile)
@@ -800,10 +800,10 @@ func TestMultipleTestsInProgress(t *testing.T) {
 		},
 	}
 	e.Tasks = []epic.Task{
-		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusActive},
+		{ID: "task_1", PhaseID: "phase_1", Status: epic.StatusWIP},
 	}
 	e.Phases = []epic.Phase{
-		{ID: "phase_1", Status: epic.StatusActive},
+		{ID: "phase_1", Status: epic.StatusWIP},
 	}
 
 	err := service.storage.SaveEpic(e, epicFile)
@@ -892,10 +892,10 @@ func TestTestServiceEventCreation(t *testing.T) {
 	epicData := &epic.Epic{
 		ID: "test-epic",
 		Phases: []epic.Phase{
-			{ID: "phase1", Name: "Test Phase", Status: epic.StatusActive},
+			{ID: "phase1", Name: "Test Phase", Status: epic.StatusWIP},
 		},
 		Tasks: []epic.Task{
-			{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusActive},
+			{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusWIP},
 		},
 		Tests: []epic.Test{
 			{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", TestStatus: epic.TestStatusPending},
@@ -936,10 +936,10 @@ func TestTestServiceEventCreation(t *testing.T) {
 		service.storage.SaveEpic(&epic.Epic{
 			ID: "test-epic",
 			Phases: []epic.Phase{
-				{ID: "phase1", Name: "Test Phase", Status: epic.StatusActive},
+				{ID: "phase1", Name: "Test Phase", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
-				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusActive},
+				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusWIP},
 			},
 			Tests: []epic.Test{
 				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", TestStatus: epic.TestStatusWIP},
@@ -976,10 +976,10 @@ func TestTestServiceEventCreation(t *testing.T) {
 		service.storage.SaveEpic(&epic.Epic{
 			ID: "test-epic",
 			Phases: []epic.Phase{
-				{ID: "phase1", Name: "Test Phase", Status: epic.StatusActive},
+				{ID: "phase1", Name: "Test Phase", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
-				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusActive},
+				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusWIP},
 			},
 			Tests: []epic.Test{
 				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", TestStatus: epic.TestStatusWIP},
@@ -1018,10 +1018,10 @@ func TestTestServiceEventCreation(t *testing.T) {
 		service.storage.SaveEpic(&epic.Epic{
 			ID: "test-epic",
 			Phases: []epic.Phase{
-				{ID: "phase1", Name: "Test Phase", Status: epic.StatusActive},
+				{ID: "phase1", Name: "Test Phase", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
-				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusActive},
+				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusWIP},
 			},
 			Tests: []epic.Test{
 				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", TestStatus: epic.TestStatusWIP},
@@ -1060,10 +1060,10 @@ func TestTestServiceEventCreation(t *testing.T) {
 		service.storage.SaveEpic(&epic.Epic{
 			ID: "test-epic",
 			Phases: []epic.Phase{
-				{ID: "phase1", Name: "Test Phase", Status: epic.StatusActive},
+				{ID: "phase1", Name: "Test Phase", Status: epic.StatusWIP},
 			},
 			Tasks: []epic.Task{
-				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusActive},
+				{ID: "task1", PhaseID: "phase1", Name: "Test Task", Status: epic.StatusWIP},
 			},
 			Tests: []epic.Test{
 				{ID: "test1", PhaseID: "phase1", TaskID: "task1", Name: "Test 1", TestStatus: epic.TestStatusPending},

@@ -462,14 +462,14 @@ func createTestEpic() *epic.Epic {
 	testEpic := &epic.Epic{
 		ID:     "test-epic-1",
 		Name:   "Test Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Phases: []epic.Phase{
 			{
 				ID:           "1A",
 				Name:         "CLI Framework & Core Structure",
 				Description:  "Setup basic CLI structure and initialize project",
 				Deliverables: "Functional CLI framework, Project structure established, Core dependencies configured",
-				Status:       epic.StatusActive,
+				Status:       epic.StatusWIP,
 				StartedAt:    &earlier,
 			},
 			{

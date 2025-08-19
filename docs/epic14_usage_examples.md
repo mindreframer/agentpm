@@ -104,17 +104,17 @@ func TestComplexStateTransitions(t *testing.T) {
         StateProgression([]string{
             "pending",
             "initializing", 
-            "active",
+            "wip",
             "validating",
-            "active",
+            "wip",
             "checkpointing",
-            "active",
+            "wip",
             "finalizing",
             "completed",
         }).
         IntermediateState(2, func(epic *epic.Epic) error {
             // Validate intermediate state after phase 1A
-            if epic.Status != "active" {
+            if epic.Status != "wip" {
                 return fmt.Errorf("expected active status, got %s", epic.Status)
             }
             if len(epic.Events) < 5 {

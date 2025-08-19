@@ -504,11 +504,11 @@ func TestEpic15_Scenario10_ComplexStateTransitionsWithAssertions(t *testing.T) {
 
 	result, err := executor.NewTransitionChain(env).
 		StartEpic().
-		Assert().EpicStatus("active").
+		Assert().EpicStatus("wip").
 		StartPhase("1A").
-		Assert().PhaseStatus("1A", "active").
+		Assert().PhaseStatus("1A", "wip").
 		StartTask("1A_1").
-		Assert().TaskStatus("1A_1", "active").
+		Assert().TaskStatus("1A_1", "wip").
 		PassTest("T1A_1").
 		DoneTask("1A_1").
 		DonePhase("1A").

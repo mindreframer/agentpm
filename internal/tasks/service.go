@@ -31,7 +31,7 @@ func (s *TaskService) StartTask(epicData *epic.Epic, taskID string, timestamp ti
 	}
 
 	// Check if task is already active
-	if task.Status == epic.StatusActive {
+	if task.Status == epic.StatusWIP {
 		// Return a special error type to indicate "already started"
 		return NewTaskAlreadyActiveError(taskID)
 	}
@@ -42,7 +42,7 @@ func (s *TaskService) StartTask(epicData *epic.Epic, taskID string, timestamp ti
 	}
 
 	// Transition task status and set timestamp
-	task.Status = epic.StatusActive
+	task.Status = epic.StatusWIP
 	task.StartedAt = &timestamp
 
 	// Create automatic event for task start
@@ -100,7 +100,7 @@ func (s *TaskService) CancelTask(epicData *epic.Epic, taskID string, timestamp t
 // GetActiveTask returns the currently active task in the given phase, if any
 func (s *TaskService) GetActiveTask(epicData *epic.Epic, phaseID string) *epic.Task {
 	for i := range epicData.Tasks {
-		if epicData.Tasks[i].PhaseID == phaseID && epicData.Tasks[i].Status == epic.StatusActive {
+		if epicData.Tasks[i].PhaseID == phaseID && epicData.Tasks[i].Status == epic.StatusWIP {
 			return &epicData.Tasks[i]
 		}
 	}
@@ -110,7 +110,7 @@ func (s *TaskService) GetActiveTask(epicData *epic.Epic, phaseID string) *epic.T
 // GetActiveTaskInEpic returns the currently active task in the entire epic, if any
 func (s *TaskService) GetActiveTaskInEpic(epicData *epic.Epic) *epic.Task {
 	for i := range epicData.Tasks {
-		if epicData.Tasks[i].Status == epic.StatusActive {
+		if epicData.Tasks[i].Status == epic.StatusWIP {
 			return &epicData.Tasks[i]
 		}
 	}
@@ -141,7 +141,7 @@ func (s *TaskService) findPhase(epicData *epic.Epic, phaseID string) *epic.Phase
 func (s *TaskService) validateTaskStart(epicData *epic.Epic, task *epic.Task) error {
 	// Check task is in pending status (accept both "planning" and "pending" for backward compatibility)
 	if task.Status != epic.StatusPending {
-		return NewTaskStateError(task.ID, task.Status, epic.StatusActive, "Task is not in pending state")
+		return NewTaskStateError(task.ID, task.Status, epic.StatusWIP, "Task is not in pending state")
 	}
 
 	// Check task's phase is active
@@ -150,7 +150,7 @@ func (s *TaskService) validateTaskStart(epicData *epic.Epic, task *epic.Task) er
 		return fmt.Errorf("phase %s not found for task %s", task.PhaseID, task.ID)
 	}
 
-	if phase.Status != epic.StatusActive {
+	if phase.Status != epic.StatusWIP {
 		return NewTaskPhaseError(task.ID, task.PhaseID, phase.Status, "Cannot start task: phase is not active")
 	}
 
@@ -166,7 +166,7 @@ func (s *TaskService) validateTaskStart(epicData *epic.Epic, task *epic.Task) er
 // validateTaskCompletion checks if a task can be completed
 func (s *TaskService) validateTaskCompletion(epicData *epic.Epic, task *epic.Task) error {
 	// Check task is in active status
-	if task.Status != epic.StatusActive {
+	if task.Status != epic.StatusWIP {
 		return NewTaskStateError(task.ID, task.Status, epic.StatusCompleted, "Task is not in active state")
 	}
 
@@ -176,7 +176,7 @@ func (s *TaskService) validateTaskCompletion(epicData *epic.Epic, task *epic.Tas
 // validateTaskCancellation checks if a task can be cancelled
 func (s *TaskService) validateTaskCancellation(epicData *epic.Epic, task *epic.Task) error {
 	// Check task is in active status
-	if task.Status != epic.StatusActive {
+	if task.Status != epic.StatusWIP {
 		return NewTaskStateError(task.ID, task.Status, epic.StatusCancelled, "Task is not in active state")
 	}
 

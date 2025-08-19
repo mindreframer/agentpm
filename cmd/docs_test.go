@@ -22,18 +22,18 @@ func createTestEpicForDocs() *epic.Epic {
 	return &epic.Epic{
 		ID:          "docs-test-epic",
 		Name:        "Docs Test Epic",
-		Status:      epic.StatusActive,
+		Status:      epic.StatusWIP,
 		CreatedAt:   time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 		Assignee:    "test_agent",
 		Description: "Test epic for documentation generation",
 		Phases: []epic.Phase{
 			{ID: "P1", Name: "Setup Phase", Status: epic.StatusCompleted},
-			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusActive},
+			{ID: "P2", Name: "Implementation Phase", Status: epic.StatusWIP},
 			{ID: "P3", Name: "Testing Phase", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
 			{ID: "T1", PhaseID: "P1", Name: "Setup Task", Status: epic.StatusCompleted, Assignee: "test_agent"},
-			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusActive, Assignee: "test_agent"},
+			{ID: "T2", PhaseID: "P2", Name: "Active Task", Status: epic.StatusWIP, Assignee: "test_agent"},
 			{ID: "T3", PhaseID: "P2", Name: "Pending Task", Status: epic.StatusPending},
 			{ID: "T4", PhaseID: "P3", Name: "Future Task", Status: epic.StatusPending},
 		},
@@ -185,7 +185,7 @@ func TestDocsCommand(t *testing.T) {
 		// Verify epic overview
 		assert.Equal(t, "docs-test-epic", report.EpicOverview.ID)
 		assert.Equal(t, "Docs Test Epic", report.EpicOverview.Name)
-		assert.Equal(t, "active", report.EpicOverview.Status)
+		assert.Equal(t, "wip", report.EpicOverview.Status)
 		assert.Equal(t, "test_agent", report.EpicOverview.Assignee)
 		assert.Equal(t, "Test epic for documentation generation", report.EpicOverview.Description)
 

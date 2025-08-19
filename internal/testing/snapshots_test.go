@@ -61,7 +61,7 @@ func TestNormalizeXML_NonXMLInput(t *testing.T) {
 func TestNormalizeXML_ValidXML(t *testing.T) {
 	tester := NewSnapshotTester().(*DefaultSnapshotTester)
 
-	input := `<epic id="test-epic" status="active"><name>Test Epic</name></epic>`
+	input := `<epic id="test-epic" status="wip"><name>Test Epic</name></epic>`
 	result, err := tester.normalizeXML(input)
 
 	assert.NoError(t, err)
@@ -130,7 +130,7 @@ func TestMatchSnapshot_Integration(t *testing.T) {
 	// Test with structured data
 	data := map[string]interface{}{
 		"epic":   "test-epic",
-		"status": "active",
+		"status": "wip",
 		"phases": []string{"P1", "P2", "P3"},
 	}
 
@@ -174,13 +174,13 @@ func TestSnapshotConfig_CustomTimestampFields(t *testing.T) {
 func BenchmarkNormalizeXML(b *testing.B) {
 	tester := NewSnapshotTester().(*DefaultSnapshotTester)
 
-	xmlData := `<epic id="test-epic" status="active" created_at="2025-08-16T09:00:00Z">
+	xmlData := `<epic id="test-epic" status="wip" created_at="2025-08-16T09:00:00Z">
 		<name>Test Epic</name>
 		<phases>
 			<phase id="p1" status="completed" started_at="2025-08-16T09:00:00Z" completed_at="2025-08-16T10:00:00Z">
 				<name>Setup Phase</name>
 			</phase>
-			<phase id="p2" status="active" started_at="2025-08-16T10:00:00Z">
+			<phase id="p2" status="wip" started_at="2025-08-16T10:00:00Z">
 				<name>Implementation Phase</name>
 			</phase>
 		</phases>

@@ -20,7 +20,7 @@ func TestInnerXMLContentPreservation(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:        "test-epic",
 			Name:      "Test Epic",
-			Status:    epic.StatusActive,
+			Status:    epic.StatusWIP,
 			CreatedAt: time.Now(),
 			Tests: []epic.Test{
 				{
@@ -28,7 +28,7 @@ func TestInnerXMLContentPreservation(t *testing.T) {
 					TaskID:      "task-1",
 					PhaseID:     "phase-1",
 					Name:        "Complex Test",
-					Status:      epic.StatusActive,
+					Status:      epic.StatusWIP,
 					TestStatus:  epic.TestStatusWIP,
 					Description: "This test has <code>inner XML</code> content with <em>markup</em>",
 					FailureNote: "Failure with <strong>bold text</strong> and <link>references</link>",
@@ -78,7 +78,7 @@ func TestInnerXMLContentPreservation(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:           "test-epic",
 			Name:         "Test Epic",
-			Status:       epic.StatusActive,
+			Status:       epic.StatusWIP,
 			CreatedAt:    time.Now(),
 			Description:  "Epic with <code>code samples</code> and <ul><li>list items</li></ul>",
 			Workflow:     "Process includes <step>validation</step> and <step>testing</step>",
@@ -118,13 +118,13 @@ func TestInnerXMLContentPreservation(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:        "test-epic",
 			Name:      "Test Epic",
-			Status:    epic.StatusActive,
+			Status:    epic.StatusWIP,
 			CreatedAt: time.Now(),
 			Phases: []epic.Phase{
 				{
 					ID:          "phase-1",
 					Name:        "Setup Phase",
-					Status:      epic.StatusActive,
+					Status:      epic.StatusWIP,
 					Description: "Setup includes <config>configuration</config> and <init>initialization</init>",
 				},
 			},
@@ -133,7 +133,7 @@ func TestInnerXMLContentPreservation(t *testing.T) {
 					ID:          "task-1",
 					PhaseID:     "phase-1",
 					Name:        "Setup Task",
-					Status:      epic.StatusActive,
+					Status:      epic.StatusWIP,
 					Description: "Task requires <tool>specific tools</tool> and <env>environment setup</env>",
 				},
 			},
@@ -167,14 +167,14 @@ func TestInnerXMLContentPreservation(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:        "test-epic",
 			Name:      "Test Epic",
-			Status:    epic.StatusActive,
+			Status:    epic.StatusWIP,
 			CreatedAt: time.Now(),
 			Tests: []epic.Test{
 				{
 					ID:          "test-1",
 					TaskID:      "task-1",
 					Name:        "Simple Test",
-					Status:      epic.StatusActive,
+					Status:      epic.StatusWIP,
 					Description: "This is plain text without any markup",
 				},
 			},
@@ -203,14 +203,14 @@ func TestInnerXMLContentPreservation(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:        "test-epic",
 			Name:      "Test Epic",
-			Status:    epic.StatusActive,
+			Status:    epic.StatusWIP,
 			CreatedAt: time.Now(),
 			Tests: []epic.Test{
 				{
 					ID:          "test-1",
 					TaskID:      "task-1",
 					Name:        "Empty Test",
-					Status:      epic.StatusActive,
+					Status:      epic.StatusWIP,
 					Description: "",
 					FailureNote: "",
 				},
@@ -241,7 +241,7 @@ func TestInnerXMLContentPreservation(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:        "test-epic",
 			Name:      "Test Epic",
-			Status:    epic.StatusActive,
+			Status:    epic.StatusWIP,
 			CreatedAt: time.Now(),
 			Tests: []epic.Test{
 				{
@@ -298,14 +298,14 @@ func TestInnerXMLContentPreservation(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:        "test-epic",
 			Name:      "Test Epic",
-			Status:    epic.StatusActive,
+			Status:    epic.StatusWIP,
 			CreatedAt: time.Now(),
 			Tests: []epic.Test{
 				{
 					ID:          "test-1",
 					PhaseID:     "phase-1",
 					Name:        "Complex Test",
-					Status:      epic.StatusActive,
+					Status:      epic.StatusWIP,
 					TestStatus:  epic.TestStatusWIP,
 					Description: "**GIVEN** test setup\n**WHEN** action\n**THEN** result",
 					StartedAt:   &now,
@@ -382,7 +382,7 @@ func TestPhaseDeliverables(t *testing.T) {
 			testEpic := &epic.Epic{
 				ID:        "test-epic",
 				Name:      "Test Epic",
-				Status:    epic.StatusActive,
+				Status:    epic.StatusWIP,
 				CreatedAt: time.Now(),
 				Phases: []epic.Phase{
 					{
@@ -480,13 +480,13 @@ func TestTaskAcceptanceCriteria(t *testing.T) {
 			testEpic := &epic.Epic{
 				ID:        "test-epic",
 				Name:      "Test Epic",
-				Status:    epic.StatusActive,
+				Status:    epic.StatusWIP,
 				CreatedAt: time.Now(),
 				Phases: []epic.Phase{
 					{
 						ID:     "phase-1",
 						Name:   "Development Phase",
-						Status: epic.StatusActive,
+						Status: epic.StatusWIP,
 					},
 				},
 				Tasks: []epic.Task{
@@ -562,7 +562,7 @@ func TestPhaseDeliverablesAndTaskAcceptanceCriteria(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:        "full-epic",
 			Name:      "Full Feature Epic",
-			Status:    epic.StatusActive,
+			Status:    epic.StatusWIP,
 			CreatedAt: time.Now(),
 			Phases: []epic.Phase{
 				{
@@ -570,7 +570,7 @@ func TestPhaseDeliverablesAndTaskAcceptanceCriteria(t *testing.T) {
 					Name:         "Backend Development",
 					Description:  "Develop backend services",
 					Deliverables: "<ul><li>REST API</li><li>Database schema</li><li>Authentication service</li></ul>",
-					Status:       epic.StatusActive,
+					Status:       epic.StatusWIP,
 				},
 				{
 					ID:           "phase-2",
@@ -587,7 +587,7 @@ func TestPhaseDeliverablesAndTaskAcceptanceCriteria(t *testing.T) {
 					Name:               "API Development",
 					Description:        "Create REST API endpoints",
 					AcceptanceCriteria: "GIVEN valid request\nWHEN API is called\nTHEN returns correct response\nAND response time < 100ms",
-					Status:             epic.StatusActive,
+					Status:             epic.StatusWIP,
 				},
 				{
 					ID:                 "task-2",

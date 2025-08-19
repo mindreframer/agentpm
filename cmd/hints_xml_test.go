@@ -117,12 +117,12 @@ func TestHintIntegrationInCommands(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "test-epic",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
 				{
 					ID:     "phase-1",
 					Name:   "First Phase",
-					Status: epic.StatusActive,
+					Status: epic.StatusWIP,
 				},
 				{
 					ID:     "phase-2",
@@ -163,12 +163,12 @@ func TestHintIntegrationInCommands(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:     "test-epic",
 			Name:   "Test Epic",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: []epic.Phase{
 				{
 					ID:     "phase-1",
 					Name:   "First Phase",
-					Status: epic.StatusActive,
+					Status: epic.StatusWIP,
 				},
 			},
 			Tasks: []epic.Task{
@@ -176,7 +176,7 @@ func TestHintIntegrationInCommands(t *testing.T) {
 					ID:      "task-1",
 					PhaseID: "phase-1",
 					Name:    "First Task",
-					Status:  epic.StatusActive,
+					Status:  epic.StatusWIP,
 				},
 				{
 					ID:      "task-2",
@@ -259,7 +259,7 @@ func TestHintXMLFormatting(t *testing.T) {
 		err := outputXMLErrorWithHint(cmd, "complex_error", "Complex error message",
 			map[string]interface{}{
 				"entity_id":  "test-entity",
-				"status":     "active",
+				"status":     "wip",
 				"suggestion": "Try running 'agentpm status'",
 			}, "Complete the current task before proceeding")
 
@@ -274,7 +274,7 @@ func TestHintXMLFormatting(t *testing.T) {
 			"<hint>Complete the current task before proceeding</hint>",
 			"<details>",
 			"<entity_id>test-entity</entity_id>",
-			"<status>active</status>",
+			"<status>wip</status>",
 			"<suggestion>Try running 'agentpm status'</suggestion>",
 			"</details>",
 			"</error>",

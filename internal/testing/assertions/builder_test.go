@@ -58,7 +58,7 @@ func TestAssertionBuilder_EpicStatus_Success(t *testing.T) {
 	result := createTestResult(t)
 
 	err := Assert(result).
-		EpicStatus("active").
+		EpicStatus("wip").
 		Check()
 
 	if err != nil {
@@ -77,7 +77,7 @@ func TestAssertionBuilder_EpicStatus_Failure(t *testing.T) {
 		t.Error("Expected assertion to fail")
 	}
 
-	expectedMsg := "Expected epic status completed, got active"
+	expectedMsg := "Expected epic status completed, got wip"
 	if !strings.Contains(err.Error(), expectedMsg) {
 		t.Errorf("Expected error message to contain '%s', got: %s", expectedMsg, err.Error())
 	}
@@ -482,7 +482,7 @@ func TestAssertionBuilder_ChainedAssertions_Success(t *testing.T) {
 	result := createTestResult(t)
 
 	err := Assert(result).
-		EpicStatus("active").
+		EpicStatus("wip").
 		PhaseStatus("1A", "completed").
 		PhaseStatus("1B", "pending").
 		TaskStatus("1A_1", "completed").
@@ -532,7 +532,7 @@ func TestAssertionBuilder_MustPass_Success(t *testing.T) {
 
 	// Should not panic
 	Assert(result).
-		EpicStatus("active").
+		EpicStatus("wip").
 		NoErrors().
 		MustPass()
 }
@@ -561,7 +561,7 @@ func TestAssertionBuilder_NilFinalState(t *testing.T) {
 	}
 
 	err := Assert(result).
-		EpicStatus("active").
+		EpicStatus("wip").
 		Check()
 
 	if err == nil {
@@ -594,8 +594,8 @@ func TestAssertionBuilder_AssertionError_Details(t *testing.T) {
 			t.Errorf("Expected 'completed', got: %v", assertionErr.Expected)
 		}
 
-		if assertionErr.Actual != "active" {
-			t.Errorf("Expected 'active', got: %v", assertionErr.Actual)
+		if assertionErr.Actual != "wip" {
+			t.Errorf("Expected 'wip', got: %v", assertionErr.Actual)
 		}
 
 		if assertionErr.Context == nil {
@@ -664,9 +664,9 @@ func TestAssertionBuilder_ComplexScenario(t *testing.T) {
 
 	// Comprehensive assertions
 	err = Assert(result).
-		EpicStatus("active").
+		EpicStatus("wip").
 		PhaseStatus("1A", "completed").
-		PhaseStatus("1B", "active").
+		PhaseStatus("1B", "wip").
 		PhaseStatus("1C", "pending").
 		TaskStatus("1A_1", "completed").
 		TaskStatus("1A_2", "completed").
@@ -705,7 +705,7 @@ func TestAssertionBuilder_PerformanceValidation(t *testing.T) {
 	// Run assertions multiple times to check performance
 	for i := 0; i < 100; i++ {
 		err := Assert(result).
-			EpicStatus("active").
+			EpicStatus("wip").
 			PhaseStatus("1A", "completed").
 			TaskStatus("1A_1", "completed").
 			TestStatusUnified("T1A_1", "done").

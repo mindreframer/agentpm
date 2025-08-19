@@ -73,13 +73,13 @@ func TestTestExecutionEnvironment_StateSnapshots(t *testing.T) {
 	}
 
 	// Modify epic state and save with different commands
-	testEpic.Status = epic.StatusActive
+	testEpic.Status = epic.StatusWIP
 	err = env.SaveEpic(testEpic, "start_epic")
 	if err != nil {
 		t.Fatalf("Failed to save epic: %v", err)
 	}
 
-	testEpic.Phases[0].Status = epic.StatusActive
+	testEpic.Phases[0].Status = epic.StatusWIP
 	err = env.SaveEpic(testEpic, "start_phase_1A")
 	if err != nil {
 		t.Fatalf("Failed to save epic: %v", err)
@@ -109,10 +109,10 @@ func TestTestExecutionEnvironment_StateSnapshots(t *testing.T) {
 	if snapshots[0].EpicState.Status != epic.StatusPending {
 		t.Errorf("Initial snapshot: expected status planning, got: %s", snapshots[0].EpicState.Status)
 	}
-	if snapshots[1].EpicState.Status != epic.StatusActive {
+	if snapshots[1].EpicState.Status != epic.StatusWIP {
 		t.Errorf("Second snapshot: expected status active, got: %s", snapshots[1].EpicState.Status)
 	}
-	if snapshots[2].EpicState.Phases[0].Status != epic.StatusActive {
+	if snapshots[2].EpicState.Phases[0].Status != epic.StatusWIP {
 		t.Errorf("Third snapshot: expected phase status active, got: %s", snapshots[2].EpicState.Phases[0].Status)
 	}
 }
@@ -174,7 +174,7 @@ func TestTestExecutionEnvironment_SnapshotQueries(t *testing.T) {
 	}
 
 	// Save with specific command
-	testEpic.Status = epic.StatusActive
+	testEpic.Status = epic.StatusWIP
 	err = env.SaveEpic(testEpic, "start_epic")
 	if err != nil {
 		t.Fatalf("Failed to save epic: %v", err)
@@ -185,7 +185,7 @@ func TestTestExecutionEnvironment_SnapshotQueries(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get snapshot by command: %v", err)
 	}
-	if snapshot.EpicState.Status != epic.StatusActive {
+	if snapshot.EpicState.Status != epic.StatusWIP {
 		t.Errorf("Expected epic status active in snapshot, got: %s", snapshot.EpicState.Status)
 	}
 
@@ -200,7 +200,7 @@ func TestTestExecutionEnvironment_SnapshotQueries(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get state at step: %v", err)
 	}
-	if state.Status != epic.StatusActive {
+	if state.Status != epic.StatusWIP {
 		t.Errorf("Expected epic status active at step 1, got: %s", state.Status)
 	}
 
@@ -233,7 +233,7 @@ func TestTestExecutionEnvironment_SnapshotQueries(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get final state: %v", err)
 	}
-	if finalState.Status != epic.StatusActive {
+	if finalState.Status != epic.StatusWIP {
 		t.Errorf("Expected final epic status active, got: %s", finalState.Status)
 	}
 }
@@ -258,7 +258,7 @@ func TestTestExecutionEnvironment_ExecutionSummary(t *testing.T) {
 	}
 
 	// Perform some operations
-	testEpic.Status = epic.StatusActive
+	testEpic.Status = epic.StatusWIP
 	err = env.SaveEpic(testEpic, "start_epic")
 	if err != nil {
 		t.Fatalf("Failed to save epic: %v", err)
@@ -278,7 +278,7 @@ func TestTestExecutionEnvironment_ExecutionSummary(t *testing.T) {
 		t.Errorf("Expected initial state status planning, got: %s", summary.InitialState.Status)
 	}
 
-	if summary.FinalState.Status != epic.StatusActive {
+	if summary.FinalState.Status != epic.StatusWIP {
 		t.Errorf("Expected final state status active, got: %s", summary.FinalState.Status)
 	}
 
@@ -414,7 +414,7 @@ func TestTestExecutionEnvironment_MemoryIsolation(t *testing.T) {
 	}
 
 	// Modify epic1
-	epic1.Status = epic.StatusActive
+	epic1.Status = epic.StatusWIP
 	err = env1.SaveEpic(epic1, "start_epic1")
 	if err != nil {
 		t.Fatalf("Failed to save epic1: %v", err)
@@ -432,7 +432,7 @@ func TestTestExecutionEnvironment_MemoryIsolation(t *testing.T) {
 	}
 
 	// Verify isolation - epic1 should be active, epic2 should still be planning
-	if current1.Status != epic.StatusActive {
+	if current1.Status != epic.StatusWIP {
 		t.Errorf("Expected epic1 status to be active, got: %s", current1.Status)
 	}
 

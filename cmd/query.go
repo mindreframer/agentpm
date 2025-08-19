@@ -23,7 +23,7 @@ and complex path navigation.
 
 Query patterns:
   //task                          - All task elements
-  //phase[@status='active']       - Phases with specific status
+  //phase[@status='wip']       - Phases with specific status
   //task[@phase_id='1A']          - Tasks in specific phase
   //metadata/assignee             - Nested elements
   //test[@id='test_1']            - Elements by ID
@@ -39,7 +39,7 @@ Examples:
   agentpm query "//task[@status='done']"         # Completed tasks
   agentpm query "//task[@phase_id='1A']"         # Tasks in phase 1A
   agentpm query "//metadata/assignee"            # Epic assignee
-  agentpm query "//phase[@status='active']"      # Active phases
+  agentpm query "//phase[@status='wip']"         # Active phases
   agentpm query "//test[@status='passing']"      # Passing tests
   agentpm query "//task[@status='done']" --format text  # Text output
   agentpm query "//phase" -f epic-9.xml          # Query different file`,

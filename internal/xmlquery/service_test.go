@@ -192,7 +192,7 @@ func TestService_IntegrationWithRealEpicStructure(t *testing.T) {
 	})
 
 	t.Run("query all active elements", func(t *testing.T) {
-		result, err := service.QueryEpicFile(epicFile, "//*[@status='active']")
+		result, err := service.QueryEpicFile(epicFile, "//*[@status='wip']")
 		require.NoError(t, err)
 
 		// Should find epic, phase, and task with active status
@@ -201,7 +201,7 @@ func TestService_IntegrationWithRealEpicStructure(t *testing.T) {
 		// Verify all have active status
 		for _, elem := range result.Elements {
 			status := elem.SelectAttrValue("status", "")
-			assert.Equal(t, "active", status)
+			assert.Equal(t, "wip", status)
 		}
 	})
 

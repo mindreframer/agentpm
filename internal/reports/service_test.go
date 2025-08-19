@@ -14,19 +14,19 @@ func createTestEpicForReports() *epic.Epic {
 	return &epic.Epic{
 		ID:        "test-epic-1",
 		Name:      "Test Epic",
-		Status:    epic.StatusActive,
+		Status:    epic.StatusWIP,
 		CreatedAt: time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC),
 		Assignee:  "test_agent",
 		Phases: []epic.Phase{
 			{ID: "P1", Name: "Phase 1", Status: epic.StatusCompleted},
-			{ID: "P2", Name: "Phase 2", Status: epic.StatusActive},
+			{ID: "P2", Name: "Phase 2", Status: epic.StatusWIP},
 			{ID: "P3", Name: "Phase 3", Status: epic.StatusPending},
 			{ID: "P4", Name: "Phase 4", Status: epic.StatusPending},
 		},
 		Tasks: []epic.Task{
 			{ID: "T1", PhaseID: "P1", Name: "Task 1", Status: epic.StatusCompleted},
 			{ID: "T2", PhaseID: "P1", Name: "Task 2", Status: epic.StatusCompleted},
-			{ID: "T3", PhaseID: "P2", Name: "Task 3", Status: epic.StatusActive},
+			{ID: "T3", PhaseID: "P2", Name: "Task 3", Status: epic.StatusWIP},
 			{ID: "T4", PhaseID: "P2", Name: "Task 4", Status: epic.StatusPending},
 			{ID: "T5", PhaseID: "P3", Name: "Task 5", Status: epic.StatusPending},
 		},
@@ -135,7 +135,7 @@ func TestReportService_GenerateHandoffReport(t *testing.T) {
 		// Verify epic info
 		assert.Equal(t, "test-epic-1", report.EpicInfo.ID)
 		assert.Equal(t, "Test Epic", report.EpicInfo.Name)
-		assert.Equal(t, "active", report.EpicInfo.Status)
+		assert.Equal(t, "wip", report.EpicInfo.Status)
 		assert.Equal(t, "test_agent", report.EpicInfo.Assignee)
 
 		// Verify current state
@@ -279,7 +279,7 @@ func TestReportService_BlockerDetection(t *testing.T) {
 		testEpic := &epic.Epic{
 			ID:       "blocker-epic",
 			Name:     "Blocker Epic",
-			Status:   epic.StatusActive,
+			Status:   epic.StatusWIP,
 			Assignee: "test_agent",
 			Tests:    []epic.Test{}, // No tests
 			Events: []epic.Event{
@@ -329,7 +329,7 @@ func TestReportService_EpicInfoExtraction(t *testing.T) {
 		info := report.EpicInfo
 		assert.Equal(t, "test-epic-1", info.ID)
 		assert.Equal(t, "Test Epic", info.Name)
-		assert.Equal(t, "active", info.Status)
+		assert.Equal(t, "wip", info.Status)
 		assert.Equal(t, "test_agent", info.Assignee)
 		assert.Equal(t, time.Date(2025, 8, 16, 9, 0, 0, 0, time.UTC), info.Started)
 	})

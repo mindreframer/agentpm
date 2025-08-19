@@ -19,7 +19,7 @@ func TestErrorHandling_ErrorContextIncludesRelevantStateInformation(t *testing.T
 	complexEpic := &epic.Epic{
 		ID:     "complex-error-test",
 		Name:   "Complex Error Test Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Phases: []epic.Phase{
 			{
 				ID:     "1A",
@@ -29,7 +29,7 @@ func TestErrorHandling_ErrorContextIncludesRelevantStateInformation(t *testing.T
 			{
 				ID:     "1B",
 				Name:   "Active Phase",
-				Status: epic.StatusActive,
+				Status: epic.StatusWIP,
 			},
 		},
 		Tasks: []epic.Task{
@@ -43,7 +43,7 @@ func TestErrorHandling_ErrorContextIncludesRelevantStateInformation(t *testing.T
 				ID:      "1B_1",
 				Name:    "Active Task",
 				PhaseID: "1B",
-				Status:  epic.StatusActive,
+				Status:  epic.StatusWIP,
 			},
 		},
 		Events: []epic.Event{
@@ -58,13 +58,13 @@ func TestErrorHandling_ErrorContextIncludesRelevantStateInformation(t *testing.T
 		InitialState: &epic.Epic{ID: "complex-error-test", Status: epic.StatusPending},
 		FinalState:   complexEpic,
 		IntermediateStates: []executor.StateSnapshot{
-			{EpicState: &epic.Epic{ID: "complex-error-test", Status: epic.StatusActive}},
+			{EpicState: &epic.Epic{ID: "complex-error-test", Status: epic.StatusWIP}},
 		},
 		Errors: []executor.TransitionError{
 			{
 				Command:       "complete task 1B_1",
 				ExpectedState: "completed",
-				ActualState:   "active",
+				ActualState:   "wip",
 				Epic:          complexEpic,
 			},
 		},
@@ -178,7 +178,7 @@ func TestErrorHandling_DebugModeProvidesDifferentLevelsOfDetail(t *testing.T) {
 	// Create test epic
 	epic := &epic.Epic{
 		ID:     "debug-levels-test",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 	}
 
 	result := &executor.TransitionChainResult{
@@ -233,12 +233,12 @@ func TestErrorHandling_StateVisualizationHandlesComplexScenarios(t *testing.T) {
 	// Create a complex state progression
 	states := []interface{}{
 		&epic.Epic{ID: "viz-test", Status: epic.StatusPending},
-		&epic.Epic{ID: "viz-test", Status: epic.StatusActive, Phases: []epic.Phase{
-			{ID: "1A", Status: epic.StatusActive},
+		&epic.Epic{ID: "viz-test", Status: epic.StatusWIP, Phases: []epic.Phase{
+			{ID: "1A", Status: epic.StatusWIP},
 		}},
-		&epic.Epic{ID: "viz-test", Status: epic.StatusActive, Phases: []epic.Phase{
+		&epic.Epic{ID: "viz-test", Status: epic.StatusWIP, Phases: []epic.Phase{
 			{ID: "1A", Status: epic.StatusCompleted},
-			{ID: "1B", Status: epic.StatusActive},
+			{ID: "1B", Status: epic.StatusWIP},
 		}},
 		&epic.Epic{ID: "viz-test", Status: epic.StatusCompleted, Phases: []epic.Phase{
 			{ID: "1A", Status: epic.StatusCompleted},
@@ -262,7 +262,7 @@ func TestErrorHandling_StateVisualizationHandlesComplexScenarios(t *testing.T) {
 	if !strings.Contains(timeline, "pending") {
 		t.Error("Timeline should show initial pending state")
 	}
-	if !strings.Contains(timeline, "active") {
+	if !strings.Contains(timeline, "wip") {
 		t.Error("Timeline should show active states")
 	}
 	if !strings.Contains(timeline, "completed") {
@@ -320,7 +320,7 @@ func TestErrorHandling_ParallelExecutionIsolation(t *testing.T) {
 			// Each goroutine creates its own epic with unique ID
 			epic := &epic.Epic{
 				ID:     fmt.Sprintf("parallel-test-%d", builderID),
-				Status: epic.StatusActive,
+				Status: epic.StatusWIP,
 			}
 
 			result := &executor.TransitionChainResult{
@@ -424,15 +424,15 @@ func TestErrorHandling_FailureAnalysisWithComplexErrorPatterns(t *testing.T) {
 			name: "cascading_failures",
 			epic: &epic.Epic{
 				ID:     "cascade-test",
-				Status: epic.StatusActive,
+				Status: epic.StatusWIP,
 				Phases: []epic.Phase{
-					{ID: "1A", Status: epic.StatusActive},
+					{ID: "1A", Status: epic.StatusWIP},
 				},
 			},
 			assertions: func(ab *AssertionBuilder) {
 				ab.EpicStatus("completed").
 					PhaseStatus("1A", "completed").
-					PhaseStatus("1B", "active") // Non-existent phase
+					PhaseStatus("1B", "wip") // Non-existent phase
 			},
 			expectedSuggestions: map[string][]string{
 				"epic status": {"expected state", "transition chain"},
@@ -444,7 +444,7 @@ func TestErrorHandling_FailureAnalysisWithComplexErrorPatterns(t *testing.T) {
 			name: "timing_and_sequence_failures",
 			epic: &epic.Epic{
 				ID:     "timing-test",
-				Status: epic.StatusActive,
+				Status: epic.StatusWIP,
 				Events: []epic.Event{
 					{Type: "epic_started", Data: "Started"},
 				},
@@ -466,7 +466,7 @@ func TestErrorHandling_FailureAnalysisWithComplexErrorPatterns(t *testing.T) {
 				ID:     "inconsistent-test",
 				Status: epic.StatusCompleted,
 				Phases: []epic.Phase{
-					{ID: "1A", Status: epic.StatusActive}, // Inconsistent - epic completed but phase active
+					{ID: "1A", Status: epic.StatusWIP}, // Inconsistent - epic completed but phase active
 				},
 				Tasks: []epic.Task{
 					{ID: "1A_1", PhaseID: "1A", Status: epic.StatusPending}, // Also inconsistent
@@ -561,7 +561,7 @@ func TestErrorHandling_MemoryUsageUnderStress(t *testing.T) {
 	for i := 0; i < numIterations; i++ {
 		testEpic := &epic.Epic{
 			ID:     fmt.Sprintf("stress-test-%d", i),
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 			Phases: make([]epic.Phase, 5),
 			Tasks:  make([]epic.Task, 20),
 			Events: make([]epic.Event, 50),
@@ -571,14 +571,14 @@ func TestErrorHandling_MemoryUsageUnderStress(t *testing.T) {
 		for j := range testEpic.Phases {
 			testEpic.Phases[j] = epic.Phase{
 				ID:     fmt.Sprintf("%d%c", i, 'A'+j),
-				Status: epic.StatusActive,
+				Status: epic.StatusWIP,
 			}
 		}
 		for j := range testEpic.Tasks {
 			testEpic.Tasks[j] = epic.Task{
 				ID:      fmt.Sprintf("%d_%d", i, j),
 				PhaseID: fmt.Sprintf("%d%c", i, 'A'+(j%5)),
-				Status:  epic.StatusActive,
+				Status:  epic.StatusWIP,
 			}
 		}
 		for j := range testEpic.Events {
@@ -643,17 +643,17 @@ func TestErrorHandling_RecoveryStrategiesIntegration(t *testing.T) {
 	// Test integration of error recovery with the full assertion framework
 	epic := &epic.Epic{
 		ID:     "recovery-integration-test",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Phases: []epic.Phase{
 			{ID: "1A", Status: epic.StatusCompleted},
-			{ID: "1B", Status: epic.StatusActive},
+			{ID: "1B", Status: epic.StatusWIP},
 		},
 	}
 
 	result := &executor.TransitionChainResult{
 		FinalState: epic,
 		Errors: []executor.TransitionError{
-			{Command: "complete phase 1B", ExpectedState: "completed", ActualState: "active"},
+			{Command: "complete phase 1B", ExpectedState: "completed", ActualState: "wip"},
 		},
 	}
 
@@ -681,7 +681,7 @@ func TestErrorHandling_RecoveryStrategiesIntegration(t *testing.T) {
 	// Trigger multiple assertion failures
 	builder.EpicStatus("completed"). // Recoverable
 						PhaseStatus("1B", "completed"). // Recoverable
-						PhaseStatus("1C", "active").    // Recoverable (phase not found)
+						PhaseStatus("1C", "wip").       // Recoverable (phase not found)
 						HasEvent("critical_failure")    // Should be recoverable
 
 	initialErrorCount := len(builder.GetErrors())
@@ -734,7 +734,7 @@ func TestErrorHandling_IntegrationWithGoTestingFramework(t *testing.T) {
 
 	// Subtest pattern integration
 	t.Run("subtest_error_isolation", func(t *testing.T) {
-		epic := &epic.Epic{ID: "subtest-1", Status: epic.StatusActive}
+		epic := &epic.Epic{ID: "subtest-1", Status: epic.StatusWIP}
 		result := &executor.TransitionChainResult{FinalState: epic}
 
 		builder := NewAssertionBuilder(result).WithDebugMode(DebugBasic)
@@ -751,7 +751,7 @@ func TestErrorHandling_IntegrationWithGoTestingFramework(t *testing.T) {
 		result := &executor.TransitionChainResult{FinalState: epic}
 
 		builder := NewAssertionBuilder(result).WithDebugMode(DebugBasic)
-		builder.EpicStatus("active")
+		builder.EpicStatus("wip")
 
 		errors := builder.GetErrors()
 		if len(errors) != 1 {
@@ -766,8 +766,8 @@ func TestErrorHandling_IntegrationWithGoTestingFramework(t *testing.T) {
 		expectedStatus string
 		shouldFail     bool
 	}{
-		{"pending_to_active", epic.StatusPending, "active", true},
-		{"active_to_completed", epic.StatusActive, "completed", true},
+		{"pending_to_active", epic.StatusPending, "wip", true},
+		{"active_to_completed", epic.StatusWIP, "completed", true},
 		{"completed_to_completed", epic.StatusCompleted, "completed", false},
 	}
 
@@ -792,7 +792,7 @@ func TestErrorHandling_IntegrationWithGoTestingFramework(t *testing.T) {
 
 	// Performance testing (note: proper benchmarks should be separate functions starting with Benchmark)
 	// Basic performance validation
-	epic := &epic.Epic{ID: "benchmark-test", Status: epic.StatusActive}
+	epic := &epic.Epic{ID: "benchmark-test", Status: epic.StatusWIP}
 	result := &executor.TransitionChainResult{FinalState: epic}
 
 	start := time.Now()

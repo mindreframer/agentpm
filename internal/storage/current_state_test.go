@@ -87,7 +87,7 @@ func TestCurrentStateSection(t *testing.T) {
 
 		// Create a legacy epic structure without current_state
 		legacyXML := `<?xml version="1.0" encoding="UTF-8"?>
-<epic id="legacy-epic" name="Legacy Epic" status="active" created_at="2025-08-16T10:00:00Z">
+<epic id="legacy-epic" name="Legacy Epic" status="wip" created_at="2025-08-16T10:00:00Z">
     <assignee>legacy-assignee</assignee>
     <description>Legacy epic without current_state section</description>
     <phases>
@@ -130,10 +130,10 @@ func TestCurrentStateSection(t *testing.T) {
 
 		// Add some phases and tasks
 		testEpic.Phases = []epic.Phase{
-			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 		}
 		testEpic.Tasks = []epic.Task{
-			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusWIP},
 		}
 
 		storage := NewFileStorage()

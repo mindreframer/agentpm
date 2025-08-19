@@ -89,7 +89,7 @@ func TestMetadataSection(t *testing.T) {
 
 		// Create a legacy epic structure without metadata
 		legacyXML := `<?xml version="1.0" encoding="UTF-8"?>
-<epic id="legacy-epic" name="Legacy Epic" status="active" created_at="2025-08-16T10:00:00Z">
+<epic id="legacy-epic" name="Legacy Epic" status="wip" created_at="2025-08-16T10:00:00Z">
     <assignee>legacy-assignee</assignee>
     <description>Legacy epic without metadata section</description>
     <phases>
@@ -146,7 +146,7 @@ func TestMetadataSection(t *testing.T) {
 
 		// Modify some non-metadata fields
 		loadedEpic.Description = "Updated description"
-		loadedEpic.Tasks[0].Status = epic.StatusActive
+		loadedEpic.Tasks[0].Status = epic.StatusWIP
 
 		require.NoError(t, storage.SaveEpic(loadedEpic, epicFile))
 
@@ -158,7 +158,7 @@ func TestMetadataSection(t *testing.T) {
 		assert.Equal(t, "test@company.com", finalEpic.Metadata.Assignee)
 		assert.Equal(t, "1 week", finalEpic.Metadata.EstimatedEffort)
 		assert.Equal(t, "Updated description", finalEpic.Description)
-		assert.Equal(t, epic.StatusActive, finalEpic.Tasks[0].Status)
+		assert.Equal(t, epic.StatusWIP, finalEpic.Tasks[0].Status)
 	})
 
 	t.Run("created timestamp handling", func(t *testing.T) {

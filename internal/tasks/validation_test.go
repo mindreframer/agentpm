@@ -31,7 +31,7 @@ func TestTaskValidationService_ValidateTaskCompletion(t *testing.T) {
 		task := &epic.Task{
 			ID:     "task1",
 			Name:   "Test Task",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := tvs.ValidateTaskCompletion(epicData, task)
@@ -54,7 +54,7 @@ func TestTaskValidationService_ValidateTaskCompletion(t *testing.T) {
 		task := &epic.Task{
 			ID:     "task1",
 			Name:   "Test Task",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := tvs.ValidateTaskCompletion(epicData, task)
@@ -91,7 +91,7 @@ func TestTaskValidationService_ValidateTaskCompletion(t *testing.T) {
 		task := &epic.Task{
 			ID:     "task1",
 			Name:   "Test Task",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := tvs.ValidateTaskCompletion(epicData, task)
@@ -120,7 +120,7 @@ func TestTaskValidationService_ValidateTaskCompletion(t *testing.T) {
 		task := &epic.Task{
 			ID:     "task1",
 			Name:   "Test Task",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := tvs.ValidateTaskCompletion(epicData, task)
@@ -154,7 +154,7 @@ func TestTaskValidationService_ValidateTaskCompletion(t *testing.T) {
 		task := &epic.Task{
 			ID:     "task1",
 			Name:   "Test Task",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := tvs.ValidateTaskCompletion(epicData, task)
@@ -177,7 +177,7 @@ func TestTaskValidationService_ValidateTaskCompletion(t *testing.T) {
 		task := &epic.Task{
 			ID:     "task1",
 			Name:   "Test Task",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := tvs.ValidateTaskCompletion(epicData, task)
@@ -200,7 +200,7 @@ func TestTaskValidationService_ValidateTaskCompletion(t *testing.T) {
 		task := &epic.Task{
 			ID:     "task1",
 			Name:   "Test Task",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := tvs.ValidateTaskCompletion(epicData, task)
@@ -222,7 +222,7 @@ func TestTaskValidationService_ValidateTaskStatusTransition(t *testing.T) {
 		{
 			name:          "pending to active should be valid",
 			currentStatus: epic.StatusPending,
-			targetStatus:  epic.StatusActive,
+			targetStatus:  epic.StatusWIP,
 			wantError:     false,
 		},
 		{
@@ -233,26 +233,26 @@ func TestTaskValidationService_ValidateTaskStatusTransition(t *testing.T) {
 		},
 		{
 			name:          "active to completed should be valid",
-			currentStatus: epic.StatusActive,
+			currentStatus: epic.StatusWIP,
 			targetStatus:  epic.StatusCompleted,
 			wantError:     false,
 		},
 		{
 			name:          "active to cancelled should be valid",
-			currentStatus: epic.StatusActive,
+			currentStatus: epic.StatusWIP,
 			targetStatus:  epic.StatusCancelled,
 			wantError:     false,
 		},
 		{
 			name:          "active to on_hold should be valid",
-			currentStatus: epic.StatusActive,
+			currentStatus: epic.StatusWIP,
 			targetStatus:  epic.StatusOnHold,
 			wantError:     false,
 		},
 		{
 			name:          "on_hold to active should be valid",
 			currentStatus: epic.StatusOnHold,
-			targetStatus:  epic.StatusActive,
+			targetStatus:  epic.StatusWIP,
 			wantError:     false,
 		},
 		{
@@ -276,13 +276,13 @@ func TestTaskValidationService_ValidateTaskStatusTransition(t *testing.T) {
 		{
 			name:          "completed to any status should be invalid",
 			currentStatus: epic.StatusCompleted,
-			targetStatus:  epic.StatusActive,
+			targetStatus:  epic.StatusWIP,
 			wantError:     true,
 		},
 		{
 			name:          "cancelled to any status should be invalid",
 			currentStatus: epic.StatusCancelled,
-			targetStatus:  epic.StatusActive,
+			targetStatus:  epic.StatusWIP,
 			wantError:     true,
 		},
 		{
@@ -316,7 +316,7 @@ func TestTaskValidationService_ValidateTaskCancellation(t *testing.T) {
 	t.Run("valid cancellation with reason should pass", func(t *testing.T) {
 		task := &epic.Task{
 			ID:     "task1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := tvs.ValidateTaskCancellation(task, "No longer needed")
@@ -328,7 +328,7 @@ func TestTaskValidationService_ValidateTaskCancellation(t *testing.T) {
 	t.Run("cancellation without reason should fail", func(t *testing.T) {
 		task := &epic.Task{
 			ID:     "task1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		err := tvs.ValidateTaskCancellation(task, "")
@@ -411,7 +411,7 @@ func TestTaskValidationService_CanCompleteTask(t *testing.T) {
 		}
 		task := &epic.Task{
 			ID:     "task1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		canComplete, err := tvs.CanCompleteTask(epicData, task)
@@ -431,7 +431,7 @@ func TestTaskValidationService_CanCompleteTask(t *testing.T) {
 		}
 		task := &epic.Task{
 			ID:     "task1",
-			Status: epic.StatusActive,
+			Status: epic.StatusWIP,
 		}
 
 		canComplete, err := tvs.CanCompleteTask(epicData, task)
@@ -469,7 +469,7 @@ func TestTaskValidationService_ErrorMessageContainsExactCounts(t *testing.T) {
 
 	task := &epic.Task{
 		ID:     "task1",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 	}
 
 	err := tvs.ValidateTaskCompletion(epicData, task)

@@ -579,14 +579,14 @@ func TestStateMachineTransitions(t *testing.T) {
             initialState:  "pending",
             transitions:   []string{"start", "activate", "complete"},
             expectedFinal: "completed",
-            expectedPath:  []string{"pending", "active", "in_progress", "completed"},
+            expectedPath:  []string{"pending", "wip", "in_progress", "completed"},
         },
         {
             name:          "error_recovery",
             initialState:  "pending",
             transitions:   []string{"start", "fail", "recover", "complete"},
             expectedFinal: "completed",
-            expectedPath:  []string{"pending", "active", "failed", "recovering", "completed"},
+            expectedPath:  []string{"pending", "wip", "failed", "recovering", "completed"},
         },
     }
     

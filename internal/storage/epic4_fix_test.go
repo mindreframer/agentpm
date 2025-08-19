@@ -16,12 +16,12 @@ func TestEpic4FieldsPersistence(t *testing.T) {
 	testEpic := &epic.Epic{
 		ID:     "test-epic",
 		Name:   "Test Epic",
-		Status: epic.StatusActive,
+		Status: epic.StatusWIP,
 		Phases: []epic.Phase{
-			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusActive},
+			{ID: "phase-1", Name: "Phase 1", Status: epic.StatusWIP},
 		},
 		Tasks: []epic.Task{
-			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusActive},
+			{ID: "task-1", PhaseID: "phase-1", Name: "Task 1", Status: epic.StatusWIP},
 		},
 		Tests: []epic.Test{
 			{
@@ -29,7 +29,7 @@ func TestEpic4FieldsPersistence(t *testing.T) {
 				TaskID:             "task-1",
 				PhaseID:            "phase-1",
 				Name:               "Test 1",
-				Status:             epic.StatusActive,
+				Status:             epic.StatusWIP,
 				TestStatus:         epic.TestStatusWIP,
 				Description:        "Test with Epic 4 fields",
 				StartedAt:          &now,

@@ -62,7 +62,7 @@ func (s EpicLifecycleStatus) ToEpicStatus() epic.Status {
 	case LifecycleStatusPending:
 		return epic.StatusPending
 	case LifecycleStatusWIP:
-		return epic.StatusActive
+		return epic.StatusWIP
 	case LifecycleStatusDone:
 		return epic.StatusCompleted
 	default:
@@ -75,7 +75,7 @@ func FromEpicStatus(status epic.Status) EpicLifecycleStatus {
 	switch status {
 	case epic.StatusPending:
 		return LifecycleStatusPending
-	case epic.StatusActive:
+	case epic.StatusWIP:
 		return LifecycleStatusWIP
 	case epic.StatusCompleted:
 		return LifecycleStatusDone
